@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="@string/pref_client_title"
+        android:key="pref_client_key">
+
+        <EditTextPreference
+            android:key="pref_client_host_key"
+            android:title="@string/pref_client_host"
+            android:defaultValue="localhost"
+            android:inputType="text">
+        </EditTextPreference>
+
+        <EditTextPreference
+            android:key="pref_client_port_key"
+            android:title="@string/pref_client_port"
+            android:defaultValue="8545"
+            android:inputType="numberSigned">
+        </EditTextPreference>
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/pref_account_title"
+        android:key="pref_account_key">
+
+        <EditTextPreference
+            android:key="pref_account_unlock_time_key"
+            android:title="@string/pref_account_unlock_time"
+            android:defaultValue="60"
+            android:inputType="numberSigned">
+        </EditTextPreference>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/pref_transaction_title"
+        android:key="pref_transaction_key">
+
+        <EditTextPreference
+            android:key="pref_transaction_gas_price_key"
+            android:title="@string/pref_transaction_gas_price"
+            android:defaultValue="0"
+            android:inputType="numberSigned">
+        </EditTextPreference>
+
+        <EditTextPreference
+            android:key="pref_transaction_gas_limit_key"
+            android:title="@string/pref_transaction_gas_limit"
+            android:defaultValue="1712388"
+            android:inputType="numberSigned">
+        </EditTextPreference>
+
+        <EditTextPreference
+            android:key="pref_transaction_attempts_key"
+            android:title="@string/pref_transaction_attempts"
+            android:defaultValue="40"
+            android:inputType="numberSigned">
+        </EditTextPreference>
+
+        <EditTextPreference
+            android:key="pref_transaction_sleep_time_key"
+            android:title="@string/pref_transaction_sleep_time"
+            android:defaultValue="15000"
+            android:inputType="numberSigned">
+        </EditTextPreference>
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
