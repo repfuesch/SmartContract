@@ -38,10 +38,6 @@ public class ContractCreateActivity extends ActivityBase {
     protected void onContractCreated(String contractAddress) {
     }
 
-    @Override
-    protected void onContractUpdated(String contractAddress) {
-    }
-
     public void onDeployContractButtonClick(final View view)
     {
         TextView priceField = (TextView)findViewById(R.id.contract_price);

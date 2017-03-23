@@ -3,6 +3,7 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview;
 import android.content.Context;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Handler;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -138,7 +139,7 @@ public class PurchaseContractFragment extends Fragment
                                             //todo: state changed since last login.
                                         }
 
-                                        adapter.addContract(resolved);
+                                        loadContract(resolved);
                                     }
                                 });
                             }
@@ -152,9 +153,9 @@ public class PurchaseContractFragment extends Fragment
         adapter.addContract(newContract);
     }
 
-    private void loadContract(SimplePromise<IPurchaseContract> promise)
+    public void loadContract(String contractAddress)
     {
-        promise
+        ServiceProvider.getInstance().getContractService().loadContract(contractAddress)
                 .done(new DoneCallback<IPurchaseContract>() {
                     @Override
                     public void onDone(final IPurchaseContract result)
@@ -180,12 +181,6 @@ public class PurchaseContractFragment extends Fragment
                         });
                     }
                 });
-    }
-
-    public void loadContract(String contractAddress)
-    {
-        SimplePromise<IPurchaseContract> promise = ServiceProvider.getInstance().getContractService().loadContract(contractAddress);
-        loadContract(promise);
     }
 
     public void updateContract(String contractAddress)

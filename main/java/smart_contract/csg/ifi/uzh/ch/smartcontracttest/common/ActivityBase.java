@@ -148,8 +148,6 @@ public abstract class ActivityBase extends AppCompatActivity implements Contract
 
     protected abstract void onContractCreated(String contractAddress);
 
-    protected abstract void onContractUpdated(String contractAddress);
-
     protected void onContractTransactionError(Throwable throwable)
     {
         handleError(throwable);
@@ -171,11 +169,6 @@ public abstract class ActivityBase extends AppCompatActivity implements Contract
                 {
                     String contractAddress = intent.getStringExtra(TransactionManager.CONTRACT_TRANSACTION_ADDRESS);
                     onContractTransactionError((Throwable)error);
-                    if (contractAddress != null)
-                    {
-                        //We update the view even tough the transaction failed.
-                        onContractUpdated(contractAddress);
-                    }
                     return;
                 }
 
@@ -190,23 +183,17 @@ public abstract class ActivityBase extends AppCompatActivity implements Contract
                             if(rejected != null)
                             {
                                 handleError(rejected);
+                            }else{
+                                ContractManager manager = new ContractFileManager(getContext().getFilesDir() + "/accounts");
+                                manager.saveContract(new ContractInfo(ContractState.Created, contractAddress), SettingsProvider.getInstance().getSelectedAccount());
+                                onContractCreated(contractAddress);
                             }
-
-                            ContractManager manager = new ContractFileManager(getContext().getFilesDir() + "/accounts");
-                            manager.saveContract(new ContractInfo(ContractState.Created, contractAddress), SettingsProvider.getInstance().getSelectedAccount());
-                            onContractCreated(contractAddress);
                         }
                     });
 
                     return;
                 }
 
-                if(intent.getStringExtra(TransactionManager.CONTRACT_TRANSACTION_TYPE).equals(TransactionManager.CONTRACT_TRANSACTION_UPDATE))
-                {
-                    String contractAddress = intent.getStringExtra(TransactionManager.CONTRACT_TRANSACTION_ADDRESS);
-                    onContractUpdated(contractAddress);
-                    return;
-                }
             } else if(intent.getAction().equals(SettingsProvider.ACTION_SETTINGS_CHANGED))
             {
                 onSettingsChanged();

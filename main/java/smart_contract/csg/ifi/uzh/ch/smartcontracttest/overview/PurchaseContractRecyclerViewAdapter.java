@@ -1,6 +1,8 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview;
 
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,7 +22,8 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PurchaseContractRecyclerViewAdapter extends RecyclerView.Adapter<PurchaseContractRecyclerViewAdapter.ViewHolder> {
+public class PurchaseContractRecyclerViewAdapter
+        extends RecyclerView.Adapter<PurchaseContractRecyclerViewAdapter.ViewHolder> {
 
     private final List<IPurchaseContract> contracts;
     private final ContractErrorHandler errorHandler;
@@ -92,7 +95,7 @@ public class PurchaseContractRecyclerViewAdapter extends RecyclerView.Adapter<Pu
     public void onBindViewHolder(final ViewHolder holder, int position) {
 
         IPurchaseContract contract = contracts.get(position);
-        holder.setContract(contract);
+        holder.attachContract(contract);
     }
 
     @Override
@@ -104,6 +107,7 @@ public class PurchaseContractRecyclerViewAdapter extends RecyclerView.Adapter<Pu
     public int getItemViewType(int position) {
         return position;
     }
+
 
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, IContractObserver {
         public final View view;
@@ -118,11 +122,14 @@ public class PurchaseContractRecyclerViewAdapter extends RecyclerView.Adapter<Pu
         public final Button showDetailsButton;
         public final LinearLayout cardProgressView;
 
+        private Handler handler;
         private IPurchaseContract contract;
 
         public ViewHolder(View view) {
             super(view);
             this.view = view;
+
+            this.handler = new Handler(Looper.getMainLooper());
 
             titleView = (TextView) view.findViewById(R.id.list_detail_title);
             stateView = (TextView) view.findViewById(R.id.list_detail_state);
@@ -140,19 +147,29 @@ public class PurchaseContractRecyclerViewAdapter extends RecyclerView.Adapter<Pu
             abortButton.setOnClickListener(this);
             confirmButton.setOnClickListener(this);
             showDetailsButton.setOnClickListener(this);
-
         }
+
 
         @Override
         public String toString() {
             return super.toString() + " '" + stateView.getText() + "'";
         }
 
-        public void setContract(IPurchaseContract contract)
+        public void attachContract(IPurchaseContract contract)
         {
             this.contract = contract;
             contract.addObserver(this);
             updateViewFromState();
+        }
+
+        public void detachContract()
+        {
+            contract.deleteObserver(this);
+        }
+
+        private void runOnUiThread(Runnable runnable)
+        {
+            handler.post(runnable);
         }
 
         @Override
@@ -161,7 +178,6 @@ public class PurchaseContractRecyclerViewAdapter extends RecyclerView.Adapter<Pu
             switch(view.getId())
             {
                 case R.id.detail_buy_button:
-                    //showProgressView();
                     buyButton.setEnabled(false);
                     TransactionManager.toTransaction(contract.confirmPurchase(), contract.getContractAddress());
                     break;
@@ -234,10 +250,16 @@ public class PurchaseContractRecyclerViewAdapter extends RecyclerView.Adapter<Pu
         @Override
         public void contractStateChanged(String event, Object value)
         {
-            //update the contract state
-            ContractState state = contract.state().get();
-            if(state != null)
-                stateView.setText(state.toString());
+            //update the contract view
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    showProgressView();
+                    updateViewFromState();
+                    hideProgressView();
+                }
+            });
+
         }
     }
 

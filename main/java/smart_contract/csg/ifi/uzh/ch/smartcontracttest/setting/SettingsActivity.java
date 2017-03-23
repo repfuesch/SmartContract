@@ -42,7 +42,4 @@ public class SettingsActivity extends ActivityBase
     protected void onContractCreated(String contractAddress) {
     }
 
-    @Override
-    protected void onContractUpdated(String contractAddress) {
-    }
 }

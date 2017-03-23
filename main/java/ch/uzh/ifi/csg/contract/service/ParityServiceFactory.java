@@ -2,13 +2,13 @@ package ch.uzh.ifi.csg.contract.service;
 
 import org.web3j.protocol.http.HttpService;
 import org.web3j.protocol.parity.Parity;
-import org.web3j.protocol.parity.ParityFactory;
 import org.web3j.tx.ClientTransactionManager;
 import org.web3j.tx.TransactionManager;
 
 import java.math.BigInteger;
 
-import ch.uzh.ifi.csg.contract.setting.EthSettings;
+import ch.uzh.ifi.csg.contract.web3j.protocol.ParityClientFactory;
+
 /**
  * Created by flo on 16.03.17.
  */
@@ -19,7 +19,7 @@ public class ParityServiceFactory implements EthServiceFactory
     public AccountUnlockService createAccountUnlockService(String host, int port)
     {
         String endpoint = "http://" + host + ":" + port + "/";
-        Parity parity = ParityFactory.build(new HttpService(endpoint));
+        Parity parity = ParityClientFactory.build(new HttpService(endpoint));
         return new ParityAccountUnlockService(parity);
     }
 
@@ -27,7 +27,7 @@ public class ParityServiceFactory implements EthServiceFactory
     public ContractService createContractService(String host, int port, String selectedAccount, BigInteger gasPrice, BigInteger gasLimit, int transactionAttempts, int transactionSleepDuration)
     {
         String endpoint = "http://" + host + ":" + port + "/";
-        Parity parity = ParityFactory.build(new HttpService(endpoint));
+        Parity parity = ParityClientFactory.build(new HttpService(endpoint));
         TransactionManager transactionManager =
                 new ClientTransactionManager(
                         parity,

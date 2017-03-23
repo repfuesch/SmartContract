@@ -55,12 +55,6 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
     }
 
     @Override
-    protected void onContractUpdated(String contractAddress)
-    {
-        listFragment.updateContract(contractAddress);
-    }
-
-    @Override
     public void onAddContract(DialogFragment dialog, String contractAddress)
     {
         listFragment.loadContract(contractAddress);
@@ -78,10 +72,8 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
 
     private void loadContractList()
     {
-        setProgressBarIndeterminateVisibility(true);
         listFragment = (PurchaseContractFragment) getFragmentManager().findFragmentById(R.id.purchase_list_fragment);
         listFragment.loadContractsForAccount(SettingsProvider.getInstance().getSelectedAccount());
-        setProgressBarIndeterminateVisibility(false);
     }
 
 }

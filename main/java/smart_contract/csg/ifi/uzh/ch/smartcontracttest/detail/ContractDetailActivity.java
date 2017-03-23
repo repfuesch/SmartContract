@@ -8,29 +8,37 @@ import org.jdeferred.Promise;
 
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
+import ch.uzh.ifi.csg.contract.event.IContractObserver;
 import ch.uzh.ifi.csg.contract.setting.EthSettings;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 
-public class ContractDetailActivity extends ActivityBase {
+public class ContractDetailActivity extends ActivityBase implements IContractObserver {
 
     public final static String ACTION_SHOW_CONTRACT_DETAILS = "ch.uzh.ifi.csg.smart_contract.detail";
     public final static String MESSAGE_SHOW_CONTRACT_DETAILS = "ch.uzh.ifi.csg.smart_contract.detail.address";
 
     private ContractGeneralInfoFragment generalInfoFragment;
-    private String contractAddress;
+    private IPurchaseContract contract;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         Intent intent = getIntent();
-        contractAddress = intent.getStringExtra(MESSAGE_SHOW_CONTRACT_DETAILS);
+        String contractAddress = intent.getStringExtra(MESSAGE_SHOW_CONTRACT_DETAILS);
         generalInfoFragment = (ContractGeneralInfoFragment) getFragmentManager().findFragmentById(R.id.general_info);
         initTabHost();
         LoadContract(contractAddress);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        contract.deleteObserver(this);
     }
 
     private void LoadContract(String contractAddress)
@@ -48,8 +56,10 @@ public class ContractDetailActivity extends ActivityBase {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        contract = resolved;
                         generalInfoFragment.setContract(resolved);
                         generalInfoFragment.updateView();
+                        resolved.addObserver(ContractDetailActivity.this);
                     }
                 });
             }
@@ -75,7 +85,7 @@ public class ContractDetailActivity extends ActivityBase {
 
     @Override
     protected void onSettingsChanged() {
-        LoadContract(contractAddress);
+        LoadContract(contract.getContractAddress());
     }
 
     @Override
@@ -83,11 +93,7 @@ public class ContractDetailActivity extends ActivityBase {
     }
 
     @Override
-    protected void onContractUpdated(String contractAddress) {
-
-        if(contractAddress.equals(this.contractAddress))
-        {
-            generalInfoFragment.updateView();
-        }
+    public void contractStateChanged(String event, Object value) {
+        generalInfoFragment.updateView();
     }
 }

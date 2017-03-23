@@ -41,7 +41,6 @@ import rx.functions.Action1;
 
 public class PurchaseContract extends Contract implements IPurchaseContract {
 
-    private Integer _price;
     private List<IContractObserver> _observers;
 
     private PurchaseContract(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
@@ -84,7 +83,7 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
                         constructor.setAccessible(true);
 
                         PurchaseContract contract = constructor.newInstance(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
-                       // contract.registerContractEvents();
+                        contract.registerContractEvents();
                         return contract;
                     }
                 });
@@ -271,7 +270,6 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
                         notifyObservers(event.getName(), null);
                     }
                 });
-
     }
 
     private void notifyObservers(String event, Object value) {
