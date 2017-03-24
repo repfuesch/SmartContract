@@ -3,7 +3,6 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview;
 import android.content.Context;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.os.Handler;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,13 +13,12 @@ import android.widget.LinearLayout;
 
 import org.jdeferred.Promise;
 
-import ch.uzh.ifi.csg.contract.account.ContractInfo;
-import ch.uzh.ifi.csg.contract.account.ContractManager;
-import ch.uzh.ifi.csg.contract.account.ContractFileManager;
+import ch.uzh.ifi.csg.contract.service.contract.ContractInfo;
+import ch.uzh.ifi.csg.contract.service.contract.ContractManager;
+import ch.uzh.ifi.csg.contract.service.contract.ContractFileManager;
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
-import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ContractErrorHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
@@ -111,41 +109,26 @@ public class PurchaseContractFragment extends Fragment
 
     public void loadContractsForAccount(String account)
     {
-        ContractManager contractManager = new ContractFileManager(getContext().getFilesDir() + "/accounts");
-        List<ContractInfo> contractInfos = contractManager.loadContracts(account);
         adapter.clearContracts();
+        ServiceProvider.getInstance().getContractService().loadContracts(account)
+                .always(new AlwaysCallback<List<IPurchaseContract>>() {
+                    @Override
+                    public void onAlways(Promise.State state, final List<IPurchaseContract> resolved, final Throwable rejected) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if(rejected != null)
+                                {
+                                    errorHandler.handleError(rejected);
+                                    return;
+                                }
 
-        for(final ContractInfo info : contractInfos)
-        {
-            ServiceProvider.getInstance().getContractService().loadContract(info.getContractAddress())
-                    .always(new AlwaysCallback<IPurchaseContract>() {
-                        @Override
-                        public void onAlways(Promise.State state, final IPurchaseContract resolved, final Throwable rejected) {
-                            if(rejected != null)
-                            {
-                                getActivity().runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        errorHandler.handleError(rejected);
-                                    }
-                                });
-
-                            }else{
-                                getActivity().runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        if(!info.getLastState().equals(resolved.state().get()))
-                                        {
-                                            //todo: state changed since last login.
-                                        }
-
-                                        loadContract(resolved);
-                                    }
-                                });
+                                for(IPurchaseContract contract : resolved)
+                                    loadContract(contract);
                             }
-                        }
-                    });
-        }
+                        });
+                    }
+                });
     }
 
     public void loadContract(IPurchaseContract newContract)

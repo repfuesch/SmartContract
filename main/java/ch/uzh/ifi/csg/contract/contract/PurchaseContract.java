@@ -62,7 +62,7 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
             public IPurchaseContract call() throws Exception {
                 String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type<String>>asList(args));
                 PurchaseContract purchase = deploy(PurchaseContract.class, web3j, transactionManager, gasPrice, gasLimit, binary, encodedConstructor, value);
-                purchase.registerContractEvents();
+                //purchase.registerContractEvents();
                 return purchase;
             }
         });

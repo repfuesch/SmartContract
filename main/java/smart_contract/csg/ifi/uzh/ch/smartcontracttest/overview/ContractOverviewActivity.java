@@ -6,11 +6,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 
-import java.util.UUID;
-import ch.uzh.ifi.csg.contract.setting.EthSettings;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.ContractCreateActivity;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.login.LoginDialogFragment;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.LoginDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 

@@ -2,7 +2,10 @@ package ch.uzh.ifi.csg.contract.service;
 
 import java.math.BigInteger;
 
-import ch.uzh.ifi.csg.contract.setting.EthSettings;
+import ch.uzh.ifi.csg.contract.service.account.AccountService;
+import ch.uzh.ifi.csg.contract.service.account.CredentialProvider;
+import ch.uzh.ifi.csg.contract.service.account.WalletAccountService;
+import ch.uzh.ifi.csg.contract.service.contract.ContractService;
 
 /**
  * Created by flo on 16.03.17.
@@ -10,14 +13,30 @@ import ch.uzh.ifi.csg.contract.setting.EthSettings;
 
 public interface EthServiceFactory
 {
-    AccountUnlockService createAccountUnlockService(String host, int port);
+    AccountService createParityAccountService(String host, int port);
 
-    ContractService createContractService(
+    AccountService createWalletAccountService(
+            String accountDirectory,
+            String walletDirectory,
+            boolean useFullEncryption);
+
+    ContractService createWalletContractService(
             String host,
             int port,
             String selectedAccount,
             BigInteger gasPrice,
             BigInteger gasLimit,
             int transactionAttempts,
-            int transactionSleepDuration);
+            int transactionSleepDuration,
+            String contractDirectory);
+
+    ContractService createClientContractService(
+            String host,
+            int port,
+            String selectedAccount,
+            BigInteger gasPrice,
+            BigInteger gasLimit,
+            int transactionAttempts,
+            int transactionSleepDuration,
+            String contractDirectory);
 }

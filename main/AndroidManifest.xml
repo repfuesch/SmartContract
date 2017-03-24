@@ -4,6 +4,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:name=".common.AppContext"
@@ -24,7 +26,8 @@
         </activity>
         <activity android:name=".detail.ContractCreateActivity" />
         <activity android:name=".detail.ContractDetailActivity" />
-        <activity android:name=".setting.SettingsActivity"></activity>
+        <activity android:name=".setting.SettingsActivity" />
+        <activity android:name=".account.AccountActivity"></activity>
     </application>
 
 </manifest>

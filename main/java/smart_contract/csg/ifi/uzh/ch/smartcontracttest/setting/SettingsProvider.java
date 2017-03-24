@@ -13,7 +13,7 @@ import java.math.BigInteger;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.AppContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.login.LoginDialogFragment;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.LoginDialogFragment;
 
 /**
  * Created by flo on 20.03.17.

@@ -1,4 +1,4 @@
-package smart_contract.csg.ifi.uzh.ch.smartcontracttest.login;
+package smart_contract.csg.ifi.uzh.ch.smartcontracttest.account;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -23,6 +23,7 @@ import java.util.List;
 
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
+import ch.uzh.ifi.csg.contract.service.account.Account;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ContractErrorHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
@@ -35,6 +36,7 @@ public class LoginDialogFragment extends DialogFragment
     private ContractErrorHandler errorHandler;
     private String selectedAccount;
 
+    private List<Account> accounts;
     private View contentView;
     private EditText passwordBox;
     private Spinner accountSpinner;
@@ -43,6 +45,8 @@ public class LoginDialogFragment extends DialogFragment
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState)
     {
+        accounts = new ArrayList<>();
+
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setCancelable(false);
@@ -93,21 +97,27 @@ public class LoginDialogFragment extends DialogFragment
     public void initView(View v)
     {
         // Create an ArrayAdapter using the string array and a default spinner layout
-        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(getContext(),
-                android.R.layout.simple_spinner_item, new ArrayList<String>());
+        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                getContext(),
+                android.R.layout.simple_spinner_item,
+                new ArrayList<String>());
 
         // Specify the layout to use when the list of choices appears
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         //fetch all accounts asynchronously and populate the spinner
         ServiceProvider.getInstance().getAccountService().getAccounts()
-                .done(new DoneCallback<List<String>>() {
+                .done(new DoneCallback<List<Account>>() {
                     @Override
-                    public void onDone(final List<String> result) {
+                    public void onDone(final List<Account> result) {
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                adapter.addAll(result);
+                                for(Account acc : result)
+                                {
+                                    accounts.add(acc);
+                                    adapter.add(acc.getId());
+                                }
                             }
                         });
                     }
@@ -162,7 +172,14 @@ public class LoginDialogFragment extends DialogFragment
     {
         final String password = passwordBox.getText().toString();
 
-        ServiceProvider.getInstance().getAccountService().unlockAccount(selectedAccount, password)
+        Account selected = null;
+        for(Account acc : accounts)
+        {
+            if(acc.getId().equals(selectedAccount))
+                selected = acc;
+        }
+
+        ServiceProvider.getInstance().getAccountService().unlockAccount(selected, password)
                 .done(new DoneCallback<Boolean>() {
                     @Override
                     public void onDone(final Boolean result) {
@@ -196,6 +213,7 @@ public class LoginDialogFragment extends DialogFragment
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
+                                System.out.println(result.getMessage());
                                 handleWrongPassword();
                             }
                         });

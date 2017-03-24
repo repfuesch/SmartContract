@@ -1,9 +1,17 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common;
 
-import ch.uzh.ifi.csg.contract.service.AccountUnlockService;
-import ch.uzh.ifi.csg.contract.service.ContractService;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+
+import ch.uzh.ifi.csg.contract.service.account.AccountService;
+import ch.uzh.ifi.csg.contract.service.account.CredentialProviderImpl;
+import ch.uzh.ifi.csg.contract.service.contract.ContractService;
 import ch.uzh.ifi.csg.contract.service.EthServiceFactory;
-import ch.uzh.ifi.csg.contract.service.ParityServiceFactory;
+import ch.uzh.ifi.csg.contract.service.ServiceFactoryImpl;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 
 /**
@@ -13,8 +21,8 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 public class ServiceProvider
 {
     private static ContractService contractService;
-    private static AccountUnlockService accountService;
-    private static final EthServiceFactory serviceFactory = new ParityServiceFactory();
+    private static AccountService accountService;
+    private static final EthServiceFactory serviceFactory = new ServiceFactoryImpl();
 
     private final static ServiceProvider instance;
 
@@ -32,26 +40,47 @@ public class ServiceProvider
         return contractService;
     }
 
-    public AccountUnlockService getAccountService()
+    public AccountService getAccountService()
     {
         return accountService;
     }
 
     public void initServices(SettingsProvider settingsProvider)
     {
-        accountService = serviceFactory.createAccountUnlockService(settingsProvider.getHost(), settingsProvider.getPort());
-
+        /*
+        accountService = serviceFactory.createParityAccountService(settingsProvider.getHost(), settingsProvider.getPort());
         if(settingsProvider.getSelectedAccount() != null)
         {
-            contractService = serviceFactory.createContractService(
+            contractService = serviceFactory.createClientContractService(
                     settingsProvider.getHost(),
                     settingsProvider.getPort(),
                     settingsProvider.getSelectedAccount(),
                     settingsProvider.getGasPrice(),
                     settingsProvider.getGasLimit(),
                     settingsProvider.getTransactionAttempts(),
-                    settingsProvider.getTransactionSleepDuration());
+                    settingsProvider.getTransactionSleepDuration(),
+                    AppContext.getContext().getApplicationContext().getFilesDir() + "/contracts");
         }
+        */
+
+        accountService = serviceFactory.createWalletAccountService(
+                AppContext.getContext().getApplicationContext().getFilesDir() + "/accounts",
+                Environment.getExternalStorageDirectory() + "/Ethereum/keystore",
+                false);
+
+        if(settingsProvider.getSelectedAccount() != null)
+        {
+            contractService = serviceFactory.createWalletContractService(
+                    settingsProvider.getHost(),
+                    settingsProvider.getPort(),
+                    settingsProvider.getSelectedAccount(),
+                    settingsProvider.getGasPrice(),
+                    settingsProvider.getGasLimit(),
+                    settingsProvider.getTransactionAttempts(),
+                    settingsProvider.getTransactionSleepDuration(),
+                    AppContext.getContext().getApplicationContext().getFilesDir() + "/contracts");
+        }
+
     }
 
 }

@@ -1,6 +1,7 @@
-package ch.uzh.ifi.csg.contract.service;
+package ch.uzh.ifi.csg.contract.service.contract;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
@@ -13,4 +14,7 @@ public interface ContractService {
 
     SimplePromise<IPurchaseContract> deployContract(BigInteger value, String title, String description);
     SimplePromise<IPurchaseContract> loadContract(String contractAddress);
+    void saveContract(IPurchaseContract contract, String account);
+    void removeContract(IPurchaseContract contract, String account);
+    SimplePromise<List<IPurchaseContract>> loadContracts(String account);
 }

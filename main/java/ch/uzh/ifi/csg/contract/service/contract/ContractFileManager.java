@@ -1,12 +1,10 @@
-package ch.uzh.ifi.csg.contract.account;
+package ch.uzh.ifi.csg.contract.service.contract;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,27 +12,27 @@ import java.util.List;
 import ch.uzh.ifi.csg.contract.common.FileManager;
 
 /**
- * Created by flo on 06.03.17.
+ * Class for loading, saving and deleting contract data for an account in a JSON file
  */
 
 public class ContractFileManager implements ContractManager {
 
     private Gson gson;
-    private String accountDirectory;
+    private String contractDirectory;
 
-    public ContractFileManager(String accountDirectory)
+    public ContractFileManager(String contractDirectory)
     {
         this.gson = new GsonBuilder().create();
-        this.accountDirectory = accountDirectory;
+        this.contractDirectory = contractDirectory;
     }
 
     @Override
     public void saveContract(ContractInfo contract, String account)
     {
-        String accountData = FileManager.readFile(new File(accountDirectory));
-        List<AccountInfo> accounts = Deserialize(accountData);
+        String accountData = FileManager.readFile(new File(contractDirectory));
+        List<AccountContractInfo> accounts = Deserialize(accountData);
 
-        for(AccountInfo info : accounts)
+        for(AccountContractInfo info : accounts)
         {
             if(info.getAccountId().equals(account))
             {
@@ -44,17 +42,17 @@ public class ContractFileManager implements ContractManager {
         }
 
         accountData = Serialize(accounts);
-        FileManager.writeFile(accountData, new File(accountDirectory));
+        FileManager.writeFile(accountData, new File(contractDirectory));
     }
 
     @Override
     public void deleteContract(ContractInfo contract, String account)
     {
-        String accountData = FileManager.readFile(new File(accountDirectory));
-        List<AccountInfo> accounts = Deserialize(accountData);
+        String accountData = FileManager.readFile(new File(contractDirectory));
+        List<AccountContractInfo> accounts = Deserialize(accountData);
 
         ContractInfo toDelete = null;
-        for(AccountInfo info : accounts)
+        for(AccountContractInfo info : accounts)
         {
             if(info.getAccountId().equals(account))
             {
@@ -75,40 +73,40 @@ public class ContractFileManager implements ContractManager {
         }
 
         accountData = Serialize(accounts);
-        FileManager.writeFile(accountData, new File(accountDirectory));
+        FileManager.writeFile(accountData, new File(contractDirectory));
     }
 
     @Override
     public List<ContractInfo> loadContracts(String account)
     {
-        String accountData = FileManager.readFile(new File(accountDirectory));
-        List<AccountInfo> accounts = Deserialize(accountData);
-        for(AccountInfo info : accounts)
+        String accountData = FileManager.readFile(new File(contractDirectory));
+        List<AccountContractInfo> accounts = Deserialize(accountData);
+        for(AccountContractInfo info : accounts)
         {
             if(info.getAccountId().equals(account))
                 return info.getContractInfo();
         }
 
         //create accountInfo for account if it does not exist
-        AccountInfo info = new AccountInfo(account);
+        AccountContractInfo info = new AccountContractInfo(account);
         accounts.add(info);
         accountData = Serialize(accounts);
-        FileManager.writeFile(accountData, new File(accountDirectory));
+        FileManager.writeFile(accountData, new File(contractDirectory));
 
         return new ArrayList<>();
     }
 
-    public List<AccountInfo> Deserialize(String jsonArray)
+    private List<AccountContractInfo> Deserialize(String jsonArray)
     {
-        Type listType = new TypeToken<ArrayList<AccountInfo>>(){}.getType();
-        List<AccountInfo> accountList = gson.fromJson(jsonArray, listType);
+        Type listType = new TypeToken<ArrayList<AccountContractInfo>>(){}.getType();
+        List<AccountContractInfo> accountList = gson.fromJson(jsonArray, listType);
         if(accountList == null)
             return new ArrayList<>();
 
         return accountList;
     }
 
-    public String Serialize(List<AccountInfo> accountInfo)
+    private String Serialize(List<AccountContractInfo> accountInfo)
     {
         return gson.toJson(accountInfo);
     }

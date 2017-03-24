@@ -3,12 +3,10 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common;
 import android.app.Application;
 import android.content.Context;
 import android.preference.PreferenceManager;
-
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 
 /**
  * Class for receiving the Application context without a reference to an Activity.
- * This is used to broadcast intents.
  */
 
 public class AppContext extends Application

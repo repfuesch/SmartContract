@@ -1,4 +1,4 @@
-package ch.uzh.ifi.csg.contract.account;
+package ch.uzh.ifi.csg.contract.service.contract;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,22 +7,22 @@ import java.util.List;
  * Created by flo on 06.03.17.
  */
 
-public class AccountInfo
+public class AccountContractInfo
 {
-    private String AccountId;
+    private String accountId;
     private List<ContractInfo> contractInfo;
 
-    public AccountInfo(String accountId) {
-        AccountId = accountId;
+    public AccountContractInfo(String accountId) {
+        this.accountId = accountId;
         contractInfo = new ArrayList<>();
     }
 
     public String getAccountId() {
-        return AccountId;
+        return accountId;
     }
 
     public void setAccountId(String accountId) {
-        AccountId = accountId;
+        this.accountId = accountId;
     }
 
     public List<ContractInfo> getContractInfo() {

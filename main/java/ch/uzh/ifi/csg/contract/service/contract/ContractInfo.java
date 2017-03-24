@@ -1,4 +1,4 @@
-package ch.uzh.ifi.csg.contract.account;
+package ch.uzh.ifi.csg.contract.service.contract;
 
 import ch.uzh.ifi.csg.contract.contract.ContractState;
 

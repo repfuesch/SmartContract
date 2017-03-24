@@ -1,10 +1,14 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -15,14 +19,14 @@ import org.jdeferred.Promise;
 
 import java.io.Serializable;
 
-import ch.uzh.ifi.csg.contract.account.ContractFileManager;
-import ch.uzh.ifi.csg.contract.account.ContractInfo;
-import ch.uzh.ifi.csg.contract.account.ContractManager;
+import ch.uzh.ifi.csg.contract.service.contract.ContractFileManager;
+import ch.uzh.ifi.csg.contract.service.contract.ContractInfo;
+import ch.uzh.ifi.csg.contract.service.contract.ContractManager;
 import ch.uzh.ifi.csg.contract.async.broadcast.TransactionManager;
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.login.LoginDialogFragment;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.LoginDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
@@ -57,8 +61,35 @@ public abstract class ActivityBase extends AppCompatActivity implements Contract
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         this.setSupportActionBar(toolbar);
+        checkPermissions();
     }
 
+    private void checkPermissions()
+    {
+        if (ContextCompat.checkSelfPermission(AppContext.getContext(),
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // No explanation needed, we can request the permission.
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    1);
+
+        }
+
+        if (ContextCompat.checkSelfPermission(AppContext.getContext(),
+                Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // No explanation needed, we can request the permission.
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    1);
+
+        }
+    }
     protected abstract int getLayoutResourceId();
 
     @Override
@@ -174,23 +205,10 @@ public abstract class ActivityBase extends AppCompatActivity implements Contract
 
                 if(intent.getStringExtra(TransactionManager.CONTRACT_TRANSACTION_TYPE).equals(TransactionManager.CONTRACT_TRANSACTION_DEPLOY))
                 {
-                    final String contractAddress = intent.getStringExtra(TransactionManager.CONTRACT_TRANSACTION_ADDRESS);
-
                     //Load contract and persist it, such that it is stored independent of the currently active activity
-                    ServiceProvider.getInstance().getContractService().loadContract(contractAddress).always(new AlwaysCallback<IPurchaseContract>() {
-                        @Override
-                        public void onAlways(Promise.State state, IPurchaseContract resolved, Throwable rejected) {
-                            if(rejected != null)
-                            {
-                                handleError(rejected);
-                            }else{
-                                ContractManager manager = new ContractFileManager(getContext().getFilesDir() + "/accounts");
-                                manager.saveContract(new ContractInfo(ContractState.Created, contractAddress), SettingsProvider.getInstance().getSelectedAccount());
-                                onContractCreated(contractAddress);
-                            }
-                        }
-                    });
-
+                    final String contractAddress = intent.getStringExtra(TransactionManager.CONTRACT_TRANSACTION_ADDRESS);
+                    new ContractFileManager(getFilesDir() + "/contracts").saveContract(new ContractInfo(ContractState.Created, contractAddress), SettingsProvider.getInstance().getSelectedAccount());
+                    onContractCreated(contractAddress);
                     return;
                 }
 

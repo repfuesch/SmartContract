@@ -1,41 +1,63 @@
-package ch.uzh.ifi.csg.contract.service;
+package ch.uzh.ifi.csg.contract.service.contract;
 
 import org.web3j.abi.datatypes.Utf8String;
+import org.web3j.protocol.Web3j;
 import org.web3j.protocol.parity.Parity;
 import org.web3j.tx.TransactionManager;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
 
-import ch.uzh.ifi.csg.contract.setting.EthSettings;
+import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.contract.PurchaseContract;
-import ch.uzh.ifi.csg.contract.transaction.PersonalTransactionManager;
 
 /**
- * Created by flo on 24.02.17.
+ * Web3j implementation of the ContractService.
  */
 
-public class ParityContractService implements ContractService
+public class Web3jContractService implements ContractService
 {
-    private final Parity parity;
+    private final Web3j web3;
     private final TransactionManager transactionManager;
     private final BigInteger gasPrice;
     private final BigInteger gasLimit;
+    private final ContractManager contractManager;
 
-    public ParityContractService(Parity parity, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit)
+    /**
+     *
+     * @param web3: the rpc client
+     * @param transactionManager: the transaction manager used by the deployed contracts to perform transactions
+     * @param contractManager: ContractManager implementation used to persist created contracts for an account
+     * @param gasPrice
+     * @param gasLimit
+     */
+    public Web3jContractService(Web3j web3, TransactionManager transactionManager, ContractManager contractManager, BigInteger gasPrice, BigInteger gasLimit)
     {
-        this.parity = parity;
+        this.web3 = web3;
         this.transactionManager = transactionManager;
         this.gasPrice = gasPrice;
         this.gasLimit = gasLimit;
+        this.contractManager = contractManager;
     }
 
+    /**
+     * Deploys a purchase contract on the blockchain using the PurchaseContract.deployContract
+     * factory method.
+     *
+     * @param value
+     * @param title
+     * @param description
+     * @return  a promise representing the result of the call.
+     */
     @Override
     public SimplePromise<IPurchaseContract> deployContract(BigInteger value, String title, String description)
     {
         return PurchaseContract.deployContract(
-                parity,
+                web3,
                 transactionManager,
                 gasPrice,
                 gasLimit,
@@ -45,9 +67,63 @@ public class ParityContractService implements ContractService
                 new Utf8String(description));
     }
 
+    /**
+     * Loads a contract from the blockchain specified by the provided address.
+     *
+     * @param contractAddress
+     * @return a promise representing the result of the call.
+     */
     @Override
     public SimplePromise<IPurchaseContract> loadContract(String contractAddress)
     {
-        return PurchaseContract.loadContract(contractAddress, parity, transactionManager, gasPrice, gasLimit);
+        return PurchaseContract.loadContract(contractAddress, web3, transactionManager, gasPrice, gasLimit);
+    }
+
+    /**
+     * Persists a contract for an account with the provided ContractManager.
+     *
+     * @param contract
+     * @param account
+     */
+    @Override
+    public void saveContract(IPurchaseContract contract, String account) {
+        contractManager.saveContract(new ContractInfo(contract.state().get(), contract.getContractAddress()), account);
+    }
+
+    /**
+     * Removes a contract from a persisted storage. This method does not delete a contract from the
+     * blockchain.
+     *
+     * @param contract
+     * @param account
+     */
+    @Override
+    public void removeContract(IPurchaseContract contract, String account) {
+        contractManager.deleteContract(new ContractInfo(contract.state().get(), contract.getContractAddress()), account);
+    }
+
+    /**
+     * Loads all persisted contracts for the specified account.
+     *
+     * @param account
+     * @return  a promise representing the result of the call.
+     */
+    @Override
+    public SimplePromise<List<IPurchaseContract>> loadContracts(String account) {
+
+        final List<ContractInfo> contractInfos = contractManager.loadContracts(account);
+
+        return Async.toPromise(new Callable<List<IPurchaseContract>>() {
+            @Override
+            public List<IPurchaseContract> call() throws Exception {
+                List<IPurchaseContract> contractList = new ArrayList<IPurchaseContract>(contractInfos.size());
+                for(ContractInfo info : contractInfos)
+                {
+                    contractList.add(loadContract(info.getContractAddress()).get());
+                }
+
+                return contractList;
+            }
+        });
     }
 }

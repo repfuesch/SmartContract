@@ -23,6 +23,7 @@ public class ContractCreateActivity extends ActivityBase {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getToolbar().setVisibility(View.GONE);
     }
 
     @Override
@@ -42,30 +43,22 @@ public class ContractCreateActivity extends ActivityBase {
     {
         TextView priceField = (TextView)findViewById(R.id.contract_price);
 
-        try{
-            final BigInteger price = BigInteger.valueOf(Integer.parseInt(priceField.getText().toString()));
-            if(!(price.mod(BigInteger.valueOf(2))).equals(BigInteger.ZERO))
-            {
-                //price must be dividable by 2
-                showMessage("Price must be dividable by 2!");
-                return;
-            }
-
-            final String title = ((TextView)findViewById(R.id.contract_title)).getText().toString();
-            final String desc = ((TextView)findViewById(R.id.contract_description)).getText().toString();
-
-            SimplePromise<IPurchaseContract> promise = ServiceProvider.getInstance().getContractService().deployContract(price, title, desc);
-
-            TransactionManager.toTransaction(promise, null);
-            Intent intent = new Intent(this, ContractOverviewActivity.class);
-            startActivity(intent);
-
-        }catch(NumberFormatException ex)
+        final BigInteger price = BigInteger.valueOf(Integer.parseInt(priceField.getText().toString()));
+        if(!(price.mod(BigInteger.valueOf(2))).equals(BigInteger.ZERO))
         {
-            priceField.setText("Please enter a valid integer number!");
+            //price must be dividable by 2
+            showMessage("Price must be dividable by 2!");
             return;
         }
 
+        final String title = ((TextView)findViewById(R.id.contract_title)).getText().toString();
+        final String desc = ((TextView)findViewById(R.id.contract_description)).getText().toString();
+
+        SimplePromise<IPurchaseContract> promise = ServiceProvider.getInstance().getContractService().deployContract(price, title, desc);
+
+        TransactionManager.toTransaction(promise, null);
+        Intent intent = new Intent(this, ContractOverviewActivity.class);
+        startActivity(intent);
     }
 
     public void onCancelContractButtonClick(View view)
