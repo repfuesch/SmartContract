@@ -26,11 +26,13 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getSupportActionBar().setTitle(R.string.title_contract_detail);
 
         Intent intent = getIntent();
         String contractAddress = intent.getStringExtra(MESSAGE_SHOW_CONTRACT_DETAILS);
         generalInfoFragment = (ContractGeneralInfoFragment) getFragmentManager().findFragmentById(R.id.general_info);
         initTabHost();
+
         LoadContract(contractAddress);
     }
 
@@ -86,10 +88,6 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
     @Override
     protected void onSettingsChanged() {
         LoadContract(contract.getContractAddress());
-    }
-
-    @Override
-    protected void onContractCreated(String contractAddress) {
     }
 
     @Override

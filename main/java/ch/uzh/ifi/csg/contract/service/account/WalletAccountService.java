@@ -66,6 +66,7 @@ public class WalletAccountService implements AccountService {
                 Account newAccount = new Account(credentials.getAddress(), alias, walletFile);
                 accountManager.getAccounts().add(newAccount);
                 accountManager.save();
+                credentialProvider.setCredentials(credentials);
 
                 return newAccount;
             }

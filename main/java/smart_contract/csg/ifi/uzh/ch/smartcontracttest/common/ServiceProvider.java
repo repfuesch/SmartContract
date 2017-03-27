@@ -7,6 +7,8 @@ import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
+import java.io.File;
+
 import ch.uzh.ifi.csg.contract.service.account.AccountService;
 import ch.uzh.ifi.csg.contract.service.account.CredentialProviderImpl;
 import ch.uzh.ifi.csg.contract.service.contract.ContractService;

@@ -36,7 +36,7 @@ public class SettingsProvider extends BroadcastReceiver implements SharedPrefere
 
     private String host;
     private int port;
-    private String selectedAccount;
+    private String selectedAccount = "";
     private int accountUnlockTime;
     private BigInteger gasPrice;
     private BigInteger gasLimit;

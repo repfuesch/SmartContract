@@ -1,31 +1,34 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.account;
 
-import android.content.Context;
-import android.os.Bundle;
 import android.app.Fragment;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import java.util.ArrayList;
-
+import android.widget.LinearLayout;
+import org.jdeferred.Promise;
+import java.util.List;
+import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.service.account.Account;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
 
-/**
- * A fragment representing a list of Accounts.
- * <p/>
- * Activities containing this fragment MUST implement the {@link OnAccountFragmentInteractionListener}
- * interface.
- */
-public class AccountFragment extends Fragment {
+public class AccountFragment extends Fragment implements AccountRecyclerViewAdapter.OnAccountLoginListener {
 
     private int mColumnCount = 1;
-
-    private OnAccountFragmentInteractionListener mListener;
+    private LinearLayout progressView;
+    private LinearLayout accountView;
+    private RecyclerView accountList;
+    private AccountRecyclerViewAdapter accountListAdapter;
+    private List<Account> accounts;
+    private MessageHandler messageHandler;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -38,6 +41,7 @@ public class AccountFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        this.accounts = ServiceProvider.getInstance().getAccountService().getAccounts().get();
     }
 
     @Override
@@ -45,49 +49,126 @@ public class AccountFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_account_list, container, false);
 
+        progressView = (LinearLayout) view.findViewById(R.id.progress_view);
+        accountList = (RecyclerView) view.findViewById(R.id.account_list);
+        accountView = (LinearLayout) view.findViewById(R.id.account_view);
+
         // Set the adapter
-        if (view instanceof RecyclerView) {
-            Context context = view.getContext();
-            RecyclerView recyclerView = (RecyclerView) view;
-            if (mColumnCount <= 1) {
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            } else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
-            }
-            recyclerView.setAdapter(new AccountRecyclerViewAdapter(new ArrayList<Account>()));
+        if (mColumnCount <= 1) {
+            accountList.setLayoutManager(new LinearLayoutManager(accountList.getContext()));
+        } else {
+            accountList.setLayoutManager(new GridLayoutManager(accountList.getContext(), mColumnCount));
         }
+
+        accountListAdapter = new AccountRecyclerViewAdapter(accounts, this);
+        accountListAdapter.notifyDataSetChanged();
+        accountList.setAdapter(accountListAdapter);
+
         return view;
     }
 
-
     @Override
     public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnAccountFragmentInteractionListener) {
-            mListener = (OnAccountFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnAccountFragmentInteractionListener");
+
+        if(context instanceof MessageHandler)
+        {
+            messageHandler = (MessageHandler) context;
+        }else{
+            throw new RuntimeException(context.toString() + " must implement MessageHandler");
         }
+
+        super.onAttach(context);
+    }
+
+    public void reloadAccountList()
+    {
+        accountListAdapter.notifyDataSetChanged();
+    }
+
+    public void createAccount(String accountName, String password)
+    {
+        showProgressView();
+        ServiceProvider.getInstance().getAccountService().createAccount(accountName, password)
+                .always(new AlwaysCallback<Account>() {
+                    @Override
+                    public void onAlways(Promise.State state, final Account resolved, final Throwable rejected) {
+
+                        if(rejected != null)
+                        {
+                            notifyError("Could not create account. Reason: \n " + rejected.getMessage());
+                        }else{
+                            notifyAccountChanged(resolved);
+                        }
+
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                hideProgressView();
+                            }
+                        });
+                    }
+                });
+    }
+
+    private void showProgressView()
+    {
+        accountView.setVisibility(View.GONE);
+        progressView.setVisibility(View.VISIBLE);
+    }
+
+    private void hideProgressView()
+    {
+        progressView.setVisibility(View.GONE);
+        accountView.setVisibility(View.VISIBLE);
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
+    public void onAccountLogin(final Account account, final String password, final AccountRecyclerViewAdapter.OnAccountLoginResultListener resultListener)
+    {
+        showProgressView();
+
+        ServiceProvider.getInstance().getAccountService().unlockAccount(account, password)
+                .always(new AlwaysCallback<Boolean>() {
+                    @Override
+                    public void onAlways(Promise.State state, final Boolean resolved, final Throwable rejected) {
+
+                            if(rejected != null)
+                            {
+                                resultListener.onLoginResult(false);
+                                notifyError("Could not unlock account. Reason: \n " + rejected.getMessage());
+                            }
+                            else if(!resolved)
+                            {
+                                resultListener.onLoginResult(false);
+                                notifyError("Unlocking account failed. Wrong password");
+                            }else{
+                                resultListener.onLoginResult(true);
+                                notifyAccountChanged(account);
+                            }
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    hideProgressView();
+                                }
+                            });
+                        }
+                    });
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnAccountFragmentInteractionListener {
-
+    private void notifyAccountChanged(Account account)
+    {
+        Intent intent = new Intent();
+        intent.setAction(AccountActivity.ACTION_ACCOUNT_CHANGED);
+        intent.putExtra(AccountActivity. MESSAGE_ACCOUNT_CHANGED, account.getId());
+        LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
     }
+
+    private void notifyError(String message)
+    {
+        Intent intent = new Intent();
+        intent.setAction(MessageHandler.ACTION_SHOW_ERROR);
+        intent.putExtra(MessageHandler.MESSAGE_SHOW_ERROR, message);
+        LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
+    }
+
 }

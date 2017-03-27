@@ -23,7 +23,7 @@ public class ContractCreateActivity extends ActivityBase {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getToolbar().setVisibility(View.GONE);
+        getSupportActionBar().setTitle(R.string.title_contract_create);
     }
 
     @Override
@@ -33,10 +33,6 @@ public class ContractCreateActivity extends ActivityBase {
 
     @Override
     protected void onSettingsChanged() {
-    }
-
-    @Override
-    protected void onContractCreated(String contractAddress) {
     }
 
     public void onDeployContractButtonClick(final View view)

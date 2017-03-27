@@ -1,6 +1,5 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,16 +13,16 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
  * Created by flo on 16.03.17.
  */
 
-public class ContractErrorDialogFragment extends DialogFragment
+public class ErrorDialogFragment extends DialogFragment
 {
     public static final String ERROR_MESSAGE = "ERROR_MESSAGE";
     public static final String EXCEPTION_MESSAGE = "EXCEPTION_MESSAGE";
 
-    private String errorMessage;
+    private String message;
     private Throwable exception;
     private ExceptionConfirmedListener listener;
 
-    public ContractErrorDialogFragment()
+    public ErrorDialogFragment()
     {
     }
 
@@ -31,10 +30,10 @@ public class ContractErrorDialogFragment extends DialogFragment
     public void setArguments(Bundle args) {
         super.setArguments(args);
 
-        errorMessage = args.getString(ERROR_MESSAGE);
+        message = args.getString(ERROR_MESSAGE);
         exception = (Throwable)args.getSerializable(EXCEPTION_MESSAGE);
         if(exception != null)
-            errorMessage = exception.getMessage();
+            message = exception.getMessage();
     }
 
     @Override
@@ -53,7 +52,7 @@ public class ContractErrorDialogFragment extends DialogFragment
             }
         });
 
-        builder.setMessage("An error occurred while executing a transaction: \n" + errorMessage);
+        builder.setMessage(message);
 
         // Create the AlertDialog object and return it
         final AlertDialog diag = builder.create();

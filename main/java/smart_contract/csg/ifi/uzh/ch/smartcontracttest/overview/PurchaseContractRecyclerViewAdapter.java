@@ -14,7 +14,7 @@ import ch.uzh.ifi.csg.contract.async.broadcast.TransactionManager;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.event.IContractObserver;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ContractErrorHandler;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.ContractDetailActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
@@ -26,9 +26,9 @@ public class PurchaseContractRecyclerViewAdapter
         extends RecyclerView.Adapter<PurchaseContractRecyclerViewAdapter.ViewHolder> {
 
     private final List<IPurchaseContract> contracts;
-    private final ContractErrorHandler errorHandler;
+    private final MessageHandler errorHandler;
 
-    public PurchaseContractRecyclerViewAdapter(ContractErrorHandler errorHandler)
+    public PurchaseContractRecyclerViewAdapter(MessageHandler errorHandler)
     {
         contracts = new ArrayList<>();
         this.errorHandler = errorHandler;

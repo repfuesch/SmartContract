@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.ContractCreateActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.LoginDialogFragment;
@@ -18,13 +19,15 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         super.onCreate(savedInstanceState);
 
-        if(SettingsProvider.getInstance().getSelectedAccount() == null)
+        getSupportActionBar().setTitle(R.string.title_contract_overview);
+
+        if(SettingsProvider.getInstance().getSelectedAccount().isEmpty())
         {
-            DialogFragment loginDialogFragment = new LoginDialogFragment();
-            loginDialogFragment.show(getSupportFragmentManager(), "loginDialogFragment");
+            //navigate to account activity when no account selected
+            Intent accountIntent = new Intent(this, AccountActivity.class);
+            startActivity(accountIntent);
         }else{
             loadContractList();
         }
@@ -35,13 +38,7 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
         return R.layout.activity_contract_overview;
     }
 
-    public void onCreateContractButtonClick(View view)
-    {
-        Intent intent = new Intent(this, ContractCreateActivity.class);
-        startActivity(intent);
-    }
-
-    public void onLoadContractButtonClick(View view)
+    public void onAddButtonClick(View view)
     {
         DialogFragment newFragment = new AddContractDialogFragment();
         newFragment.show(getSupportFragmentManager(), "loadContractFragment");
@@ -49,17 +46,21 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
 
     @Override
     protected void onContractCreated(String contractAddress) {
+        super.onContractCreated(contractAddress);
+
         listFragment.loadContract(contractAddress);
     }
 
     @Override
-    public void onAddContract(DialogFragment dialog, String contractAddress)
+    public void onAddContract(String contractAddress)
     {
         listFragment.loadContract(contractAddress);
     }
 
     @Override
-    public void onContractDialogCanceled(DialogFragment dialog) {
+    public void onCreateContract() {
+        Intent intent = new Intent(this, ContractCreateActivity.class);
+        startActivity(intent);
     }
 
     @Override

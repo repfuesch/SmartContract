@@ -24,7 +24,7 @@ import java.util.List;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.service.account.Account;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ContractErrorHandler;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
 
@@ -33,7 +33,7 @@ public class LoginDialogFragment extends DialogFragment
     public final static String ACTION_ACCOUNT_CHANGED = "ch.uzh.ifi.csg.smart_contract.account_changed";
     public final static String MESSAGE_ACCOUNT_CHANGED = "ch.uzh.ifi.csg.smart_contract.account";
 
-    private ContractErrorHandler errorHandler;
+    private MessageHandler errorHandler;
     private String selectedAccount;
 
     private List<Account> accounts;
@@ -160,10 +160,10 @@ public class LoginDialogFragment extends DialogFragment
     public void onAttach(Context context) {
         super.onAttach(context);
 
-        if (context instanceof ContractErrorHandler) {
-            errorHandler = (ContractErrorHandler) context;
+        if (context instanceof MessageHandler) {
+            errorHandler = (MessageHandler) context;
         } else {
-            throw new RuntimeException(context.toString() + " must implement ContractErrorHandler");
+            throw new RuntimeException(context.toString() + " must implement MessageHandler");
         }
     }
 

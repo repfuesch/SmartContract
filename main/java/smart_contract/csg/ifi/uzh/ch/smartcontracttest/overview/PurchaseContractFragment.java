@@ -13,14 +13,11 @@ import android.widget.LinearLayout;
 
 import org.jdeferred.Promise;
 
-import ch.uzh.ifi.csg.contract.service.contract.ContractInfo;
-import ch.uzh.ifi.csg.contract.service.contract.ContractManager;
-import ch.uzh.ifi.csg.contract.service.contract.ContractFileManager;
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ContractErrorHandler;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
 
@@ -29,7 +26,7 @@ import java.util.List;
 /**
  * A fragment representing a list of Items.
  * <p/>
- * Activities containing this fragment MUST implement the {@link ContractErrorHandler}
+ * Activities containing this fragment MUST implement the {@link MessageHandler}
  * interface.
  */
 public class PurchaseContractFragment extends Fragment
@@ -40,7 +37,7 @@ public class PurchaseContractFragment extends Fragment
     private LinearLayout progressView;
 
     private int mColumnCount = 1;
-    private ContractErrorHandler errorHandler;
+    private MessageHandler errorHandler;
     private PurchaseContractRecyclerViewAdapter adapter;
 
     /**
@@ -93,11 +90,11 @@ public class PurchaseContractFragment extends Fragment
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof ContractErrorHandler) {
-            errorHandler = (ContractErrorHandler) context;
+        if (context instanceof MessageHandler) {
+            errorHandler = (MessageHandler) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement ContractErrorHandler");
+                    + " must implement MessageHandler");
         }
     }
 

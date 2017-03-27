@@ -6,6 +6,7 @@ import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.AppContext;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 
 /**
  * Created by flo on 18.03.17.
@@ -49,9 +50,15 @@ public class TransactionManager
     private static void notifyTransactionError(String contractAddress, Throwable exception)
     {
         Intent intent = new Intent();
-        intent.setAction(ACTION_HANDLE_TRANSACTION);
-        intent.putExtra(CONTRACT_TRANSACTION_ADDRESS, contractAddress);
-        intent.putExtra(CONTRACT_TRANSACTION_ERROR, exception);
+        intent.setAction(MessageHandler.ACTION_SHOW_ERROR);
+        String message;
+        if(contractAddress == null)
+        {
+            message = "Error creating contract. Reason: \n " + exception.getMessage();
+        }else{
+            message = "Transaction failed. Reason: \n " + exception.getMessage();
+        }
+        intent.putExtra(MessageHandler.MESSAGE_SHOW_ERROR, message);
 
         broadcastManager.sendBroadcast(intent);
     }

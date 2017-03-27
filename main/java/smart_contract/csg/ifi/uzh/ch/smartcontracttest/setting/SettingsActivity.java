@@ -23,6 +23,7 @@ public class SettingsActivity extends ActivityBase
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        getSupportActionBar().setTitle(R.string.title_settings);
         // Display the fragment as the main content.
         getFragmentManager().beginTransaction()
                 .add(R.id.settings_fragment, new SettingsFragment())
@@ -37,9 +38,4 @@ public class SettingsActivity extends ActivityBase
     @Override
     protected void onSettingsChanged() {
     }
-
-    @Override
-    protected void onContractCreated(String contractAddress) {
-    }
-
 }

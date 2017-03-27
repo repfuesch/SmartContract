@@ -5,13 +5,23 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="login_text">Enter the password for your account</string>
     <string name="login_title">Unlock an account</string>
-    <string name="action_login">Switch account</string>
+    <string name="action_login">Manage accounts</string>
+    <string name="action_overview">Show overview</string>
     <string name="error_title">An error occurred</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="unlock">Unlock</string>
     <string name="save">Save</string>
     <string name="address">Address</string>
+    <string name="field_account_name">Account name: </string>
+    <string name="field_password">Password: </string>
+    <string name="field_create_contract">Create new contract</string>
+    <string name="field_add_contract">Add existing contract</string>
+    <string name="title_create_account">Create Account</string>
+    <string name="message_account_changed">Account unlocked</string>
+    <string name="message_account_created">Account created</string>
+    <string name="action_create">create</string>
+    <string name="contract_created">Contract created successfully</string>
     <string name="add_contract_dialog_title">Add a contract</string>
     <string name="select_contract_source">Select contract source</string>
     <string name="add_contract_manually">Manually from address</string>
@@ -35,4 +45,9 @@
     <string name="pref_client_host_summary">Host of the eth client used</string>
     <string name="pref_client_port">Port</string>
     <string name="pref_client_port_summary">Port of the eth client on the host</string>
+    <string name="title_contract_overview">Contracts</string>
+    <string name="title_contract_detail">Details</string>
+    <string name="title_account">Accounts</string>
+    <string name="title_settings">Settings</string>
+    <string name="title_contract_create">New</string>
 </resources>

@@ -1,10 +1,12 @@
 package ch.uzh.ifi.csg.contract.service.account;
 
+import java.io.Serializable;
+
 /**
  * Class representing an ETH account
  */
 
-public class Account
+public class Account implements Serializable
 {
     private String id;
     private String label;

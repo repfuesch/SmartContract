@@ -1,45 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:id="@+id/activity_contract_overview"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity">
 
-    <android.support.v7.widget.Toolbar
+    <include
         android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
-        android:elevation="4dp"
-        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+        layout="@layout/toolbar" />
 
-    <LinearLayout
-        android:orientation="horizontal"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:orientation="horizontal">
 
-        <Button
+        <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/create_account"
-            android:text="create"
-            android:onClick="onCreateContractButtonClick"/>
+            android:src="@drawable/ic_action_add"
+            android:layout_alignParentRight="true"
+            android:onClick="onAddButtonClick"
+            android:background="?android:attr/colorBackground"/>
 
-        <Button
+        <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="load"
-            android:onClick="onLoadContractButtonClick"/>
+            android:src="@drawable/ic_action_back"
+            android:layout_alignParentLeft="true"
+            android:onClick="onBackButtonClick"
+            android:background="?android:attr/colorBackground"/>
 
-    </LinearLayout>
+    </RelativeLayout>
 
     <fragment
         android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.PurchaseContractFragment"
@@ -47,7 +43,7 @@
         android:layout_weight="1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="16dp"
+        android:layout_margin="16dp"
         tools:layout="@layout/fragment_purchasecontract_list" />
 
 </LinearLayout>

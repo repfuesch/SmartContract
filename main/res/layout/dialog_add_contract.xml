@@ -1,15 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:padding="8dp"
+    android:layout_margin="24dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <Spinner
+    <RadioGroup
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/contract_source_spinner"
-        android:layout_marginBottom="10dp"/>
+        android:id="@+id/account_radio_group"
+        android:checkedButton="@+id/option_create_contract">
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:id="@+id/option_create_contract"
+            android:text="@string/field_create_contract"
+            android:layout_height="wrap_content" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:id="@+id/option_add_contract"
+            android:text="@string/field_add_contract"
+            android:layout_height="wrap_content" />
+
+    </RadioGroup>
 
     <LinearLayout
         android:layout_width="match_parent"
