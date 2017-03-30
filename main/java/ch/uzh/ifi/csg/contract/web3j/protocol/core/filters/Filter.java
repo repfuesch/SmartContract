@@ -36,6 +36,10 @@ public abstract class Filter<T>
         this.executorService = executorService;
     }
 
+    /**
+     * We don't block the thread in this method. Instead we use the ScheduledExecutorService to
+     * periodically execute the polling task.
+     */
     public void run(long blockTime) {
         try {
             final EthFilter ethFilter = sendRequest();
@@ -74,6 +78,9 @@ public abstract class Filter<T>
 
     abstract void process(List<EthLog.LogResult> logResults);
 
+    /**
+     * We cancel the polling task by canceling the ScheduledFuture object
+     */
     public void cancel() {
 
         future.cancel(true);
