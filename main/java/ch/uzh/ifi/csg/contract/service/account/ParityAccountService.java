@@ -1,7 +1,10 @@
 package ch.uzh.ifi.csg.contract.service.account;
 
 
+import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthAccounts;
+import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.parity.Parity;
 import org.web3j.protocol.parity.methods.response.NewAccountIdentifier;
 import org.web3j.protocol.parity.methods.response.PersonalListAccounts;
@@ -21,12 +24,13 @@ import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
  * be used for debugging purposes.
  */
 
-public class ParityAccountService implements AccountService {
+public class ParityAccountService extends Web3AccountService{
 
     private Parity parity;
 
     public ParityAccountService(Parity parity)
     {
+        super(parity);
         this.parity = parity;
     }
 
@@ -71,4 +75,5 @@ public class ParityAccountService implements AccountService {
             }
         });
     }
+
 }

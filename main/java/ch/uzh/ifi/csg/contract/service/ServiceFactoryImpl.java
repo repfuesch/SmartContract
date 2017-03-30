@@ -51,10 +51,12 @@ public class ServiceFactoryImpl implements EthServiceFactory
     }
 
     @Override
-    public AccountService createWalletAccountService(String accountDirectory, String walletDirectory, boolean useFullEncryption)
+    public AccountService createWalletAccountService(String host, int port, String accountDirectory, String walletDirectory, boolean useFullEncryption)
     {
+        String endpoint = "http://" + host + ":" + port + "/";
+        Web3j web3 = ParityClientFactory.build(new HttpService(endpoint));
         AccountManager accountManager = new AccountFileManager(accountDirectory);
-        WalletAccountService accountService = new WalletAccountService(accountManager, credentialProvider, walletDirectory, useFullEncryption);
+        WalletAccountService accountService = new WalletAccountService(web3, accountManager, credentialProvider, walletDirectory, useFullEncryption);
 
         return accountService;
     }

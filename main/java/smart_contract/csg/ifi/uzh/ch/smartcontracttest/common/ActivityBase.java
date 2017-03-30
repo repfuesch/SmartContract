@@ -2,6 +2,7 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -17,9 +18,17 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import org.jdeferred.Promise;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.MathContext;
 
+import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.service.contract.ContractFileManager;
 import ch.uzh.ifi.csg.contract.service.contract.ContractInfo;
 import ch.uzh.ifi.csg.contract.async.broadcast.TransactionManager;
@@ -39,6 +48,9 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 public abstract class ActivityBase extends AppCompatActivity implements MessageHandler, ErrorDialogFragment.ExceptionConfirmedListener
 {
     private Toolbar toolbar;
+    private LinearLayout accountBalanceView;
+    private TextView accountBalanceField;
+
     private Class callingActivityClass;
     private ContractBroadcastReceiver broadcastReceiver = null;
     boolean broadcastReceiverRegistered = false;
@@ -46,10 +58,17 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(getLayoutResourceId());
         broadcastReceiver = new ContractBroadcastReceiver();
+
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         this.setSupportActionBar(toolbar);
+        getSupportActionBar().setLogo(R.drawable.ic_eth_logo_big);
+        getSupportActionBar().setDisplayUseLogoEnabled(true);
+
+        accountBalanceView = (LinearLayout) findViewById(R.id.account_balance_view);
+        accountBalanceField = (TextView) accountBalanceView.findViewById(R.id.account_balance_field);
 
         if(getIntent().getSerializableExtra("from") != null)
             callingActivityClass = (Class) getIntent().getSerializableExtra("from");
@@ -84,6 +103,11 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
         }
     }
 
+    protected final LinearLayout getBalanceView()
+    {
+        return this.accountBalanceView;
+    }
+
     protected abstract int getLayoutResourceId();
 
     @Override
@@ -98,11 +122,6 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
         Intent intent = new Intent(this, nextActivity);
         intent.putExtra("from", callingActivity.getClass());
         startActivity(intent);
-    }
-
-    public void onBackButtonClick(View view)
-    {
-        onBackPressed();
     }
 
     @Override
@@ -132,7 +151,7 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
                 startActivity(settingIntent);
                 return true;
 
-            case R.id.action_overview:
+            case R.id.action_home:
                 //show overview activity
                 Intent overviewIntent = new Intent(this, ContractOverviewActivity.class);
                 startActivity(overviewIntent);
@@ -175,6 +194,29 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
         errorDialogFragment.show(getSupportFragmentManager(), "errorDialogFragment");
     }
 
+    private void updateAccountBalance()
+    {
+        String selectedAccount = SettingsProvider.getInstance().getSelectedAccount();
+        if (!selectedAccount.isEmpty())
+        {
+            ServiceProvider.getInstance().getAccountService().getAccountBalance(selectedAccount)
+                    .always(new AlwaysCallback<BigDecimal>() {
+                        @Override
+                        public void onAlways(Promise.State state, final BigDecimal resolved, Throwable rejected) {
+                            if(rejected != null){
+                            }else{
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        accountBalanceField.setText(resolved.round(MathContext.DECIMAL32).toString());
+                                    }
+                                });
+                            }
+                        }
+                    });
+        }
+    }
+
     @Override
     public void onExceptionConfirmed(Throwable throwable)
     {
@@ -204,6 +246,8 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
             LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter(AccountActivity.ACTION_ACCOUNT_CHANGED));
             broadcastReceiverRegistered = true;
         }
+
+        updateAccountBalance();
     }
 
     protected void onContractCreated(String contractAddress)
@@ -241,6 +285,8 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
             {
                 showMessage(intent.getStringExtra(MessageHandler.MESSAGE_SHOW_ERROR));
             }
+
+            updateAccountBalance();
         }
     }
 }

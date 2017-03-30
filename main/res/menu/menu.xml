@@ -3,8 +3,8 @@
 
     <!-- "Mark Favorite", should appear as action button if possible -->
     <item
-        android:id="@+id/action_overview"
-        android:icon="@drawable/ic_overview"
+        android:id="@+id/action_home"
+        android:icon="@drawable/ic_action_home"
         android:title="@string/action_overview"
         app:showAsAction="ifRoom"/>
 

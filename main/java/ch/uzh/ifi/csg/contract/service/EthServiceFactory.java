@@ -16,6 +16,8 @@ public interface EthServiceFactory
     AccountService createParityAccountService(String host, int port);
 
     AccountService createWalletAccountService(
+            String host,
+            int port,
             String accountDirectory,
             String walletDirectory,
             boolean useFullEncryption);

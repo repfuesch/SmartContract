@@ -3,6 +3,7 @@ package ch.uzh.ifi.csg.contract.service.account;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.WalletUtils;
+import org.web3j.protocol.Web3j;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,15 +22,16 @@ import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
  * debugging purposes.
  */
 
-public class WalletAccountService implements AccountService {
+public class WalletAccountService extends Web3AccountService{
 
     private AccountManager accountManager;
     private String walletDirectory;
     private boolean useFullEncryption;
     private CredentialProvider credentialProvider;
 
-    public WalletAccountService(AccountManager accountManager, CredentialProvider credentialProvider, String walletDirectory, boolean useFullEncryption)
+    public WalletAccountService(Web3j web3, AccountManager accountManager, CredentialProvider credentialProvider, String walletDirectory, boolean useFullEncryption)
     {
+        super(web3);
         this.accountManager = accountManager;
         this.walletDirectory = walletDirectory;
         this.useFullEncryption = useFullEncryption;

@@ -66,6 +66,8 @@ public class ServiceProvider
         */
 
         accountService = serviceFactory.createWalletAccountService(
+                settingsProvider.getHost(),
+                settingsProvider.getPort(),
                 AppContext.getContext().getApplicationContext().getFilesDir() + "/accounts",
                 Environment.getExternalStorageDirectory() + "/Ethereum/keystore",
                 false);
