@@ -26,67 +26,54 @@
             android:layout_margin="16dp"
             android:orientation="vertical">
 
-            <LinearLayout
+            <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textStyle="bold"
-                    android:text="Title: " />
+                android:layout_height="wrap_content">
 
                 <EditText
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:textStyle="bold"
+                    android:hint="@string/hint_title"
                     android:id="@+id/contract_title"
-                    android:onClick="onTextFieldClick"/>
+                    android:onClick="onTextFieldClick" />
 
-            </LinearLayout>
+            </android.support.design.widget.TextInputLayout>
 
-            <LinearLayout
+            <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textStyle="bold"
-                    android:text="Price(eth): "/>
+                android:layout_height="wrap_content">
 
                 <EditText
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:inputType="numberDecimal"
+                    android:textStyle="bold"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:hint="@string/hint_price"
                     android:id="@+id/contract_price"
                     android:onClick="onTextFieldClick"/>
 
-            </LinearLayout>
+            </android.support.design.widget.TextInputLayout>
 
-            <LinearLayout
+            <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Description: "
-                    android:textStyle="bold"
-                    android:layout_marginBottom="10dp"/>
+                android:layout_height="wrap_content">
 
                 <EditText
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/contract_description"
+                    android:hint="@string/hint_description"
+                    android:textStyle="bold"
                     android:layout_marginBottom="10dp"
                     android:onClick="onTextFieldClick"/>
-            </LinearLayout>
+
+            </android.support.design.widget.TextInputLayout>
+
 
 
             <LinearLayout
+                android:layout_marginTop="16dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">

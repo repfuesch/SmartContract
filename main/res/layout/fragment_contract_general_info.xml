@@ -1,6 +1,6 @@
-<LinearLayout
-    android:layout_width="match_parent"
+<LinearLayout android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:gravity="top"
     android:orientation="vertical"
     xmlns:android="http://schemas.android.com/apk/res/android">
@@ -29,89 +29,82 @@
         android:padding="8dp"
         android:id="@+id/general_information_body">
 
-        <LinearLayout
+
+        <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_weight="0.5"
-                android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:text="title :"/>
+            android:textColorHint="#ff6d00"
+            app:hintTextAppearance="@style/HintTextBig">
 
-            <TextView
+            <EditText
                 android:id="@+id/general_title"
-                android:layout_width="0dp"
-                android:layout_weight="0.5"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textStyle="bold"
                 android:gravity="center_vertical"
+                android:hint="@string/hint_title"
+                android:enabled="false"
+                android:text="testText"
+                android:textColor="@color/white"
                 android:textAppearance="?attr/textAppearanceListItem"/>
-        </LinearLayout>
 
-        <LinearLayout
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_weight="0.5"
-                android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:text="state :"/>
+            android:textColorHint="#ff6d00"
+            app:hintTextAppearance="@style/HintTextBig">
 
-            <TextView
+            <EditText
                 android:id="@+id/general_state"
-                android:layout_width="0dp"
-                android:layout_weight="0.5"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textStyle="bold"
                 android:gravity="center_vertical"
+                android:hint="@string/hint_state"
+                android:enabled="false"
+                android:text="testText"
+                android:textColor="@color/white"
                 android:textAppearance="?attr/textAppearanceListItem"/>
-        </LinearLayout>
 
-        <LinearLayout
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_weight="0.5"
-                android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:text="price :"/>
+            android:textColorHint="#ff6d00"
+            app:hintTextAppearance="@style/HintTextBig">
 
-            <TextView
+            <EditText
                 android:id="@+id/general_price"
-                android:layout_width="0dp"
-                android:layout_weight="0.5"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textStyle="bold"
                 android:gravity="center_vertical"
+                android:hint="@string/hint_price"
+                android:enabled="false"
+                android:text="testText"
+                android:textColor="@color/white"
                 android:textAppearance="?attr/textAppearanceListItem"/>
-        </LinearLayout>
 
-        <LinearLayout
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_weight="0.5"
-                android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:text="Date added :"/>
+            android:textColorHint="#ff6d00"
+            app:hintTextAppearance="@style/HintTextBig">
 
-            <TextView
-                android:id="@+id/general_date"
-                android:layout_width="0dp"
-                android:layout_weight="0.5"
+            <EditText
+                android:id="@+id/general_description"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textStyle="bold"
                 android:gravity="center_vertical"
+                android:hint="@string/hint_description"
+                android:enabled="false"
+                android:text="testText"
+                android:textColor="@color/white"
                 android:textAppearance="?attr/textAppearanceListItem"/>
-        </LinearLayout>
+
+        </android.support.design.widget.TextInputLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -121,19 +114,22 @@
             android:id="@+id/contract_interactions">
 
             <Button
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="buy"
                 android:id="@+id/buy_button" />
 
             <Button
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="abort"
                 android:id="@+id/abort_button" />
 
             <Button
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="confirm"
                 android:id="@+id/confirm_button"/>

@@ -145,6 +145,7 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
                                 resultListener.onLoginResult(true);
                                 notifyAccountChanged(account);
                             }
+
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {

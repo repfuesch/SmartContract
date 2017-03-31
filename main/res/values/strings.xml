@@ -50,4 +50,8 @@
     <string name="title_account">Accounts</string>
     <string name="title_settings">Settings</string>
     <string name="title_contract_create">New</string>
+    <string name="hint_title">Title</string>
+    <string name="hint_price">Price</string>
+    <string name="hint_description">Description</string>
+    <string name="hint_state">State</string>
 </resources>

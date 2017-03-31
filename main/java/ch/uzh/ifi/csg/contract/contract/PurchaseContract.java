@@ -10,7 +10,6 @@ import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.generated.Uint8;
-import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.EthFilter;
@@ -22,7 +21,6 @@ import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,18 +33,19 @@ import java.util.concurrent.Future;
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.event.IContractObserver;
-import rx.Observable;
 import rx.Subscription;
 import rx.functions.Action1;
 
 public class PurchaseContract extends Contract implements IPurchaseContract {
 
-    private List<IContractObserver> _observers;
+    private List<IContractObserver> observers;
+    private List<Subscription> subscriptions;
 
     private PurchaseContract(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
         super(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
 
-        _observers = new ArrayList<>();
+        observers = new ArrayList<>();
+        subscriptions = new ArrayList<>();
     }
 
     public static SimplePromise<IPurchaseContract> deployContract(
@@ -62,7 +61,6 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
             public IPurchaseContract call() throws Exception {
                 String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type<String>>asList(args));
                 PurchaseContract purchase = deploy(PurchaseContract.class, web3j, transactionManager, gasPrice, gasLimit, binary, encodedConstructor, value);
-                //purchase.registerContractEvents();
                 return purchase;
             }
         });
@@ -83,7 +81,6 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
                         constructor.setAccessible(true);
 
                         PurchaseContract contract = constructor.newInstance(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
-                        contract.registerContractEvents();
                         return contract;
                     }
                 });
@@ -113,7 +110,7 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
 
 
     protected List<IContractObserver> getObservers() {
-        return _observers;
+        return observers;
     }
 
     public SimplePromise<String> seller() {
@@ -249,7 +246,8 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
                 });
     }
 
-    protected void registerContractEvents() {
+    protected void registerContractEvents()
+    {
         Event event = new Event("purchaseConfirmed", new ArrayList<TypeReference<?>>(), new ArrayList<TypeReference<?>>());
         registerEvent(event);
         event = new Event("aborted", new ArrayList<TypeReference<?>>(), new ArrayList<TypeReference<?>>());
@@ -258,18 +256,30 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
         registerEvent(event);
     }
 
+    protected void unregisterContractEvents()
+    {
+        for(Subscription subscription : subscriptions)
+        {
+            subscription.unsubscribe();
+        }
+
+        subscriptions.clear();
+    }
+
     private void registerEvent(final Event event)
     {
         String encodedEventSignature = EventEncoder.encode(event);
         EthFilter filter = new EthFilter(DefaultBlockParameterName.EARLIEST, DefaultBlockParameterName.LATEST, getContractAddress()).addSingleTopic(encodedEventSignature);
 
-        Subscription observable = web3j.ethLogObservable(filter).subscribe(
+        Subscription subscription = web3j.ethLogObservable(filter).subscribe(
                 new Action1<Log>() {
                     @Override
                     public void call(Log log) {
                         notifyObservers(event.getName(), null);
                     }
                 });
+
+        subscriptions.add(subscription);
     }
 
     private void notifyObservers(String event, Object value) {
@@ -280,12 +290,19 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
     }
 
     @Override
-    public void addObserver(IContractObserver observer) {
+    public void addObserver(IContractObserver observer)
+    {
+        if(getObservers().size() == 0)
+            registerContractEvents();
+
         getObservers().add(observer);
     }
 
     @Override
-    public void deleteObserver(IContractObserver observer) {
+    public void removeObserver(IContractObserver observer) {
+
         getObservers().remove(observer);
+        if(getObservers().size() == 0)
+            unregisterContractEvents();
     }
 }

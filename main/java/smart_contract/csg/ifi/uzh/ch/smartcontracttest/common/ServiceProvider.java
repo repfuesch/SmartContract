@@ -49,7 +49,7 @@ public class ServiceProvider
 
     public void initServices(SettingsProvider settingsProvider)
     {
-        /*
+
         accountService = serviceFactory.createParityAccountService(settingsProvider.getHost(), settingsProvider.getPort());
         if(settingsProvider.getSelectedAccount() != null)
         {
@@ -63,8 +63,9 @@ public class ServiceProvider
                     settingsProvider.getTransactionSleepDuration(),
                     AppContext.getContext().getApplicationContext().getFilesDir() + "/contracts");
         }
-        */
 
+
+        /*
         accountService = serviceFactory.createWalletAccountService(
                 settingsProvider.getHost(),
                 settingsProvider.getPort(),
@@ -84,7 +85,7 @@ public class ServiceProvider
                     settingsProvider.getTransactionSleepDuration(),
                     AppContext.getContext().getApplicationContext().getFilesDir() + "/contracts");
         }
-
+    */
     }
 
 }

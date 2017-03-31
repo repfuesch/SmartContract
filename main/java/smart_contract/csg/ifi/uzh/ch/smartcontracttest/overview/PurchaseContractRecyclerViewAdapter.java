@@ -3,6 +3,7 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,7 +15,6 @@ import ch.uzh.ifi.csg.contract.async.broadcast.TransactionManager;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.event.IContractObserver;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.ContractDetailActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
@@ -26,62 +26,12 @@ public class PurchaseContractRecyclerViewAdapter
         extends RecyclerView.Adapter<PurchaseContractRecyclerViewAdapter.ViewHolder> {
 
     private final List<IPurchaseContract> contracts;
-    private final MessageHandler errorHandler;
+    private final List<ViewHolder> boundViewHolders;
 
-    public PurchaseContractRecyclerViewAdapter(MessageHandler errorHandler)
+    public PurchaseContractRecyclerViewAdapter(List<IPurchaseContract> contracts)
     {
-        contracts = new ArrayList<>();
-        this.errorHandler = errorHandler;
-    }
-
-    public boolean addContract(IPurchaseContract contract)
-    {
-        for(IPurchaseContract c : contracts)
-        {
-            if(c.getContractAddress().equals(contract.getContractAddress()))
-            {
-                errorHandler.showMessage("You already added this contract!");
-                return false;
-            }
-        }
-
-        contracts.add(contract);
-        notifyItemInserted(contracts.size() - 1);
-        return true;
-    }
-
-    public void removeContract(IPurchaseContract contract)
-    {
-        IPurchaseContract toRemove = null;
-        for(IPurchaseContract c : contracts)
-        {
-            if(c.getContractAddress().equals(contract.getContractAddress()))
-            {
-                toRemove = c;
-                break;
-            }
-        }
-
-        if(toRemove != null)
-        {
-            contracts.remove(contract);
-            notifyDataSetChanged();
-        }
-    }
-
-    public void clearContracts()
-    {
-        contracts.clear();
-        notifyDataSetChanged();
-    }
-
-    public void updateContract(String contractAddress)
-    {
-        for(IPurchaseContract contract : contracts)
-        {
-            if(contract.getContractAddress().equals(contractAddress))
-                notifyItemChanged(contracts.indexOf(contract));
-        }
+        this.contracts = contracts;
+        this.boundViewHolders = new ArrayList<>();
     }
 
     @Override
@@ -92,10 +42,22 @@ public class PurchaseContractRecyclerViewAdapter
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
+    public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+    }
 
+    @Override
+    public void onBindViewHolder(final ViewHolder holder, int position)
+    {
         IPurchaseContract contract = contracts.get(position);
         holder.attachContract(contract);
+        boundViewHolders.add(holder);
+    }
+
+    @Override
+    public void onViewRecycled(ViewHolder holder) {
+        super.onViewRecycled(holder);
+        boundViewHolders.remove(holder);
     }
 
     @Override
@@ -108,29 +70,37 @@ public class PurchaseContractRecyclerViewAdapter
         return position;
     }
 
+    public void onDestroy()
+    {
+        for(ViewHolder holder : boundViewHolders)
+            holder.detachContract();
+    }
 
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, IContractObserver {
-        public final View view;
-        public final TextView titleView;
-        public final TextView stateView;
-        public final TextView priceView;
-        public final LinearLayout headerView;
-        public final LinearLayout bodyView;
-        public final Button buyButton;
-        public final Button abortButton;
-        public final Button confirmButton;
-        public final Button showDetailsButton;
-        public final LinearLayout cardProgressView;
+        private final View view;
+        private final TextView titleView;
+        private final TextView stateView;
+        private final TextView priceView;
+        private final LinearLayout headerView;
+        private final CardView cardView;
+        private final LinearLayout bodyView;
+        private final Button buyButton;
+        private final Button abortButton;
+        private final Button confirmButton;
+        private final Button showDetailsButton;
+        private final LinearLayout cardProgressView;
 
         private Handler handler;
         private IPurchaseContract contract;
 
         public ViewHolder(View view) {
             super(view);
+
             this.view = view;
 
             this.handler = new Handler(Looper.getMainLooper());
 
+            cardView = (CardView) view.findViewById(R.id.card_view);
             titleView = (TextView) view.findViewById(R.id.list_detail_title);
             stateView = (TextView) view.findViewById(R.id.list_detail_state);
             priceView = (TextView) view.findViewById(R.id.list_detail_price);
@@ -147,8 +117,8 @@ public class PurchaseContractRecyclerViewAdapter
             abortButton.setOnClickListener(this);
             confirmButton.setOnClickListener(this);
             showDetailsButton.setOnClickListener(this);
+            cardView.setOnClickListener(this);
         }
-
 
         @Override
         public String toString() {
@@ -164,7 +134,8 @@ public class PurchaseContractRecyclerViewAdapter
 
         public void detachContract()
         {
-            contract.deleteObserver(this);
+            if(contract != null)
+                contract.removeObserver(this);
         }
 
         private void runOnUiThread(Runnable runnable)
@@ -177,6 +148,11 @@ public class PurchaseContractRecyclerViewAdapter
         {
             switch(view.getId())
             {
+                case R.id.card_view:
+                    Intent intent = new Intent(view.getContext(), ContractDetailActivity.class);
+                    intent.putExtra(ContractDetailActivity.MESSAGE_SHOW_CONTRACT_DETAILS, contract.getContractAddress());
+                    view.getContext().startActivity(intent);
+                    /*
                 case R.id.detail_buy_button:
                     buyButton.setEnabled(false);
                     TransactionManager.toTransaction(contract.confirmPurchase(), contract.getContractAddress());
@@ -189,10 +165,7 @@ public class PurchaseContractRecyclerViewAdapter
                     confirmButton.setEnabled(false);
                     TransactionManager.toTransaction(contract.confirmReceived(), contract.getContractAddress());
                     break;
-                case R.id.detail_show_more_button:
-                    Intent intent = new Intent(view.getContext(), ContractDetailActivity.class);
-                    intent.putExtra(ContractDetailActivity.MESSAGE_SHOW_CONTRACT_DETAILS, contract.getContractAddress());
-                    view.getContext().startActivity(intent);
+                    */
                 default:
                     break;
             }

@@ -21,6 +21,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,6 +40,7 @@ public class PurchaseContractFragment extends Fragment
     private int mColumnCount = 1;
     private MessageHandler errorHandler;
     private PurchaseContractRecyclerViewAdapter adapter;
+    private List<IPurchaseContract> contracts;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -63,6 +65,15 @@ public class PurchaseContractFragment extends Fragment
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
         }
+
+        contracts = new ArrayList<>();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        adapter.onDestroy();
     }
 
     @Override
@@ -80,7 +91,7 @@ public class PurchaseContractFragment extends Fragment
             purchaseList.setLayoutManager(new GridLayoutManager(context, mColumnCount));
         }
 
-        adapter = new PurchaseContractRecyclerViewAdapter(errorHandler);
+        adapter = new PurchaseContractRecyclerViewAdapter(contracts);
         purchaseList.setAdapter(adapter);
 
         return view;
@@ -106,7 +117,7 @@ public class PurchaseContractFragment extends Fragment
 
     public void loadContractsForAccount(String account)
     {
-        adapter.clearContracts();
+        contracts.clear();
         ServiceProvider.getInstance().getContractService().loadContracts(account)
                 .always(new AlwaysCallback<List<IPurchaseContract>>() {
                     @Override
@@ -117,55 +128,37 @@ public class PurchaseContractFragment extends Fragment
                                 if(rejected != null)
                                 {
                                     errorHandler.handleError(rejected);
-                                    return;
+                                }else{
+                                    contracts.addAll(resolved);
                                 }
 
-                                for(IPurchaseContract contract : resolved)
-                                    loadContract(contract);
+                                adapter.notifyDataSetChanged();
                             }
                         });
                     }
                 });
-    }
-
-    public void loadContract(IPurchaseContract newContract)
-    {
-        adapter.addContract(newContract);
     }
 
     public void loadContract(String contractAddress)
     {
         ServiceProvider.getInstance().getContractService().loadContract(contractAddress)
-                .done(new DoneCallback<IPurchaseContract>() {
+                .always(new AlwaysCallback<IPurchaseContract>() {
                     @Override
-                    public void onDone(final IPurchaseContract result)
-                    {
-                        //add contract to list and persist it
+                    public void onAlways(Promise.State state, final IPurchaseContract resolved, final Throwable rejected) {
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                loadContract(result);
-                            }
-                        });
-                    }
-                })
-                .fail(new FailCallback() {
-                    @Override
-                    public void onFail(final Throwable rejected) {
-
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                errorHandler.handleError(rejected);
+                                if(rejected != null)
+                                {
+                                    errorHandler.handleError(rejected);
+                                }else{
+                                    contracts.add(resolved);
+                                    adapter.notifyItemInserted(contracts.size() - 1);
+                                }
                             }
                         });
                     }
                 });
-    }
-
-    public void updateContract(String contractAddress)
-    {
-        adapter.updateContract(contractAddress);
     }
 
 }

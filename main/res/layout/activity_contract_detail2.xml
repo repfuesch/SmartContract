@@ -52,6 +52,14 @@
                     android:layout_marginTop="16dp"
                     tools:layout="@layout/fragment_contract_general_info"/>
 
+                <fragment
+                    android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.ContractContactInfoFragment"
+                    android:id="@+id/contact_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="16dp"
+                    tools:layout="@layout/fragment_contract_contact_info"/>
+
                 </FrameLayout>
             </LinearLayout>
         </TabHost>

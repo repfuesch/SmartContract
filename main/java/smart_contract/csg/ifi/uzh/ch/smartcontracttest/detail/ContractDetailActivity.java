@@ -2,6 +2,7 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.ImageView;
 import android.widget.TabHost;
 
 import org.jdeferred.Promise;
@@ -9,10 +10,8 @@ import org.jdeferred.Promise;
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.event.IContractObserver;
-import ch.uzh.ifi.csg.contract.setting.EthSettings;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 
 public class ContractDetailActivity extends ActivityBase implements IContractObserver {
@@ -40,7 +39,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
     protected void onDestroy() {
         super.onDestroy();
 
-        contract.deleteObserver(this);
+        contract.removeObserver(this);
     }
 
     private void LoadContract(String contractAddress)
@@ -76,8 +75,14 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
         //Tab 1
         TabHost.TabSpec spec = host.newTabSpec("General");
         spec.setContent(R.id.general_info);
-        spec.setIndicator("General");
+        spec.setIndicator("", getResources().getDrawable(R.drawable.ic_tab_general_info));
         host.addTab(spec);
+
+        //Tab2
+        TabHost.TabSpec spec2 = host.newTabSpec("Contact");
+        spec2.setIndicator("", getResources().getDrawable(R.drawable.ic_tab_contact_info));
+        spec2.setContent(R.id.contact_info);
+        host.addTab(spec2);
     }
 
     @Override
@@ -91,7 +96,8 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
     }
 
     @Override
-    public void contractStateChanged(String event, Object value) {
+    public void contractStateChanged(String event, Object value)
+    {
         generalInfoFragment.updateView();
     }
 }

@@ -71,6 +71,9 @@ public class ParityAccountService extends Web3AccountService{
             @Override
             public Boolean call() throws Exception {
                 PersonalUnlockAccount unlockAcc = parity.personalUnlockAccount(account.getId(), password, BigInteger.valueOf(Integer.MAX_VALUE)).send();
+                if(unlockAcc.hasError())
+                    return false;
+
                 return unlockAcc.accountUnlocked();
             }
         });
