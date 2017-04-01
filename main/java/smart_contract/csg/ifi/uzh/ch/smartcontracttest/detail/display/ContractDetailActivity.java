@@ -1,8 +1,7 @@
-package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail;
+package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.ImageView;
 import android.widget.TabHost;
 
 import org.jdeferred.Promise;

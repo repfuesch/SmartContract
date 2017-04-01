@@ -20,4 +20,10 @@
         android:title="@string/settings_title"
         app:showAsAction="ifRoom"/>
 
+    <item
+        android:id="@+id/action_profile"
+        android:icon="@drawable/ic_tab_contact_info"
+        android:title="@string/activity_profile_title"
+        app:showAsAction="ifRoom"/>
+
 </menu>

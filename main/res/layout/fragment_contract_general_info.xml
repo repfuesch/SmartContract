@@ -5,6 +5,22 @@
     android:orientation="vertical"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp">
+
+        <smart_contract.csg.ifi.uzh.ch.smartcontracttest.controls.ProportionalImageView
+            android:layout_width="64dp"
+            android:layout_margin="16dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center"
+            android:layout_alignParentRight="true"
+            android:src="@drawable/ic_eth_logo_big"
+            android:id="@+id/contract_qr_image"/>
+
+    </RelativeLayout>
+
     <LinearLayout
         android:id="@+id/progress_view"
         android:layout_width="match_parent"
@@ -28,7 +44,6 @@
         android:layout_height="wrap_content"
         android:padding="8dp"
         android:id="@+id/general_information_body">
-
 
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"

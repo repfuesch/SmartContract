@@ -1,5 +1,7 @@
-package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail;
+package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display;
 
+import android.app.DialogFragment;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.view.LayoutInflater;
@@ -8,6 +10,9 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import net.glxn.qrgen.android.QRCode;
+
 import org.jdeferred.Promise;
 
 import ch.uzh.ifi.csg.contract.async.broadcast.TransactionManager;
@@ -16,6 +21,8 @@ import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ImageDialogFragment;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.controls.ProportionalImageView;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 
 public class ContractGeneralInfoFragment extends Fragment implements View.OnClickListener {
@@ -31,6 +38,7 @@ public class ContractGeneralInfoFragment extends Fragment implements View.OnClic
     private LinearLayout bodyView;
     private LinearLayout progressView;
     private LinearLayout contractInteractionView;
+    private ProportionalImageView qrImageView;
 
     private IPurchaseContract contract;
 
@@ -70,10 +78,12 @@ public class ContractGeneralInfoFragment extends Fragment implements View.OnClic
         buyButton = (Button) view.findViewById(R.id.buy_button);
         abortButton = (Button) view.findViewById(R.id.abort_button);
         confirmButton = (Button) view.findViewById(R.id.confirm_button);
+        qrImageView = (ProportionalImageView) view.findViewById(R.id.contract_qr_image);
 
         buyButton.setOnClickListener(this);
         abortButton.setOnClickListener(this);
         confirmButton.setOnClickListener(this);
+        qrImageView.setOnClickListener(this);
 
         return view;
     }
@@ -150,6 +160,13 @@ public class ContractGeneralInfoFragment extends Fragment implements View.OnClic
                 });
                 TransactionManager.toTransaction(confirmPromise, contract.getContractAddress());
                 break;
+            case R.id.contract_qr_image:
+                DialogFragment imageDialog = new ImageDialogFragment();
+                Bundle args = new Bundle();
+                args.putString(ImageDialogFragment.MESSAGE_IMAGE_SOURCE, contract.getContractAddress());
+                args.putBoolean(ImageDialogFragment.MESSAGE_DISPLAY_QRCODE, true);
+                imageDialog.setArguments(args);
+                imageDialog.show(getFragmentManager(), "QrImageDialog");
             default:
                 break;
         }
@@ -197,7 +214,10 @@ public class ContractGeneralInfoFragment extends Fragment implements View.OnClic
     }
 
 
-    public void setContract(IPurchaseContract contract) {
+    public void setContract(IPurchaseContract contract)
+    {
         this.contract = contract;
+        Bitmap bitmap = QRCode.from(contract.getContractAddress()).bitmap();
+        qrImageView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, 125, 125, false));
     }
 }

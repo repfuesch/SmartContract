@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA"/>
 
     <application
         android:name=".common.AppContext"
@@ -24,14 +25,22 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".detail.ContractCreateActivity" android:theme="@style/MyTheme"/>
-        <activity android:name=".detail.ContractDetailActivity" android:theme="@style/MyTheme"/>
-        <activity android:name=".setting.SettingsActivity" android:theme="@style/MyTheme" />
+        <activity
+            android:name=".detail.create.ContractCreateActivity"
+            android:theme="@style/MyTheme" />
+        <activity
+            android:name=".detail.display.ContractDetailActivity"
+            android:theme="@style/MyTheme" />
+        <activity
+            android:name=".setting.SettingsActivity"
+            android:theme="@style/MyTheme" />
         <activity
             android:name=".account.AccountActivity"
             android:configChanges="orientation|screenSize"
-            android:theme="@style/MyTheme"
-            android:launchMode="singleTask"/>
+            android:launchMode="singleTask"
+            android:theme="@style/MyTheme" />
+        <activity android:name=".profile.ProfileActivity" />
+        <activity android:name=".common.QrScanningActivity" android:screenOrientation="landscape"></activity>
     </application>
 
 </manifest>

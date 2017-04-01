@@ -1,0 +1,131 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create.ContractDeployFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:orientation="vertical">
+
+            <android.support.design.widget.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/hint_title"
+                    android:id="@+id/contract_title" />
+
+            </android.support.design.widget.TextInputLayout>
+
+            <android.support.design.widget.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:inputType="numberDecimal"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/hint_price"
+                    android:id="@+id/contract_price" />
+
+            </android.support.design.widget.TextInputLayout>
+
+            <android.support.design.widget.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/contract_description"
+                    android:hint="@string/hint_description"
+                    android:layout_marginBottom="10dp" />
+
+            </android.support.design.widget.TextInputLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <RadioGroup
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true"
+                    android:id="@+id/contract_options_radio_group"
+                    android:checkedButton="@+id/option_anonymous">
+
+                    <RadioButton
+                        android:layout_width="wrap_content"
+                        android:id="@+id/option_anonymous"
+                        android:text="@string/option_anonymous"
+                        android:layout_height="wrap_content" />
+
+                    <RadioButton
+                        android:layout_width="wrap_content"
+                        android:id="@+id/option_verification"
+                        android:text="@string/option_verify"
+                        android:layout_height="wrap_content" />
+
+                </RadioGroup>
+
+                <ImageView
+                    android:layout_marginTop="16dp"
+                    android:id="@+id/activity_qr_scanning"
+                    android:visibility="gone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:onClick="onScanQrImageClick"
+                    android:src="@drawable/ic_action_scan_qr_code"/>
+
+            </RelativeLayout>
+
+
+            <LinearLayout
+                android:layout_marginTop="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="deploy"
+                    android:id="@+id/action_deploy_contract"
+                    android:onClick="onDeployContractButtonClick"
+                    android:layout_marginRight="10dp"/>
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="verify identity"
+                    android:enabled="false"
+                    android:id="@+id/action_verifyIdentity"
+                    android:onClick="onVerifyIdentityButtonClick"
+                    android:layout_marginRight="10dp"/>
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="cancel"
+                    android:onClick="onCancelContractButtonClick"/>
+
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

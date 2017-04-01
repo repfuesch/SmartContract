@@ -1,6 +1,8 @@
 package ch.uzh.ifi.csg.contract.service.account;
 
 
+import net.glxn.qrgen.core.scheme.VCard;
+
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthAccounts;
@@ -27,11 +29,13 @@ import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 public class ParityAccountService extends Web3AccountService{
 
     private Parity parity;
+    private AccountManager accountManager;
 
-    public ParityAccountService(Parity parity)
+    public ParityAccountService(Parity parity, AccountManager accountManager)
     {
-        super(parity);
+        super(parity, accountManager);
         this.parity = parity;
+        this.accountManager = accountManager;
     }
 
     @Override
@@ -46,8 +50,27 @@ public class ParityAccountService extends Web3AccountService{
                 List<Account> accountList = new ArrayList<Account>();
                 for(String accId : remoteAccounts)
                 {
-                    accountList.add(new Account(accId, "alias", ""));
+                    boolean persisted = false;
+                    for(Account account : accountManager.getAccounts())
+                    {
+                        if(account.getId().equals(accId))
+                        {
+                            persisted = true;
+                            break;
+                        }
+                    }
+
+                    Account account = new Account(accId, "alias", "");
+                    if(!persisted)
+                    {
+                        accountManager.getAccounts().add(account);
+                        accountManager.save();
+                    }
+
+
+                    accountList.add(account);
                 }
+
                 return accountList;
             }
         });
@@ -59,7 +82,11 @@ public class ParityAccountService extends Web3AccountService{
             @Override
             public Account call() throws Exception {
                 NewAccountIdentifier accountId = parity.personalNewAccount(password).send();
-                return new Account(accountId.getAccountId(), alias, "");
+
+                Account newAccount =  new Account(accountId.getAccountId(), alias, "");
+                accountManager.getAccounts().add(newAccount);
+                accountManager.save();
+                return newAccount;
             }
         });
     }

@@ -21,10 +21,12 @@ import ch.uzh.ifi.csg.contract.common.Web3;
 public abstract class Web3AccountService implements AccountService
 {
     private Web3j web3;
+    private AccountManager accountManager;
 
-    public Web3AccountService(Web3j web3)
+    public Web3AccountService(Web3j web3, AccountManager accountManager)
     {
         this.web3 = web3;
+        this.accountManager = accountManager;
     }
 
     /**
@@ -43,5 +45,30 @@ public abstract class Web3AccountService implements AccountService
                 return Web3.toEther(balanceWei);
             }
         });
+    }
+
+    @Override
+    public AccountProfile getAccountProfile(String accountId)
+    {
+        for(Account acc : accountManager.getAccounts())
+        {
+            if(acc.getId().equals(accountId))
+                return acc.getProfile();
+        }
+
+        return new AccountProfile();
+    }
+
+    @Override
+    public void saveAccountProfile(String accountId, AccountProfile profile)
+    {
+        for(Account acc : accountManager.getAccounts())
+        {
+            if(acc.getId().equals(accountId))
+            {
+                acc.setProfile(profile);
+                accountManager.save();
+            }
+        }
     }
 }

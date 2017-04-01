@@ -18,15 +18,29 @@
 
         <include layout="@layout/fragment_account_balance"/>
 
-        <ImageButton
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_action_add"
             android:layout_alignParentRight="true"
-            android:layout_margin="8dp"
-            android:onClick="onAddButtonClick"
-            android:background="?android:attr/colorBackground"/>
+            android:orientation="horizontal">
 
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:onClick="onScanButtonClick"
+                android:background="?android:attr/colorBackground"
+                android:src="@drawable/ic_action_scan_qr_code"/>
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_action_add"
+                android:layout_margin="8dp"
+                android:onClick="onAddButtonClick"
+                android:background="?android:attr/colorBackground"/>
+
+        </LinearLayout>
     </RelativeLayout>
 
     <fragment

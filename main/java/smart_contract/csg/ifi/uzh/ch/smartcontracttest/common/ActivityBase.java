@@ -36,6 +36,7 @@ import ch.uzh.ifi.csg.contract.contract.ContractState;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 
@@ -82,8 +83,6 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
                 Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
 
-            // No explanation needed, we can request the permission.
-
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     1);
@@ -94,12 +93,19 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
                 Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
 
-            // No explanation needed, we can request the permission.
-
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     1);
 
+        }
+
+        if (ContextCompat.checkSelfPermission(AppContext.getContext(),
+                Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA},
+                    1);
         }
     }
 
@@ -110,10 +116,11 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
 
     protected abstract int getLayoutResourceId();
 
+
     @Override
     public boolean onPrepareOptionsMenu(final Menu menu) {
+        menu.clear();
         getMenuInflater().inflate(R.menu.menu, menu);
-
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -156,6 +163,13 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
                 Intent overviewIntent = new Intent(this, ContractOverviewActivity.class);
                 startActivity(overviewIntent);
                 return true;
+
+            case R.id.action_profile:
+                //show profile activity
+                Intent profileIntent = new Intent(this, ProfileActivity.class);
+                startActivity(profileIntent);
+                return true;
+
             default:
                 // If we got here, the user's action was not recognized.
                 // Invoke the superclass to handle it.

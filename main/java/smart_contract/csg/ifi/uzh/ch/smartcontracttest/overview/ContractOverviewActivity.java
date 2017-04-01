@@ -4,17 +4,18 @@ import android.content.Intent;
 import android.support.v4.app.DialogFragment;
 import android.os.Bundle;
 import android.view.View;
-import android.view.Window;
 
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.ContractCreateActivity;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.LoginDialogFragment;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.QrScanningActivity;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create.ContractCreateActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 
 public class ContractOverviewActivity extends ActivityBase implements AddContractDialogFragment.AddContractDialogListener
 {
+    private static final int SCAN_CONTRACT_ADDRESS_REQUEST = 1;
+
     private PurchaseContractFragment listFragment;
 
     @Override
@@ -42,6 +43,28 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
     {
         DialogFragment newFragment = new AddContractDialogFragment();
         newFragment.show(getSupportFragmentManager(), "loadContractFragment");
+    }
+
+    public void onScanButtonClick(View view)
+    {
+        Intent intent = new Intent(this, QrScanningActivity.class);
+        intent.setAction(QrScanningActivity.ACTION_SCAN_CONTRACT);
+        startActivityForResult(
+                intent,
+                SCAN_CONTRACT_ADDRESS_REQUEST
+        );
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent)
+    {
+        switch (requestCode) {
+            case SCAN_CONTRACT_ADDRESS_REQUEST:
+                String contractAddress = intent.getStringExtra(QrScanningActivity.MESSAGE_SCAN_DATA);
+                //listFragment.loadContract(contractAddress);
+                break;
+        }
+        super.onActivityResult(requestCode, resultCode, intent);
     }
 
     @Override

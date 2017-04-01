@@ -43,11 +43,12 @@ public class ServiceFactoryImpl implements EthServiceFactory
     }
 
     @Override
-    public AccountService createParityAccountService(String host, int port)
+    public AccountService createParityAccountService(String host, int port, String accountDirectory)
     {
         String endpoint = "http://" + host + ":" + port + "/";
         Parity parity = ParityClientFactory.build(new HttpService(endpoint));
-        return new ParityAccountService(parity);
+        AccountManager accountManager = new AccountFileManager(accountDirectory);
+        return new ParityAccountService(parity, accountManager);
     }
 
     @Override

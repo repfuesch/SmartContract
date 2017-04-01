@@ -50,7 +50,11 @@ public class ServiceProvider
     public void initServices(SettingsProvider settingsProvider)
     {
 
-        accountService = serviceFactory.createParityAccountService(settingsProvider.getHost(), settingsProvider.getPort());
+        accountService = serviceFactory.createParityAccountService(
+                settingsProvider.getHost(),
+                settingsProvider.getPort(),
+                AppContext.getContext().getApplicationContext().getFilesDir() + "/accounts_remote");
+
         if(settingsProvider.getSelectedAccount() != null)
         {
             contractService = serviceFactory.createClientContractService(

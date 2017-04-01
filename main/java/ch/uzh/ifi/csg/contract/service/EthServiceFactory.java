@@ -13,7 +13,7 @@ import ch.uzh.ifi.csg.contract.service.contract.ContractService;
 
 public interface EthServiceFactory
 {
-    AccountService createParityAccountService(String host, int port);
+    AccountService createParityAccountService(String host, int port, String accoutDirectory);
 
     AccountService createWalletAccountService(
             String host,

@@ -28,10 +28,11 @@ public class WalletAccountService extends Web3AccountService{
     private String walletDirectory;
     private boolean useFullEncryption;
     private CredentialProvider credentialProvider;
+    private Account unlockedAccount;
 
     public WalletAccountService(Web3j web3, AccountManager accountManager, CredentialProvider credentialProvider, String walletDirectory, boolean useFullEncryption)
     {
-        super(web3);
+        super(web3, accountManager);
         this.accountManager = accountManager;
         this.walletDirectory = walletDirectory;
         this.useFullEncryption = useFullEncryption;
@@ -69,7 +70,7 @@ public class WalletAccountService extends Web3AccountService{
                 accountManager.getAccounts().add(newAccount);
                 accountManager.save();
                 credentialProvider.setCredentials(credentials);
-
+                unlockedAccount = newAccount;
                 return newAccount;
             }
         });
@@ -90,6 +91,7 @@ public class WalletAccountService extends Web3AccountService{
                     return false;
                 }
 
+                unlockedAccount = account;
                 return true;
             }
         });

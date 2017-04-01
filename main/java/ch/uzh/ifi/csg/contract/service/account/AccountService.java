@@ -16,5 +16,6 @@ public interface AccountService {
     SimplePromise<Account> createAccount(String alias, String password);
     SimplePromise<Boolean> unlockAccount(Account account, String password);
     SimplePromise<BigDecimal> getAccountBalance(String account);
-
+    AccountProfile getAccountProfile(String account);
+    void saveAccountProfile(String accountId, AccountProfile profile);
 }
