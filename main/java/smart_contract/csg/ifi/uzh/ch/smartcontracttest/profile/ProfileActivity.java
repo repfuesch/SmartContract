@@ -1,29 +1,24 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile;
 
 import android.app.DialogFragment;
-import android.app.Service;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
-import net.glxn.qrgen.core.scheme.VCard;
-
-import ch.uzh.ifi.csg.contract.service.account.AccountProfile;
+import ch.uzh.ifi.csg.contract.service.account.UserProfile;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ImageDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.PurchaseContractRecyclerViewAdapter;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 
 public class ProfileActivity extends ActivityBase {
 
-    private ProfileVCardFragment vCardFragment;
+    private ProfileFragment vCardFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        vCardFragment = (ProfileVCardFragment) getFragmentManager().findFragmentById(R.id.vCard_fragment);
+        vCardFragment = (ProfileFragment) getFragmentManager().findFragmentById(R.id.vCard_fragment);
         loadProfileInformation();
     }
 
@@ -35,14 +30,14 @@ public class ProfileActivity extends ActivityBase {
     private void loadProfileInformation()
     {
         String selectedAccount = SettingsProvider.getInstance().getSelectedAccount();
-        AccountProfile profile = ServiceProvider.getInstance().getAccountService().getAccountProfile(selectedAccount);
+        UserProfile profile = ServiceProvider.getInstance().getAccountService().getAccountProfile(selectedAccount);
         vCardFragment.setProfileInformation(profile);
     }
 
     public void onSaveButtonClick(View view)
     {
         String selectedAccount = SettingsProvider.getInstance().getSelectedAccount();
-        AccountProfile profileInfo = vCardFragment.getProfileInformation();
+        UserProfile profileInfo = vCardFragment.getProfileInformation();
         ServiceProvider.getInstance().getAccountService().saveAccountProfile(selectedAccount, profileInfo);
     }
 

@@ -1,7 +1,6 @@
 package ch.uzh.ifi.csg.contract.service.account;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.List;
 
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
@@ -16,6 +15,6 @@ public interface AccountService {
     SimplePromise<Account> createAccount(String alias, String password);
     SimplePromise<Boolean> unlockAccount(Account account, String password);
     SimplePromise<BigDecimal> getAccountBalance(String account);
-    AccountProfile getAccountProfile(String account);
-    void saveAccountProfile(String accountId, AccountProfile profile);
+    UserProfile getAccountProfile(String account);
+    void saveAccountProfile(String accountId, UserProfile profile);
 }

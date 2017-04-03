@@ -1,10 +1,8 @@
 package ch.uzh.ifi.csg.contract.service.account;
 
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.Web3jFactory;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
-import org.web3j.protocol.parity.Parity;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -48,7 +46,7 @@ public abstract class Web3AccountService implements AccountService
     }
 
     @Override
-    public AccountProfile getAccountProfile(String accountId)
+    public UserProfile getAccountProfile(String accountId)
     {
         for(Account acc : accountManager.getAccounts())
         {
@@ -56,11 +54,11 @@ public abstract class Web3AccountService implements AccountService
                 return acc.getProfile();
         }
 
-        return new AccountProfile();
+        return new UserProfile();
     }
 
     @Override
-    public void saveAccountProfile(String accountId, AccountProfile profile)
+    public void saveAccountProfile(String accountId, UserProfile profile)
     {
         for(Account acc : accountManager.getAccounts())
         {

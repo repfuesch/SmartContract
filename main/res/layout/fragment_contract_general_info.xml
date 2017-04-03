@@ -95,8 +95,8 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:hint="@string/hint_price"
-                android:enabled="false"
                 android:text="testText"
+                android:enabled="false"
                 android:textColor="@color/white"
                 android:textAppearance="?attr/textAppearanceListItem"/>
 
@@ -120,6 +120,32 @@
                 android:textAppearance="?attr/textAppearanceListItem"/>
 
         </android.support.design.widget.TextInputLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:id="@+id/section_verify_identity"
+            android:layout_marginTop="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#ff6d00"
+                android:textSize="16dp"
+                android:text="Verify Identity "/>
+
+            <ImageView
+                android:layout_marginTop="16dp"
+                android:id="@+id/activity_qr_scanning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:onClick="onScanQrImageClick"
+                android:src="@drawable/ic_action_scan_qr_code"/>
+
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"

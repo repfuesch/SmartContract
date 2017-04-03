@@ -156,13 +156,7 @@ public class QReader {
                     final SparseArray<Barcode> barcodes = detections.getDetectedItems();
                     if (barcodes.size() != 0 && QrDataListener != null)
                     {
-                        String detectedString = "";
-                        for(int i=0;i<barcodes.size(); i++)
-                        {
-                            detectedString += barcodes.valueAt(i).displayValue;
-                        }
-
-                        QrDataListener.onDetected(detectedString);
+                        QrDataListener.onDetected(barcodes.valueAt(0).rawValue);
                     }
                 }
             });

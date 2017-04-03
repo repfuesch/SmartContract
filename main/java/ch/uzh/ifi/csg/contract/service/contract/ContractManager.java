@@ -10,5 +10,6 @@ public interface ContractManager
 {
     void saveContract(ContractInfo contract, String account);
     void deleteContract(ContractInfo contract, String account);
-    List<ContractInfo> loadContracts(String account);
+    List<ContractInfo> getContracts(String account);
+    ContractInfo getContract(String address, String account);
 }

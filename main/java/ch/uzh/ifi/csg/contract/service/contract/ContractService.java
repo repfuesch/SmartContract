@@ -12,8 +12,8 @@ import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 
 public interface ContractService {
 
-    SimplePromise<IPurchaseContract> deployContract(BigInteger value, String title, String description);
-    SimplePromise<IPurchaseContract> loadContract(String contractAddress);
+    SimplePromise<IPurchaseContract> deployContract(BigInteger value, String title, String description, boolean verifyIdentity);
+    SimplePromise<IPurchaseContract> loadContract(String contractAddress, String account);
     void saveContract(IPurchaseContract contract, String account);
     void removeContract(IPurchaseContract contract, String account);
     SimplePromise<List<IPurchaseContract>> loadContracts(String account);

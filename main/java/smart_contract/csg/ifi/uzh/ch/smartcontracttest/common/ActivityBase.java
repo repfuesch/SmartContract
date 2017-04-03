@@ -283,7 +283,6 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
                 {
                     //Load contract and persist it, such that it is stored independent of the currently active activity
                     final String contractAddress = intent.getStringExtra(TransactionManager.CONTRACT_TRANSACTION_ADDRESS);
-                    new ContractFileManager(getFilesDir() + "/contracts").saveContract(new ContractInfo(ContractState.Created, contractAddress), SettingsProvider.getInstance().getSelectedAccount());
                     onContractCreated(contractAddress);
                     return;
                 }

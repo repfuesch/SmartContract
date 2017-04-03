@@ -1,25 +1,27 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create;
 
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TabHost;
 
-import net.glxn.qrgen.core.scheme.VCard;
-
-import ch.uzh.ifi.csg.contract.service.account.AccountProfile;
+import ch.uzh.ifi.csg.contract.service.account.UserProfile;
+import ezvcard.Ezvcard;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.QrScanningActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileVCardFragment;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment;
 
-public class ContractCreateActivity extends ActivityBase {
+public class ContractCreateActivity extends ActivityBase implements ProfileFragment.OnProfileVerifiedListener {
 
     private static final int SCAN_CONTRACT_INFO_REQUEST = 1;
 
     private ContractDeployFragment deployFragment;
-    private ProfileVCardFragment contactFragment;
+    private ProfileFragment contactFragment;
     private TabHost tabhost;
 
     @Override
@@ -28,9 +30,13 @@ public class ContractCreateActivity extends ActivityBase {
         getSupportActionBar().setTitle(R.string.title_contract_create);
 
         deployFragment = (ContractDeployFragment) getFragmentManager().findFragmentById(R.id.fragment_contract_create);
-        contactFragment = (ProfileVCardFragment) getFragmentManager().findFragmentById(R.id.contact_info);
+        contactFragment = (ProfileFragment) getFragmentManager().findFragmentById(R.id.fragment_contact_info);
+        contactFragment.setReadOnly();
+        contactFragment.enableVerification();
+
         initTabHost();
     }
+
 
     @Override
     protected int getLayoutResourceId() {
@@ -76,24 +82,15 @@ public class ContractCreateActivity extends ActivityBase {
             case SCAN_CONTRACT_INFO_REQUEST:
                 if(intent == null)
                     return;
+
                 String vCardString = intent.getStringExtra(QrScanningActivity.MESSAGE_SCAN_DATA);
-                AccountProfile profile = new AccountProfile();
-                profile.setVCard(VCard.parse(vCardString));
+                UserProfile profile = new UserProfile();
+                profile.setVCard(Ezvcard.parse(vCardString).first());
                 contactFragment.setProfileInformation(profile);
                 tabhost.setCurrentTabByTag("Contact");
                 break;
         }
         super.onActivityResult(requestCode, resultCode, intent);
-    }
-
-    public void onVerifyIdentityButtonClick(View view)
-    {
-        if(contactFragment.validateProfile())
-        {
-            deployFragment.verifyIdentity();
-        }else{
-            showMessage("The contact profile is not valid!");
-        }
     }
 
     public void onDeployContractButtonClick(final View view)
@@ -107,4 +104,10 @@ public class ContractCreateActivity extends ActivityBase {
         startActivity(intent);
     }
 
+    @Override
+    public void onProfileVerified(UserProfile profile)
+    {
+        deployFragment.verifyIdentity(profile);
+        tabhost.setCurrentTabByTag("General");
+    }
 }

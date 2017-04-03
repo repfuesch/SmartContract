@@ -11,13 +11,13 @@ public class Account implements Serializable
     private String id;
     private String label;
     private String walletFile;
-    private AccountProfile profile;
+    private UserProfile profile;
 
     public Account(String id, String label, String walletFile) {
         this.id = id;
         this.label = label;
         this.walletFile = walletFile;
-        this.profile = new AccountProfile();
+        this.profile = new UserProfile();
     }
 
     public String getLabel() {
@@ -44,11 +44,11 @@ public class Account implements Serializable
         this.walletFile = walletFile;
     }
 
-    public AccountProfile getProfile() {
+    public UserProfile getProfile() {
         return profile;
     }
 
-    public void setProfile(AccountProfile profile) {
+    public void setProfile(UserProfile profile) {
         this.profile = profile;
     }
 }

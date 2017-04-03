@@ -20,6 +20,7 @@ import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -141,7 +142,7 @@ public class PurchaseContractFragment extends Fragment
 
     public void loadContract(String contractAddress)
     {
-        ServiceProvider.getInstance().getContractService().loadContract(contractAddress)
+        ServiceProvider.getInstance().getContractService().loadContract(contractAddress, SettingsProvider.getInstance().getSelectedAccount())
                 .always(new AlwaysCallback<IPurchaseContract>() {
                     @Override
                     public void onAlways(Promise.State state, final IPurchaseContract resolved, final Throwable rejected) {

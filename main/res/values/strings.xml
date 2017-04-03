@@ -55,10 +55,14 @@
     <string name="hint_price">Price</string>
     <string name="hint_description">Description</string>
     <string name="hint_state">State</string>
-    <string name="hint_name">Name</string>
+    <string name="hint_first_name">First Name</string>
+    <string name="hint_last_name">Last name</string>
     <string name="hint_address">Address</string>
+    <string name="hint_street">Street/Nr</string>
     <string name="hint_city">City</string>
     <string name="hint_zip">Zip</string>
+    <string name="hint_country">Country</string>
+    <string name="hint_area">State/Area</string>
     <string name="hint_phone">Phone</string>
     <string name="hint_mail">E-Mail</string>
     <string name="hint_company">Company</string>

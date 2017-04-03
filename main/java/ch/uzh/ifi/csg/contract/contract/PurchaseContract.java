@@ -4,6 +4,7 @@ import org.web3j.abi.EventEncoder;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.Bool;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
@@ -33,6 +34,7 @@ import java.util.concurrent.Future;
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.event.IContractObserver;
+import ch.uzh.ifi.csg.contract.service.account.UserProfile;
 import rx.Subscription;
 import rx.functions.Action1;
 
@@ -40,12 +42,14 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
 
     private List<IContractObserver> observers;
     private List<Subscription> subscriptions;
+    private UserProfile userProfile;
 
     private PurchaseContract(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
         super(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
 
         observers = new ArrayList<>();
         subscriptions = new ArrayList<>();
+        userProfile = new UserProfile();
     }
 
     public static SimplePromise<IPurchaseContract> deployContract(
@@ -111,6 +115,16 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
 
     protected List<IContractObserver> getObservers() {
         return observers;
+    }
+
+    @Override
+    public UserProfile getUserProfile() {
+        return userProfile;
+    }
+
+    @Override
+    public void setUserProfile(UserProfile profile) {
+        userProfile = profile;
     }
 
     public SimplePromise<String> seller() {
@@ -244,6 +258,21 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
                         }
                     }
                 });
+    }
+
+    @Override
+    public SimplePromise<Boolean> verifyIdentity() {
+        return Async.toPromise(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                Function function = new Function("verifyIdentity",
+                        Arrays.<Type>asList(),
+                        Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {
+                        }));
+                Bool result = executeCallSingleValueReturn(function);
+                return result.getValue();
+            }
+        });
     }
 
     protected void registerContractEvents()

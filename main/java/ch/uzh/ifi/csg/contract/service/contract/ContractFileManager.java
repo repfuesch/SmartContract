@@ -77,7 +77,7 @@ public class ContractFileManager implements ContractManager {
     }
 
     @Override
-    public List<ContractInfo> loadContracts(String account)
+    public List<ContractInfo> getContracts(String account)
     {
         String accountData = FileManager.readFile(new File(contractDirectory));
         List<AccountContractInfo> accounts = Deserialize(accountData);
@@ -94,6 +94,19 @@ public class ContractFileManager implements ContractManager {
         FileManager.writeFile(accountData, new File(contractDirectory));
 
         return new ArrayList<>();
+    }
+
+    @Override
+    public ContractInfo getContract(String address, String account)
+    {
+        List<ContractInfo> contracts = getContracts(account);
+        for(ContractInfo info : contracts)
+        {
+            if(info.getContractAddress().equals(address))
+                return info;
+        }
+
+        return null;
     }
 
     private List<AccountContractInfo> Deserialize(String jsonArray)

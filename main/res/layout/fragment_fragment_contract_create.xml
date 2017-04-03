@@ -99,7 +99,8 @@
                 android:orientation="horizontal">
 
                 <Button
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:text="deploy"
                     android:id="@+id/action_deploy_contract"
@@ -107,16 +108,8 @@
                     android:layout_marginRight="10dp"/>
 
                 <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="verify identity"
-                    android:enabled="false"
-                    android:id="@+id/action_verifyIdentity"
-                    android:onClick="onVerifyIdentityButtonClick"
-                    android:layout_marginRight="10dp"/>
-
-                <Button
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:text="cancel"
                     android:onClick="onCancelContractButtonClick"/>

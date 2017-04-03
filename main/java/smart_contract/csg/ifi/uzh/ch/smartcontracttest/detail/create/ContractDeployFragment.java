@@ -19,11 +19,15 @@ import android.widget.TextView;
 import java.math.BigInteger;
 
 import ch.uzh.ifi.csg.contract.async.broadcast.TransactionManager;
+import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
+import ch.uzh.ifi.csg.contract.service.account.UserProfile;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.validation.RequiredTextFieldValidator;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -34,10 +38,10 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
     private EditText titleField;
     private EditText descriptionField;
     private Button deployButton;
-    private Button verifyButton;
     private RadioGroup deployOptionsGroup;
     private ImageView qrImageView;
 
+    private UserProfile verifiedProfile;
     private boolean isVerified;
     private boolean isValid;
     private boolean needsVerification;
@@ -57,12 +61,13 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
         isValid = false;
 
         priceField = (EditText) view.findViewById(R.id.contract_price);
+        priceField.addTextChangedListener(new RequiredTextFieldValidator(priceField));
         titleField = (EditText) view.findViewById(R.id.contract_title);
+        titleField.addTextChangedListener(new RequiredTextFieldValidator(titleField));
         descriptionField = (EditText) view.findViewById(R.id.contract_description);
+        descriptionField.addTextChangedListener(new RequiredTextFieldValidator(descriptionField));
         deployButton = (Button) view.findViewById(R.id.action_deploy_contract);
         deployButton.setEnabled(false);
-        verifyButton = (Button) view.findViewById(R.id.action_verifyIdentity);
-        verifyButton.setEnabled(false);
 
         deployOptionsGroup = (RadioGroup) view.findViewById(R.id.contract_options_radio_group);
         qrImageView = (ImageView) view.findViewById(R.id.activity_qr_scanning);
@@ -87,7 +92,15 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
         final String title = titleField.getText().toString();
         final String desc = descriptionField.getText().toString();
 
-        SimplePromise<IPurchaseContract> promise = ServiceProvider.getInstance().getContractService().deployContract(price, title, desc);
+        SimplePromise<IPurchaseContract> promise = ServiceProvider.getInstance().getContractService().deployContract(price, title, desc, needsVerification)
+                .done(new DoneCallback<IPurchaseContract>() {
+                    @Override
+                    public void onDone(IPurchaseContract result) {
+                        result.setUserProfile(verifiedProfile);
+                        ServiceProvider.getInstance().getContractService().saveContract(result, SettingsProvider.getInstance().getSelectedAccount());
+                    }
+                });
+
         TransactionManager.toTransaction(promise, null);
 
         Intent intent = new Intent(getActivity(), ContractOverviewActivity.class);
@@ -105,9 +118,7 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
     @Override
     public void afterTextChanged(Editable editable) {
 
-        if(titleField.getText().toString().isEmpty() ||
-                priceField.getText().toString().isEmpty() ||
-                descriptionField.getText().toString().isEmpty())
+        if(titleField.getError() != null || priceField.getError() != null || descriptionField.getError() != null)
         {
             isValid = false;
         }else{
@@ -120,16 +131,23 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
     private void checkStatus()
     {
         if(isValid && needsVerification && isVerified)
+        {
             deployButton.setEnabled(true);
+            return;
+        }
 
         if(isValid && !needsVerification)
+        {
             deployButton.setEnabled(true);
+            return;
+        }
 
         deployButton.setEnabled(false);
     }
 
-    public void verifyIdentity()
+    public void verifyIdentity(UserProfile profile)
     {
+        verifiedProfile = profile;
         isVerified = true;
         checkStatus();
     }
@@ -142,12 +160,14 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
             case R.id.option_verification:
                 needsVerification = true;
                 isVerified = false;
+                checkStatus();
                 qrImageView.setVisibility(View.VISIBLE);
-                verifyButton.setEnabled(true);
                 break;
             default:
                 qrImageView.setVisibility(View.GONE);
+                needsVerification = false;
                 isVerified = true;
+                checkStatus();
         }
     }
 }

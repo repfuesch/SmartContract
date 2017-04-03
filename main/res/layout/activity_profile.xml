@@ -14,7 +14,7 @@
     <include layout="@layout/fragment_account_balance" android:visibility="gone"/>
 
     <fragment
-        android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileVCardFragment"
+        android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment"
         android:id="@+id/vCard_fragment"
         android:layout_weight="1"
         android:layout_width="match_parent"

@@ -53,7 +53,7 @@
                         tools:layout="@layout/fragment_fragment_contract_create"/>
 
                     <fragment
-                        android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileVCardFragment"
+                        android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment"
                         android:id="@+id/fragment_contact_info"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"

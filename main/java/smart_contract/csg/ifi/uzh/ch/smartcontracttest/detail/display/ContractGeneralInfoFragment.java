@@ -34,13 +34,14 @@ public class ContractGeneralInfoFragment extends Fragment implements View.OnClic
     private Button buyButton;
     private Button abortButton;
     private Button confirmButton;
-    private Button showDetailsButton;
     private LinearLayout bodyView;
     private LinearLayout progressView;
     private LinearLayout contractInteractionView;
+    private LinearLayout verifyIdentityView;
     private ProportionalImageView qrImageView;
 
     private IPurchaseContract contract;
+    private boolean isVerified;
 
     public ContractGeneralInfoFragment() {
         // Required empty public constructor
@@ -79,6 +80,7 @@ public class ContractGeneralInfoFragment extends Fragment implements View.OnClic
         abortButton = (Button) view.findViewById(R.id.abort_button);
         confirmButton = (Button) view.findViewById(R.id.confirm_button);
         qrImageView = (ProportionalImageView) view.findViewById(R.id.contract_qr_image);
+        verifyIdentityView = (LinearLayout) view.findViewById(R.id.section_verify_identity);
 
         buyButton.setOnClickListener(this);
         abortButton.setOnClickListener(this);
@@ -172,6 +174,13 @@ public class ContractGeneralInfoFragment extends Fragment implements View.OnClic
         }
     }
 
+    public void verifyIdentity()
+    {
+        isVerified = true;
+        contractInteractionView.setVisibility(View.VISIBLE);
+        verifyIdentityView.setVisibility(View.GONE);
+    }
+
     public void updateView()
     {
         ContractState state = contract.state().get();
@@ -179,6 +188,7 @@ public class ContractGeneralInfoFragment extends Fragment implements View.OnClic
         String description = contract.description().get();
         String seller = contract.seller().get();
         String buyer = contract.buyer().get();
+
         String selectedAccount = SettingsProvider.getInstance().getSelectedAccount();
 
         titleView.setText(contract.title().get());
@@ -217,6 +227,16 @@ public class ContractGeneralInfoFragment extends Fragment implements View.OnClic
     public void setContract(IPurchaseContract contract)
     {
         this.contract = contract;
+        Boolean verifyIdentity = contract.verifyIdentity().get();
+        if(verifyIdentity != null)
+        {
+            if(verifyIdentity)
+            {
+                contractInteractionView.setVisibility(View.GONE);
+                verifyIdentityView.setVisibility(View.VISIBLE);
+            }
+        }
+
         Bitmap bitmap = QRCode.from(contract.getContractAddress()).bitmap();
         qrImageView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, 125, 125, false));
     }

@@ -53,12 +53,12 @@
                     tools:layout="@layout/fragment_contract_general_info"/>
 
                 <fragment
-                    android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.ContractContactInfoFragment"
-                    android:id="@+id/contact_info"
+                    android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment"
+                    android:id="@+id/fragment_contact_info"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_marginTop="16dp"
-                    tools:layout="@layout/fragment_contract_contact_info"/>
+                    tools:layout="@layout/fragment_profile_vcard"/>
 
                 </FrameLayout>
             </LinearLayout>
