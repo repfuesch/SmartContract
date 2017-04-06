@@ -19,6 +19,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display.ContractDe
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -152,6 +153,7 @@ public class PurchaseContractRecyclerViewAdapter
                     Intent intent = new Intent(view.getContext(), ContractDetailActivity.class);
                     intent.putExtra(ContractDetailActivity.MESSAGE_SHOW_CONTRACT_DETAILS, contract.getContractAddress());
                     view.getContext().startActivity(intent);
+                    break;
                     /*
                 case R.id.detail_buy_button:
                     buyButton.setEnabled(false);
@@ -186,7 +188,7 @@ public class PurchaseContractRecyclerViewAdapter
         private void updateViewFromState()
         {
             ContractState state = contract.state().get();
-            Integer value = contract.value().get();
+            BigInteger value = contract.value().get();
             String seller = contract.seller().get();
             String buyer = contract.buyer().get();
             String selectedAccount = SettingsProvider.getInstance().getSelectedAccount();

@@ -1,6 +1,8 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile;
 
 
+import android.app.DialogFragment;
+import android.app.Service;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -22,12 +24,16 @@ import ezvcard.parameter.TelephoneType;
 import ezvcard.property.Address;
 import ezvcard.property.StructuredName;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ImageDialogFragment;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.validation.RequiredTextFieldValidator;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 
 /**
  * A fragment for retrieving and displaying user information
  */
-public class ProfileFragment extends Fragment {
+public class ProfileFragment extends Fragment implements View.OnClickListener {
 
     private UserProfile profile;
 
@@ -42,18 +48,21 @@ public class ProfileFragment extends Fragment {
     private EditText emailField;
     private EditText phoneField;
     private Button verifyButton;
-
+    private Button editButton;
+    private Button saveButton;
     private ImageView qrImageView;
-    private boolean verificationEnabled;
-    private OnProfileVerifiedListener listener;
+
+    private ProfileMode mode;
+    private OnProfileVerifiedListener verifiedListener;
+    private MessageHandler messageHandler;
 
     public ProfileFragment() {
         // Required empty public constructor
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    {
         View view =  inflater.inflate(R.layout.fragment_profile_vcard, container, false);
 
         firstNameField = (EditText) view.findViewById(R.id.field_profile_first_name);
@@ -76,19 +85,18 @@ public class ProfileFragment extends Fragment {
         phoneField.addTextChangedListener(new RequiredTextFieldValidator(phoneField));
 
         verifyButton = (Button) view.findViewById(R.id.action_verify_identity);
-        verifyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(validateProfile())
-                {
-                    verifyButton.setVisibility(View.GONE);
-                    listener.onProfileVerified(getProfileInformation());
-                }
-            }
-        });
-
+        editButton = (Button) view.findViewById(R.id.action_edit_identity);
+        saveButton = (Button) view.findViewById(R.id.action_save_identity);
         qrImageView = (ImageView) view.findViewById(R.id.profile_qr_image);
+        verifyButton.setOnClickListener(this);
+        editButton.setOnClickListener(this);
+        saveButton.setOnClickListener(this);
+        qrImageView.setOnClickListener(this);
+
         layout = (LinearLayout) view.findViewById(R.id.layout_profile_fragment);
+
+        this.profile = new UserProfile();
+        mode = ProfileMode.Edit;
 
         return view;
     }
@@ -99,13 +107,18 @@ public class ProfileFragment extends Fragment {
 
         if(context instanceof OnProfileVerifiedListener)
         {
-            listener = (OnProfileVerifiedListener) context;
+            verifiedListener = (OnProfileVerifiedListener) context;
+        }
+
+        if(context instanceof MessageHandler)
+        {
+            messageHandler = (MessageHandler) context;
         }else{
-            throw new IllegalArgumentException("Context must implement interface OnProfileVerifiedListener!");
+            throw new RuntimeException("Context must implement MessageHandler!");
         }
     }
 
-    public UserProfile getProfileInformation()
+    private UserProfile getProfileInformation()
     {
         VCard card = new VCard();
 
@@ -131,12 +144,11 @@ public class ProfileFragment extends Fragment {
         return profile;
     }
 
-    public void setProfileInformation(UserProfile profile)
+    public void setProfileInformation(UserProfile userProfile)
     {
-        this.profile = profile;
+        profile.setVCard(userProfile.getVCard());
 
         VCard card = profile.getVCard();
-
         StructuredName name = card.getStructuredName();
         firstNameField.setText(name.getGiven());
         lastNameField.setText(name.getFamily());
@@ -158,12 +170,6 @@ public class ProfileFragment extends Fragment {
             phoneField.setText(card.getTelephoneNumbers().get(0).getText());
 
         loadQrImage(card);
-
-        if(verificationEnabled)
-        {
-            if(validateProfile())
-                verifyButton.setEnabled(true);
-        }
     }
 
     @Override
@@ -171,33 +177,47 @@ public class ProfileFragment extends Fragment {
         super.onResume();
     }
 
-    public void setReadOnly()
+    public void setMode(ProfileMode mode)
     {
-        changeLayoutRecursive(layout);
+        this.mode = mode;
+
+        if(mode == ProfileMode.Verify)
+        {
+            changeLayoutRecursive(layout, ProfileMode.Verify);
+            verifyButton.setVisibility(View.VISIBLE);
+            saveButton.setVisibility(View.GONE);
+            editButton.setVisibility(View.GONE);
+        }else if(mode == ProfileMode.Edit){
+            changeLayoutRecursive(layout, ProfileMode.Edit);
+            verifyButton.setVisibility(View.GONE);
+            saveButton.setVisibility(View.VISIBLE);
+            editButton.setVisibility(View.GONE);
+        }else
+        {
+            changeLayoutRecursive(layout, ProfileMode.ReadOnly);
+            verifyButton.setVisibility(View.GONE);
+            saveButton.setVisibility(View.GONE);
+            editButton.setVisibility(View.GONE);
+        }
     }
 
-    public void enableVerification()
+    private void changeLayoutRecursive(ViewGroup viewGroup, ProfileMode mode)
     {
-        verificationEnabled = true;
-        verifyButton.setVisibility(View.VISIBLE);
-    }
-
-    private void changeLayoutRecursive(ViewGroup viewGroup) {
-
         int count = viewGroup.getChildCount();
         for (int i = 0; i < count; i++) {
             View view = viewGroup.getChildAt(i);
             if (view instanceof ViewGroup)
             {
+                /*
                 if(view instanceof TextInputLayout)
                 {
                     TextInputLayout textInput = (TextInputLayout)view;
                     textInput.setHintTextAppearance(R.style.HintTextBig);
-                }
-                changeLayoutRecursive((ViewGroup) view);
+                }*/
+                changeLayoutRecursive((ViewGroup) view, mode);
             }
             else if (view instanceof EditText) {
-                view.setEnabled(false);
+                view.setEnabled(mode == ProfileMode.Edit);
             }
         }
 
@@ -221,8 +241,62 @@ public class ProfileFragment extends Fragment {
                 emailField.getError() == null;
     }
 
+    public void loadAccountProfileInformation()
+    {
+        String selectedAccount = SettingsProvider.getInstance().getSelectedAccount();
+        UserProfile userProfile = ServiceProvider.getInstance().getAccountService().getAccountProfile(selectedAccount);
+        if(userProfile.getVCard() != null)
+            setProfileInformation(userProfile);
+    }
+
+    @Override
+    public void onClick(View view) {
+
+        switch(view.getId())
+        {
+            case R.id.action_edit_identity:
+                //todo:switch to edit layout
+                break;
+            case R.id.action_verify_identity:
+                if(verifiedListener != null && validateProfile())
+                {
+                    profile.setVerified(true);
+                    verifiedListener.onProfileVerified(profile);
+                }
+                break;
+            case R.id.action_save_identity:
+                if(validateProfile())
+                {
+                    this.profile = getProfileInformation();
+                    String selectedAccount = SettingsProvider.getInstance().getSelectedAccount();
+                    ServiceProvider.getInstance().getAccountService().saveAccountProfile(selectedAccount, profile);
+                    messageHandler.showMessage("Profile saved!");
+                }else{
+                    messageHandler.showMessage("Please fill out all required fields!");
+                }
+
+                break;
+            case R.id.profile_qr_image:
+                DialogFragment imageDialog = new ImageDialogFragment();
+                Bundle args = new Bundle();
+                args.putString(ImageDialogFragment.MESSAGE_IMAGE_SOURCE, profile.getVCard().toString());
+                args.putBoolean(ImageDialogFragment.MESSAGE_DISPLAY_QRCODE, true);
+                imageDialog.setArguments(args);
+                imageDialog.show(getFragmentManager(), "QrImageDialog");
+                break;
+
+        }
+    }
+
     public static interface OnProfileVerifiedListener
     {
         void onProfileVerified(UserProfile profile);
+    }
+
+    public static enum ProfileMode
+    {
+        Edit,
+        Verify,
+        ReadOnly,
     }
 }

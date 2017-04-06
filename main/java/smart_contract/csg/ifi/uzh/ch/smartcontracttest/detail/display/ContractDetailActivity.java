@@ -1,5 +1,6 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display;
 
+import android.app.DialogFragment;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import ch.uzh.ifi.csg.contract.event.IContractObserver;
 import ch.uzh.ifi.csg.contract.service.account.UserProfile;
 import ezvcard.Ezvcard;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ImageDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.QrScanningActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
@@ -31,6 +33,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
     private IPurchaseContract contract;
 
     private TabHost tabHost;
+    private TabHost.TabSpec profileViewSpec;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,8 +44,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
         String contractAddress = intent.getStringExtra(MESSAGE_SHOW_CONTRACT_DETAILS);
         generalInfoFragment = (ContractGeneralInfoFragment) getFragmentManager().findFragmentById(R.id.general_info);
         contactFragment = (ProfileFragment) getFragmentManager().findFragmentById(R.id.fragment_contact_info);
-        contactFragment.setReadOnly();
-        contactFragment.enableVerification();
+        contactFragment.setMode(ProfileFragment.ProfileMode.ReadOnly);
 
         initTabHost();
 
@@ -74,7 +76,20 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
                         contract = resolved;
                         generalInfoFragment.setContract(resolved);
                         generalInfoFragment.updateView();
-                        contactFragment.setProfileInformation(contract.getUserProfile());
+                        if(contract.verifyIdentity().get())
+                        {
+                            addProfileTab();
+                            if(!contract.getUserProfile().isVerified())
+                            {
+                                contactFragment.setMode(ProfileFragment.ProfileMode.Verify);
+                            }else{
+                                contactFragment.setProfileInformation(contract.getUserProfile());
+                                contactFragment.setMode(ProfileFragment.ProfileMode.ReadOnly);
+                            }
+                        }else{
+                            removeProfileTab();
+                        }
+
                         resolved.addObserver(ContractDetailActivity.this);
                     }
                 });
@@ -94,10 +109,21 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
         tabHost.addTab(spec);
 
         //Tab2
-        TabHost.TabSpec spec2 = tabHost.newTabSpec("Contact");
-        spec2.setIndicator("", getResources().getDrawable(R.drawable.ic_tab_contact_info));
-        spec2.setContent(R.id.fragment_contact_info);
-        tabHost.addTab(spec2);
+        profileViewSpec = tabHost.newTabSpec("Contact");
+        profileViewSpec.setIndicator("", getResources().getDrawable(R.drawable.ic_tab_contact_info));
+        profileViewSpec.setContent(R.id.fragment_contact_info);
+    }
+
+    private void addProfileTab()
+    {
+        if(tabHost.getTabWidget().getTabCount() == 1)
+            tabHost.addTab(profileViewSpec);
+    }
+
+    private void removeProfileTab()
+    {
+        if(tabHost.getTabWidget().getTabCount() > 1)
+            tabHost.getTabWidget().removeView(tabHost.getTabWidget().getChildTabViewAt(1));
     }
 
     @Override
@@ -126,6 +152,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
                 String vCardString = intent.getStringExtra(QrScanningActivity.MESSAGE_SCAN_DATA);
                 UserProfile profile = new UserProfile();
                 profile.setVCard(Ezvcard.parse(vCardString).first());
+                addProfileTab();
                 contactFragment.setProfileInformation(profile);
                 tabHost.setCurrentTabByTag("Contact");
                 break;
@@ -150,6 +177,8 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
         generalInfoFragment.verifyIdentity();
         tabHost.setCurrentTabByTag("General");
         contract.setUserProfile(profile);
+        contactFragment.setMode(ProfileFragment.ProfileMode.ReadOnly);
         ServiceProvider.getInstance().getContractService().saveContract(contract, SettingsProvider.getInstance().getSelectedAccount());
+        generalInfoFragment.identityVerified();
     }
 }

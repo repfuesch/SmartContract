@@ -43,7 +43,7 @@ public class ErrorDialogFragment extends DialogFragment
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setCancelable(false);
 
-        builder.setTitle(R.string.error_title);
+        builder.setTitle("Message");
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {

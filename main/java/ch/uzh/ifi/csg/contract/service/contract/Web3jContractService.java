@@ -14,6 +14,7 @@ import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.contract.PurchaseContract;
+import ch.uzh.ifi.csg.contract.service.account.UserProfile;
 
 /**
  * Web3j implementation of the ContractService.
@@ -84,7 +85,11 @@ public class Web3jContractService implements ContractService
                 ContractInfo contractInfo = contractManager.getContract(contractAddress, account);
                 if(contractInfo != null)
                 {
-                    contract.setUserProfile(contractInfo.getUserProfile());
+                    if(contractInfo.getUserProfile() != null)
+                    {
+                        contract.setUserProfile(contractInfo.getUserProfile());
+                    }
+
                 }else{
                     contractManager.saveContract(new ContractInfo(contract.state().get(), contractAddress), account);
                 }
@@ -102,7 +107,7 @@ public class Web3jContractService implements ContractService
      */
     @Override
     public void saveContract(IPurchaseContract contract, String account) {
-        contractManager.saveContract(new ContractInfo(contract.state().get(), contract.getContractAddress()), account);
+        contractManager.saveContract(new ContractInfo(contract.state().get(), contract.getContractAddress(), contract.getUserProfile()), account);
     }
 
     /**

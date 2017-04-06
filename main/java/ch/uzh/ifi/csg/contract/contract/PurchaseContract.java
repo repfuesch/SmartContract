@@ -44,7 +44,8 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
     private List<Subscription> subscriptions;
     private UserProfile userProfile;
 
-    private PurchaseContract(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
+    private PurchaseContract(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit)
+    {
         super(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
 
         observers = new ArrayList<>();
@@ -75,7 +76,8 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
             final Web3j web3j,
             final TransactionManager transactionManager,
             final BigInteger gasPrice,
-            final BigInteger gasLimit) {
+            final BigInteger gasLimit)
+    {
         return Async.toPromise(
                 new Callable<IPurchaseContract>() {
                     @Override
@@ -156,18 +158,18 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
         });
     }
 
-    public SimplePromise<Integer> value() {
+    public SimplePromise<BigInteger> value() {
         return Async.toPromise(
-                new Callable<Integer>() {
+                new Callable<BigInteger>() {
                     @Override
-                    public Integer call() throws Exception {
+                    public BigInteger call() throws Exception {
                         Function function = new Function("value",
                                 Arrays.<Type>asList(),
                                 Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {
                                 }));
                         Uint256 result = executeCallSingleValueReturn(function);
 
-                        return result.getValue().intValue();
+                        return result.getValue();
                     }
                 });
     }
@@ -249,7 +251,7 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
                     public String call() throws Exception {
                         Function function = new Function("confirmPurchase", Arrays.<Type>asList(), Collections.<TypeReference<?>>emptyList());
                         try{
-                            TransactionReceipt result = executeTransaction(function, BigInteger.valueOf(2*value().get()));
+                            TransactionReceipt result = executeTransaction(function, value().get().multiply(BigInteger.valueOf(2)));
                             return result.getTransactionHash();
                         }catch(MessageDecodingException ex)
                         {

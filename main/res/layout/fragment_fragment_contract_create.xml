@@ -81,12 +81,11 @@
 
                 <ImageView
                     android:layout_marginTop="16dp"
-                    android:id="@+id/activity_qr_scanning"
+                    android:id="@+id/action_scan_profile"
                     android:visibility="gone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentRight="true"
-                    android:onClick="onScanQrImageClick"
                     android:src="@drawable/ic_action_scan_qr_code"/>
 
             </RelativeLayout>
@@ -104,15 +103,14 @@
                     android:layout_height="wrap_content"
                     android:text="deploy"
                     android:id="@+id/action_deploy_contract"
-                    android:onClick="onDeployContractButtonClick"
                     android:layout_marginRight="10dp"/>
 
                 <Button
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:text="cancel"
-                    android:onClick="onCancelContractButtonClick"/>
+                    android:id="@+id/action_cancel_deploy"
+                    android:text="cancel" />
 
             </LinearLayout>
 

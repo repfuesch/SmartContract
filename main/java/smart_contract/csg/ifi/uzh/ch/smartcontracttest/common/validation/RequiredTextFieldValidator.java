@@ -12,14 +12,16 @@ public class RequiredTextFieldValidator extends TextFieldValidator implements Vi
     public RequiredTextFieldValidator(TextView textView) {
 
         super(textView);
-        textView.setError(textView.getHint() + " is required");
+        validate(textView);
     }
 
     @Override
     public void validate(TextView textView) {
         if(textView.getText().toString().isEmpty())
         {
-            textView.setError(textView.getHint() + " is required");
+            android.support.design.widget.TextInputLayout parent = (android.support.design.widget.TextInputLayout) textView.getParent();
+            String hint = parent.getHint().toString();
+            textView.setError(hint + " is required");
             setValid(false);
             return;
         }

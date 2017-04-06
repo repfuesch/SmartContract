@@ -10,6 +10,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.QrScanningActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create.ContractCreateActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display.ContractDetailActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 
 public class ContractOverviewActivity extends ActivityBase implements AddContractDialogFragment.AddContractDialogListener
@@ -61,7 +62,10 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
         switch (requestCode) {
             case SCAN_CONTRACT_ADDRESS_REQUEST:
                 String contractAddress = intent.getStringExtra(QrScanningActivity.MESSAGE_SCAN_DATA);
-                //listFragment.loadContract(contractAddress);
+                listFragment.loadContract(contractAddress);
+                Intent detailIntent = new Intent(this, ContractDetailActivity.class);
+                detailIntent.putExtra(ContractDetailActivity.MESSAGE_SHOW_CONTRACT_DETAILS, contractAddress);
+                startActivity(detailIntent);
                 break;
         }
         super.onActivityResult(requestCode, resultCode, intent);

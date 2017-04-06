@@ -42,7 +42,7 @@
             android:launchMode="singleTask"
             android:theme="@style/MyTheme" />
         <activity android:name=".profile.ProfileActivity" />
-        <activity android:name=".common.QrScanningActivity" android:screenOrientation="landscape"></activity>
+        <activity android:name=".common.QrScanningActivity" android:screenOrientation="portrait"></activity>
     </application>
 
 </manifest>

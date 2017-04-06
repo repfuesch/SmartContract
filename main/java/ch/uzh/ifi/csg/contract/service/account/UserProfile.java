@@ -10,10 +10,9 @@ import ezvcard.VCard;
 public class UserProfile {
 
     private VCard vCard;
+    private boolean isVerified;
 
     public UserProfile() {
-
-        this.vCard = new VCard();
     }
 
     public VCard getVCard() {
@@ -22,5 +21,13 @@ public class UserProfile {
 
     public void setVCard(VCard vCard) {
         this.vCard = vCard;
+    }
+
+    public boolean isVerified() {
+        return isVerified;
+    }
+
+    public void setVerified(boolean verified) {
+        isVerified = verified;
     }
 }

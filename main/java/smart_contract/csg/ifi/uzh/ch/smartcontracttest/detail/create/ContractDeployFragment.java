@@ -1,8 +1,8 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create;
 
 
+import android.content.Context;
 import android.content.Intent;
-import android.media.Image;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.text.Editable;
@@ -14,7 +14,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioGroup;
-import android.widget.TextView;
 
 import java.math.BigInteger;
 
@@ -23,7 +22,10 @@ import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.service.account.UserProfile;
+import ezvcard.Ezvcard;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.QrScanningActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.validation.RequiredTextFieldValidator;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
@@ -32,7 +34,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class ContractDeployFragment extends Fragment implements TextWatcher, RadioGroup.OnCheckedChangeListener {
+public class ContractDeployFragment extends Fragment implements TextWatcher, RadioGroup.OnCheckedChangeListener, View.OnClickListener {
 
     private EditText priceField;
     private EditText titleField;
@@ -45,6 +47,8 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
     private boolean isVerified;
     private boolean isValid;
     private boolean needsVerification;
+    private OnProfileVerificationRequestedListener listener;
+    private MessageHandler messageHandler;
 
     public ContractDeployFragment() {
         // Required empty public constructor
@@ -68,9 +72,11 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
         descriptionField.addTextChangedListener(new RequiredTextFieldValidator(descriptionField));
         deployButton = (Button) view.findViewById(R.id.action_deploy_contract);
         deployButton.setEnabled(false);
+        deployButton.setOnClickListener(this);
 
         deployOptionsGroup = (RadioGroup) view.findViewById(R.id.contract_options_radio_group);
-        qrImageView = (ImageView) view.findViewById(R.id.activity_qr_scanning);
+        qrImageView = (ImageView) view.findViewById(R.id.action_scan_profile);
+        qrImageView.setOnClickListener(this);
 
         deployOptionsGroup.setOnCheckedChangeListener(this);
         priceField.addTextChangedListener(this);
@@ -78,6 +84,19 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
         descriptionField.addTextChangedListener(this);
 
         return view;
+    }
+
+    private boolean ensureBalance(BigInteger price)
+    {
+        String account = SettingsProvider.getInstance().getSelectedAccount();
+        BigInteger balance = ServiceProvider.getInstance().getAccountService().getAccountBalance(account).get();
+        if(balance.compareTo(price) < 0)
+        {
+            messageHandler.showMessage("You have not enough money to do that!");
+            return false;
+        }
+
+        return true;
     }
 
     public void deployContract()
@@ -88,6 +107,9 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
             priceField.setError("Price must be dividable by 2!");
             return;
         }
+
+        if(!ensureBalance(price))
+            return;
 
         final String title = titleField.getText().toString();
         final String desc = descriptionField.getText().toString();
@@ -105,6 +127,25 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
 
         Intent intent = new Intent(getActivity(), ContractOverviewActivity.class);
         startActivity(intent);
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        if(context instanceof OnProfileVerificationRequestedListener)
+        {
+            listener = (OnProfileVerificationRequestedListener)context;
+        }else{
+            throw new RuntimeException("Context must implement OnProfileVerificationRequestedListener!");
+        }
+
+        if(context instanceof MessageHandler)
+        {
+            messageHandler = (MessageHandler) context;
+        }else{
+            throw new RuntimeException("Context must implement MessageHandler!");
+        }
     }
 
     @Override
@@ -162,12 +203,62 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
                 isVerified = false;
                 checkStatus();
                 qrImageView.setVisibility(View.VISIBLE);
+                listener.onProfileVerificationEnabled(true);
                 break;
             default:
                 qrImageView.setVisibility(View.GONE);
                 needsVerification = false;
                 isVerified = true;
                 checkStatus();
+                listener.onProfileVerificationEnabled(false);
         }
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch(view.getId())
+        {
+            case R.id.action_deploy_contract:
+                deployContract();
+                break;
+            case R.id.action_cancel_deploy:
+                Intent intent = new Intent(getActivity(), ContractOverviewActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.action_scan_profile:
+                Intent scanIntent = new Intent(getActivity(), QrScanningActivity.class);
+                scanIntent.setAction(QrScanningActivity.ACTION_SCAN_CONTRACT);
+                startActivityForResult(
+                        scanIntent,
+                        ContractCreateActivity.SCAN_CONTRACT_INFO_REQUEST);
+                break;
+
+
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent)
+    {
+        switch (requestCode)
+        {
+            case ContractCreateActivity.SCAN_CONTRACT_INFO_REQUEST:
+                if(intent == null)
+                    return;
+
+                String vCardString = intent.getStringExtra(QrScanningActivity.MESSAGE_SCAN_DATA);
+                UserProfile profile = new UserProfile();
+                profile.setVCard(Ezvcard.parse(vCardString).first());
+                listener.onProfileVerificationRequested(profile);
+                break;
+        }
+
+        super.onActivityResult(requestCode, resultCode, intent);
+    }
+
+    public static interface OnProfileVerificationRequestedListener
+    {
+        void onProfileVerificationEnabled(boolean enabled);
+        void onProfileVerificationRequested(UserProfile profile);
     }
 }

@@ -58,6 +58,7 @@
     <string name="hint_first_name">First Name</string>
     <string name="hint_last_name">Last name</string>
     <string name="hint_address">Address</string>
+    <string name="hint_contract_Address">Address</string>
     <string name="hint_street">Street/Nr</string>
     <string name="hint_city">City</string>
     <string name="hint_zip">Zip</string>

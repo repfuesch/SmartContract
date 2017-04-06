@@ -20,7 +20,6 @@
             android:layout_gravity="center"
             android:layout_alignParentLeft="true"
             android:src="@drawable/ic_eth_logo_big"
-            android:onClick="onQrImageClick"
             android:id="@+id/profile_qr_image"/>
 
         <smart_contract.csg.ifi.uzh.ch.smartcontracttest.controls.ProportionalImageView
@@ -215,8 +214,23 @@
             android:text="verify"
             android:visibility="gone"
             android:gravity="center"
-            android:id="@+id/action_verify_identity"
-            android:onClick="onVerifyIdentityButtonClick" />
+            android:id="@+id/action_verify_identity" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="edit"
+            android:visibility="gone"
+            android:gravity="center"
+            android:id="@+id/action_edit_identity" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="save"
+            android:visibility="gone"
+            android:gravity="center"
+            android:id="@+id/action_save_identity" />
 
     </LinearLayout>
 

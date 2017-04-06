@@ -1,25 +1,9 @@
-<LinearLayout android:layout_width="match_parent"
+<LinearLayout
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:gravity="top"
     android:orientation="vertical"
     xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp">
-
-        <smart_contract.csg.ifi.uzh.ch.smartcontracttest.controls.ProportionalImageView
-            android:layout_width="64dp"
-            android:layout_margin="16dp"
-            android:layout_height="64dp"
-            android:layout_gravity="center"
-            android:layout_alignParentRight="true"
-            android:src="@drawable/ic_eth_logo_big"
-            android:id="@+id/contract_qr_image"/>
-
-    </RelativeLayout>
 
     <LinearLayout
         android:id="@+id/progress_view"
@@ -39,119 +23,169 @@
 
     <LinearLayout
         android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:id="@+id/general_information_body">
+        android:id="@+id/contract_info_body">
 
-        <android.support.design.widget.TextInputLayout
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColorHint="#ff6d00"
-            app:hintTextAppearance="@style/HintTextBig">
+            android:layout_alignParentTop="true"
+            android:layout_margin="8dp"
+            android:id="@+id/contract_info_header">
 
-            <EditText
-                android:id="@+id/general_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:hint="@string/hint_title"
-                android:enabled="false"
-                android:text="testText"
-                android:textColor="@color/white"
-                android:textAppearance="?attr/textAppearanceListItem"/>
-
-        </android.support.design.widget.TextInputLayout>
-
-        <android.support.design.widget.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColorHint="#ff6d00"
-            app:hintTextAppearance="@style/HintTextBig">
-
-            <EditText
-                android:id="@+id/general_state"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:hint="@string/hint_state"
-                android:enabled="false"
-                android:text="testText"
-                android:textColor="@color/white"
-                android:textAppearance="?attr/textAppearanceListItem"/>
-
-        </android.support.design.widget.TextInputLayout>
-
-        <android.support.design.widget.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColorHint="#ff6d00"
-            app:hintTextAppearance="@style/HintTextBig">
-
-            <EditText
-                android:id="@+id/general_price"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:hint="@string/hint_price"
-                android:text="testText"
-                android:enabled="false"
-                android:textColor="@color/white"
-                android:textAppearance="?attr/textAppearanceListItem"/>
-
-        </android.support.design.widget.TextInputLayout>
-
-        <android.support.design.widget.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColorHint="#ff6d00"
-            app:hintTextAppearance="@style/HintTextBig">
-
-            <EditText
-                android:id="@+id/general_description"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:hint="@string/hint_description"
-                android:enabled="false"
-                android:text="testText"
-                android:textColor="@color/white"
-                android:textAppearance="?attr/textAppearanceListItem"/>
-
-        </android.support.design.widget.TextInputLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone"
-            android:id="@+id/section_verify_identity"
-            android:layout_marginTop="8dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#ff6d00"
-                android:textSize="16dp"
-                android:text="Verify Identity "/>
-
-            <ImageView
-                android:layout_marginTop="16dp"
-                android:id="@+id/activity_qr_scanning"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <smart_contract.csg.ifi.uzh.ch.smartcontracttest.controls.ProportionalImageView
+                android:layout_width="64dp"
+                android:layout_margin="16dp"
+                android:layout_height="64dp"
+                android:layout_gravity="center"
                 android:layout_alignParentRight="true"
-                android:onClick="onScanQrImageClick"
-                android:src="@drawable/ic_action_scan_qr_code"/>
+                android:src="@drawable/ic_eth_logo_big"
+                android:id="@+id/contract_qr_image"/>
 
-        </LinearLayout>
+        </RelativeLayout>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_below="@+id/contract_info_header"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColorHint="#ff6d00"
+                    app:hintTextAppearance="@style/HintTextBig">
+
+                    <EditText
+                        android:id="@+id/general_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:hint="@string/hint_title"
+                        android:enabled="false"
+                        android:text="testText"
+                        android:textColor="@color/white"
+                        android:textAppearance="?attr/textAppearanceListItem"/>
+
+                </android.support.design.widget.TextInputLayout>
+
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColorHint="#ff6d00"
+                    app:hintTextAppearance="@style/HintTextBig">
+
+                    <EditText
+                        android:id="@+id/general_state"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:hint="@string/hint_state"
+                        android:enabled="false"
+                        android:text="testText"
+                        android:textColor="@color/white"
+                        android:textAppearance="?attr/textAppearanceListItem"/>
+
+                </android.support.design.widget.TextInputLayout>
+
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColorHint="#ff6d00"
+                    app:hintTextAppearance="@style/HintTextBig">
+
+                    <EditText
+                        android:id="@+id/general_price"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:hint="@string/hint_price"
+                        android:text="testText"
+                        android:enabled="false"
+                        android:textColor="@color/white"
+                        android:textAppearance="?attr/textAppearanceListItem"/>
+
+                </android.support.design.widget.TextInputLayout>
+
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColorHint="#ff6d00"
+                    app:hintTextAppearance="@style/HintTextBig">
+
+                    <EditText
+                        android:id="@+id/general_description"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:hint="@string/hint_description"
+                        android:enabled="false"
+                        android:text="testText"
+                        android:textColor="@color/white"
+                        android:textAppearance="?attr/textAppearanceListItem"/>
+
+                </android.support.design.widget.TextInputLayout>
+
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColorHint="#ff6d00"
+                    app:hintTextAppearance="@style/HintTextBig">
+
+                    <EditText
+                        android:id="@+id/general_address"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:hint="@string/hint_address"
+                        android:enabled="false"
+                        android:textSize="10dp"
+                        android:text="testText"
+                        android:textColor="@color/white"
+                        android:textAppearance="?attr/textAppearanceListItem"/>
+
+                </android.support.design.widget.TextInputLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:id="@+id/section_verify_identity"
+                    android:layout_marginTop="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#ff6d00"
+                        android:textSize="16dp"
+                        android:text="Verify Identity "/>
+
+                    <ImageView
+                        android:layout_marginTop="16dp"
+                        android:id="@+id/activity_qr_scanning"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:onClick="onScanQrImageClick"
+                        android:src="@drawable/ic_action_scan_qr_code"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+        </ScrollView>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
             android:orientation="horizontal"
-            android:layout_marginTop="8dp"
             android:id="@+id/contract_interactions">
 
             <Button
@@ -178,4 +212,5 @@
         </LinearLayout>
 
     </LinearLayout>
+
 </LinearLayout>

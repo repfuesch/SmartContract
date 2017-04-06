@@ -1,10 +1,7 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create;
 
-import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.TabHost;
 
@@ -16,13 +13,14 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverview
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment;
 
-public class ContractCreateActivity extends ActivityBase implements ProfileFragment.OnProfileVerifiedListener {
+public class ContractCreateActivity extends ActivityBase implements ProfileFragment.OnProfileVerifiedListener, ContractDeployFragment.OnProfileVerificationRequestedListener {
 
-    private static final int SCAN_CONTRACT_INFO_REQUEST = 1;
+    public static final int SCAN_CONTRACT_INFO_REQUEST = 1;
 
     private ContractDeployFragment deployFragment;
-    private ProfileFragment contactFragment;
-    private TabHost tabhost;
+    private ProfileFragment profileFragment;
+    private TabHost.TabSpec profileTabSpec;
+    private TabHost tabHost;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,13 +28,11 @@ public class ContractCreateActivity extends ActivityBase implements ProfileFragm
         getSupportActionBar().setTitle(R.string.title_contract_create);
 
         deployFragment = (ContractDeployFragment) getFragmentManager().findFragmentById(R.id.fragment_contract_create);
-        contactFragment = (ProfileFragment) getFragmentManager().findFragmentById(R.id.fragment_contact_info);
-        contactFragment.setReadOnly();
-        contactFragment.enableVerification();
+        profileFragment = (ProfileFragment) getFragmentManager().findFragmentById(R.id.fragment_contact_info);
+        profileFragment.setMode(ProfileFragment.ProfileMode.Verify);
 
         initTabHost();
     }
-
 
     @Override
     protected int getLayoutResourceId() {
@@ -49,65 +45,53 @@ public class ContractCreateActivity extends ActivityBase implements ProfileFragm
 
     private void initTabHost()
     {
-        tabhost = (TabHost)findViewById(R.id.tabHost);
-        tabhost.setup();
+        tabHost = (TabHost)findViewById(R.id.tabHost);
+        tabHost.setup();
 
         //Tab 1
-        TabHost.TabSpec spec = tabhost.newTabSpec("General");
+        TabHost.TabSpec spec = tabHost.newTabSpec("General");
         spec.setContent(R.id.fragment_contract_create);
         spec.setIndicator("", getResources().getDrawable(R.drawable.ic_tab_general_info));
-        tabhost.addTab(spec);
+        tabHost.addTab(spec);
 
         //Tab2
-        TabHost.TabSpec spec2 = tabhost.newTabSpec("Contact");
-        spec2.setIndicator("", getResources().getDrawable(R.drawable.ic_tab_contact_info));
-        spec2.setContent(R.id.fragment_contact_info);
-        tabhost.addTab(spec2);
+        profileTabSpec = tabHost.newTabSpec("Contact");
+        profileTabSpec.setIndicator("", getResources().getDrawable(R.drawable.ic_tab_contact_info));
+        profileTabSpec.setContent(R.id.fragment_contact_info);
     }
 
-    public void onScanQrImageClick(View view)
+    private void addProfileTab()
     {
-        Intent intent = new Intent(this, QrScanningActivity.class);
-        intent.setAction(QrScanningActivity.ACTION_SCAN_CONTRACT);
-        startActivityForResult(
-                intent,
-                SCAN_CONTRACT_INFO_REQUEST);
+        if(tabHost.getTabWidget().getTabCount() == 1)
+            tabHost.addTab(profileTabSpec);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent intent)
+    private void removeProfileTab()
     {
-        switch (requestCode)
-        {
-            case SCAN_CONTRACT_INFO_REQUEST:
-                if(intent == null)
-                    return;
-
-                String vCardString = intent.getStringExtra(QrScanningActivity.MESSAGE_SCAN_DATA);
-                UserProfile profile = new UserProfile();
-                profile.setVCard(Ezvcard.parse(vCardString).first());
-                contactFragment.setProfileInformation(profile);
-                tabhost.setCurrentTabByTag("Contact");
-                break;
-        }
-        super.onActivityResult(requestCode, resultCode, intent);
-    }
-
-    public void onDeployContractButtonClick(final View view)
-    {
-        deployFragment.deployContract();
-    }
-
-    public void onCancelContractButtonClick(View view)
-    {
-        Intent intent = new Intent(this, ContractOverviewActivity.class);
-        startActivity(intent);
+        if(tabHost.getTabWidget().getTabCount() > 1)
+            tabHost.getTabWidget().removeView(tabHost.getTabWidget().getChildTabViewAt(1));
     }
 
     @Override
     public void onProfileVerified(UserProfile profile)
     {
         deployFragment.verifyIdentity(profile);
-        tabhost.setCurrentTabByTag("General");
+        tabHost.setCurrentTabByTag("General");
     }
+
+    @Override
+    public void onProfileVerificationEnabled(boolean isRequested) {
+        if(!isRequested)
+        {
+            removeProfileTab();
+        }
+    }
+
+    @Override
+    public void onProfileVerificationRequested(UserProfile profile) {
+        addProfileTab();
+        profileFragment.setProfileInformation(profile);
+        tabHost.setCurrentTabByTag("Contact");
+    }
+
 }

@@ -21,6 +21,8 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.fasterxml.jackson.databind.node.BigIntegerNode;
+
 import org.jdeferred.Promise;
 
 import java.io.Serializable;
@@ -29,6 +31,7 @@ import java.math.BigInteger;
 import java.math.MathContext;
 
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
+import ch.uzh.ifi.csg.contract.common.Web3;
 import ch.uzh.ifi.csg.contract.service.contract.ContractFileManager;
 import ch.uzh.ifi.csg.contract.service.contract.ContractInfo;
 import ch.uzh.ifi.csg.contract.async.broadcast.TransactionManager;
@@ -214,15 +217,15 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
         if (!selectedAccount.isEmpty())
         {
             ServiceProvider.getInstance().getAccountService().getAccountBalance(selectedAccount)
-                    .always(new AlwaysCallback<BigDecimal>() {
+                    .always(new AlwaysCallback<BigInteger>() {
                         @Override
-                        public void onAlways(Promise.State state, final BigDecimal resolved, Throwable rejected) {
+                        public void onAlways(Promise.State state, final BigInteger resolved, Throwable rejected) {
                             if(rejected != null){
                             }else{
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        accountBalanceField.setText(resolved.round(MathContext.DECIMAL32).toString());
+                                        accountBalanceField.setText(Web3.toEther(resolved).round(MathContext.DECIMAL32).toString());
                                     }
                                 });
                             }

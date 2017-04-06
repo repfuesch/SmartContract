@@ -34,13 +34,13 @@ public abstract class Web3AccountService implements AccountService
      * @return the amount of ether for this account
      */
     @Override
-    public SimplePromise<BigDecimal> getAccountBalance(final String account) {
-        return Async.toPromise(new Callable<BigDecimal>() {
+    public SimplePromise<BigInteger> getAccountBalance(final String account) {
+        return Async.toPromise(new Callable<BigInteger>() {
             @Override
-            public BigDecimal call() throws Exception {
+            public BigInteger call() throws Exception {
                 EthGetBalance balance = web3.ethGetBalance(account, DefaultBlockParameterName.LATEST).send();
                 BigInteger balanceWei = balance.getBalance();
-                return Web3.toEther(balanceWei);
+                return balanceWei;
             }
         });
     }
@@ -70,3 +70,4 @@ public abstract class Web3AccountService implements AccountService
         }
     }
 }
+c
