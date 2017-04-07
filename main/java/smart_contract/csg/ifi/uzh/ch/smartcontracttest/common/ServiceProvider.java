@@ -54,6 +54,7 @@ public class ServiceProvider
                 settingsProvider.getPort(),
                 AppContext.getContext().getApplicationContext().getFilesDir() + "/accounts_remote");
 
+        new File(AppContext.getContext().getApplicationContext().getFilesDir() + "/contracts").delete();
         if(settingsProvider.getSelectedAccount() != null)
         {
             contractService = serviceFactory.createClientContractService(

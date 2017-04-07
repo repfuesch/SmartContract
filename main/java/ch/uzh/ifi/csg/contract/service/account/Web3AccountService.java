@@ -70,4 +70,3 @@ public abstract class Web3AccountService implements AccountService
         }
     }
 }
-c

@@ -103,6 +103,8 @@ public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecy
                         loginView.setVisibility(View.GONE);
                     }else{
                         loginView.setVisibility(View.VISIBLE);
+                        passwordView.setText("");
+                        passwordView.requestFocus();
                     }
                     break;
                 case R.id.account_password_field:

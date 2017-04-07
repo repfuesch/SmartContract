@@ -8,10 +8,9 @@ import android.util.Log;
 import android.view.SurfaceView;
 import android.widget.Button;
 import android.widget.TextView;
-
-import net.glxn.qrgen.core.scheme.VCard;
-
 import ch.uzh.ifi.csg.contract.common.Web3;
+import ezvcard.Ezvcard;
+import ezvcard.VCard;
 import github.nisrulz.qreader.QRDataListener;
 import github.nisrulz.qreader.QREader;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
@@ -99,13 +98,11 @@ public class QrScanningActivity extends AppCompatActivity {
 
     private boolean validateVCard(String data)
     {
-        try{
-            VCard.parse(data);
-        } catch(IllegalArgumentException ex)
-        {
-            return false;
-        }
-        return true;
+        VCard card = Ezvcard.parse(data).first();
+        if(card != null)
+            return true;
+
+        return false;
     }
 
     @Override

@@ -225,7 +225,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
     private void loadQrImage(VCard card)
     {
-        Bitmap bitmap = QRCode.from(card.toString()).bitmap();
+        Bitmap bitmap = QRCode.from(card.write()).bitmap();
         qrImageView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, 125, 125, false));
     }
 
@@ -279,7 +279,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             case R.id.profile_qr_image:
                 DialogFragment imageDialog = new ImageDialogFragment();
                 Bundle args = new Bundle();
-                args.putString(ImageDialogFragment.MESSAGE_IMAGE_SOURCE, profile.getVCard().toString());
+                args.putString(ImageDialogFragment.MESSAGE_IMAGE_SOURCE, profile.getVCard().write());
                 args.putBoolean(ImageDialogFragment.MESSAGE_DISPLAY_QRCODE, true);
                 imageDialog.setArguments(args);
                 imageDialog.show(getFragmentManager(), "QrImageDialog");
