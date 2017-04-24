@@ -13,6 +13,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import org.jdeferred.Promise;
+
+import java.util.ArrayList;
 import java.util.List;
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.service.account.Account;
@@ -40,8 +42,7 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        this.accounts = ServiceProvider.getInstance().getAccountService().getAccounts().get();
+        accounts = new ArrayList<>();
     }
 
     @Override
@@ -80,9 +81,34 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
         super.onAttach(context);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        reloadAccountList();
+    }
+
     public void reloadAccountList()
     {
-        accountListAdapter.notifyDataSetChanged();
+        ServiceProvider.getInstance().getAccountService().getAccounts()
+                .always(new AlwaysCallback<List<Account>>() {
+                    @Override
+                    public void onAlways(Promise.State state, final List<Account> resolved, final Throwable rejected) {
+
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if(rejected != null){
+                                    messageHandler.showMessage("An error occurred: " + rejected.getMessage());
+                                }else{
+                                    accounts.clear();
+                                    accounts.addAll(resolved);
+                                    accountListAdapter.notifyDataSetChanged();
+                                }
+                            }
+                        });
+                    }
+                });
     }
 
     public void createAccount(String accountName, String password)

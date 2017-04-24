@@ -13,6 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromiseAdapter;
@@ -25,9 +29,11 @@ public class Async {
 
     private static DeferredManager deferredManager;
     private static Map<UUID, SimplePromise> promiseMap;
+    private static ScheduledExecutorService executorService;
 
     static {
-        deferredManager = new DefaultDeferredManager();
+        executorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+        deferredManager = new DefaultDeferredManager(executorService);
         promiseMap = new HashMap<>();
     }
 
@@ -48,26 +54,14 @@ public class Async {
         return simplePromise;
     }
 
-    public static <T> SimplePromise<T> getPromiseById(UUID id)
-    {
-        if(promiseMap.containsKey(id))
-        {
-            SimplePromise<T> promise = promiseMap.get(id);
-            promiseMap.remove(id);
-            return promise;
-        }
-
-        return null;
-    }
-
-    public static List<SimplePromise> getPendingPromises()
-    {
-        return new ArrayList<>(promiseMap.values());
-    }
-
     public static boolean hasPendingTransactions()
     {
         return !promiseMap.isEmpty();
+    }
+
+    public static ScheduledExecutorService getExecutorService()
+    {
+        return executorService;
     }
 }
 

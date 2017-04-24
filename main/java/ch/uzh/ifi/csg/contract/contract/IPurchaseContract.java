@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.event.IContractObservable;
 import ch.uzh.ifi.csg.contract.service.account.UserProfile;
+import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 
 public interface IPurchaseContract extends IContractObservable {
 	

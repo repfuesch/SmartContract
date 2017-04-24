@@ -7,6 +7,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import ch.uzh.ifi.csg.contract.async.Async;
+
 /**
  * Created by flo on 23.03.17.
  */
@@ -14,7 +16,7 @@ import java.util.concurrent.ScheduledExecutorService;
 public class ParityClientFactory {
 
     public static Parity build(Web3jService web3jService) {
-        return build(web3jService, 15000, Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()));
+        return build(web3jService, 15000, Async.getExecutorService());
     }
 
     public static Parity build(Web3jService web3jService, long pollingInterval, ScheduledExecutorService executorService) {

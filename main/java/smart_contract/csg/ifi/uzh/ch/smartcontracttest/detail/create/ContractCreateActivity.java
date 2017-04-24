@@ -1,15 +1,10 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.TabHost;
 
 import ch.uzh.ifi.csg.contract.service.account.UserProfile;
-import ezvcard.Ezvcard;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.QrScanningActivity;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment;
 

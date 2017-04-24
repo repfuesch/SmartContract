@@ -3,6 +3,9 @@ package ch.uzh.ifi.csg.contract.service.contract;
 import org.web3j.abi.datatypes.Bool;
 import org.web3j.abi.datatypes.Utf8String;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.methods.response.EthGetCode;
 import org.web3j.tx.TransactionManager;
 
 import java.math.BigInteger;
@@ -81,6 +84,7 @@ public class Web3jContractService implements ContractService
         return Async.toPromise(new Callable<IPurchaseContract>() {
             @Override
             public IPurchaseContract call() throws Exception {
+
                 IPurchaseContract contract = PurchaseContract.loadContract(contractAddress, web3, transactionManager, gasPrice, gasLimit).get();
                 ContractInfo contractInfo = contractManager.getContract(contractAddress, account);
                 if(contractInfo != null)
@@ -143,6 +147,20 @@ public class Web3jContractService implements ContractService
                 }
 
                 return contractList;
+            }
+        });
+    }
+
+    @Override
+    public SimplePromise<Boolean> isContract(final String address) {
+        return Async.toPromise(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                EthGetCode response = web3.ethGetCode(address, DefaultBlockParameterName.LATEST).send();
+                if(response.hasError())
+                    return false;
+
+                return response.getCode().length() > 0;
             }
         });
     }

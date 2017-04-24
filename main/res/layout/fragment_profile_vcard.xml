@@ -14,7 +14,7 @@
         android:layout_margin="8dp">
 
         <smart_contract.csg.ifi.uzh.ch.smartcontracttest.controls.ProportionalImageView
-            android:layout_width="64dp"
+            android:layout_width="48dp"
             android:layout_margin="16dp"
             android:layout_height="64dp"
             android:layout_gravity="center"
@@ -23,7 +23,7 @@
             android:id="@+id/profile_qr_image"/>
 
         <smart_contract.csg.ifi.uzh.ch.smartcontracttest.controls.ProportionalImageView
-            android:layout_width="64dp"
+            android:layout_width="48dp"
             android:layout_margin="16dp"
             android:layout_height="64dp"
             android:layout_gravity="center"
@@ -213,6 +213,7 @@
             android:layout_height="wrap_content"
             android:text="verify"
             android:visibility="gone"
+            android:background="@drawable/button_selector"
             android:gravity="center"
             android:id="@+id/action_verify_identity" />
 
@@ -221,6 +222,7 @@
             android:layout_height="wrap_content"
             android:text="edit"
             android:visibility="gone"
+            android:background="@drawable/button_selector"
             android:gravity="center"
             android:id="@+id/action_edit_identity" />
 
@@ -229,6 +231,7 @@
             android:layout_height="wrap_content"
             android:text="save"
             android:visibility="gone"
+            android:background="@drawable/button_selector"
             android:gravity="center"
             android:id="@+id/action_save_identity" />
 

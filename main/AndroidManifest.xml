@@ -20,6 +20,7 @@
         android:theme="@style/MyTheme">
         <activity
             android:name=".overview.ContractOverviewActivity"
+            android:windowSoftInputMode="stateHidden"
             android:theme="@style/MyTheme.Base">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -32,17 +33,20 @@
             android:theme="@style/MyTheme" />
         <activity
             android:name=".detail.display.ContractDetailActivity"
+            android:windowSoftInputMode="stateHidden"
             android:theme="@style/MyTheme" />
         <activity
             android:name=".setting.SettingsActivity"
+            android:windowSoftInputMode="stateHidden"
             android:theme="@style/MyTheme" />
         <activity
             android:name=".account.AccountActivity"
+            android:windowSoftInputMode="stateHidden"
             android:configChanges="orientation|screenSize"
             android:launchMode="singleTask"
             android:theme="@style/MyTheme" />
-        <activity android:name=".profile.ProfileActivity" />
-        <activity android:name=".common.QrScanningActivity" android:screenOrientation="portrait"></activity>
+        <activity android:name=".profile.ProfileActivity" android:windowSoftInputMode="stateHidden" />
+        <activity android:name=".qrcode.QrScanningActivity" android:screenOrientation="portrait"></activity>
     </application>
 
 </manifest>

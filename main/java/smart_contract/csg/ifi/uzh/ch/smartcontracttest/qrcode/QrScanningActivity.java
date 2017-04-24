@@ -1,4 +1,4 @@
-package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common;
+package smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode;
 
 import android.app.Activity;
 import android.content.Intent;

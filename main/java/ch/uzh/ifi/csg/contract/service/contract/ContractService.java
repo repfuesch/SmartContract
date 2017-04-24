@@ -1,5 +1,7 @@
 package ch.uzh.ifi.csg.contract.service.contract;
 
+import org.web3j.abi.datatypes.Bool;
+
 import java.math.BigInteger;
 import java.util.List;
 
@@ -17,4 +19,6 @@ public interface ContractService {
     void saveContract(IPurchaseContract contract, String account);
     void removeContract(IPurchaseContract contract, String account);
     SimplePromise<List<IPurchaseContract>> loadContracts(String account);
+    SimplePromise<Boolean> isContract(String address);
+
 }

@@ -18,4 +18,5 @@ public interface AccountService {
     SimplePromise<BigInteger> getAccountBalance(String account);
     UserProfile getAccountProfile(String account);
     void saveAccountProfile(String accountId, UserProfile profile);
+
 }

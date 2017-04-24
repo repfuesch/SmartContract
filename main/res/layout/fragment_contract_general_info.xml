@@ -27,24 +27,6 @@
         android:orientation="vertical"
         android:id="@+id/contract_info_body">
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_margin="8dp"
-            android:id="@+id/contract_info_header">
-
-            <smart_contract.csg.ifi.uzh.ch.smartcontracttest.controls.ProportionalImageView
-                android:layout_width="64dp"
-                android:layout_margin="16dp"
-                android:layout_height="64dp"
-                android:layout_gravity="center"
-                android:layout_alignParentRight="true"
-                android:src="@drawable/ic_eth_logo_big"
-                android:id="@+id/contract_qr_image"/>
-
-        </RelativeLayout>
-
         <ScrollView
             android:layout_width="match_parent"
             android:layout_below="@+id/contract_info_header"
@@ -56,24 +38,42 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <android.support.design.widget.TextInputLayout
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColorHint="#ff6d00"
-                    app:hintTextAppearance="@style/HintTextBig">
+                    android:orientation="horizontal"
+                    android:layout_height="wrap_content">
 
-                    <EditText
-                        android:id="@+id/general_title"
-                        android:layout_width="match_parent"
+                    <android.support.design.widget.TextInputLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:hint="@string/hint_title"
-                        android:enabled="false"
-                        android:text="testText"
-                        android:textColor="@color/white"
-                        android:textAppearance="?attr/textAppearanceListItem"/>
+                        android:textColorHint="#ff6d00"
+                        app:hintTextAppearance="@style/HintTextBig">
 
-                </android.support.design.widget.TextInputLayout>
+                        <EditText
+                            android:id="@+id/general_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:hint="@string/hint_title"
+                            android:enabled="false"
+                            android:text="testText"
+                            android:textColor="@color/white"
+                            android:textAppearance="?attr/textAppearanceListItem"/>
+
+                    </android.support.design.widget.TextInputLayout>
+
+                    <smart_contract.csg.ifi.uzh.ch.smartcontracttest.controls.ProportionalImageView
+                        android:layout_width="32dp"
+                        android:layout_margin="16dp"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:layout_alignParentRight="true"
+                        android:src="@drawable/ic_eth_logo_big"
+                        android:id="@+id/contract_qr_image"/>
+
+                </LinearLayout>
+
 
                 <android.support.design.widget.TextInputLayout
                     android:layout_width="match_parent"
@@ -94,24 +94,39 @@
 
                 </android.support.design.widget.TextInputLayout>
 
-                <android.support.design.widget.TextInputLayout
+                <LinearLayout
                     android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:textColorHint="#ff6d00"
                     app:hintTextAppearance="@style/HintTextBig">
 
-                    <EditText
-                        android:id="@+id/general_price"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:hint="@string/hint_price"
-                        android:text="testText"
-                        android:enabled="false"
-                        android:textColor="@color/white"
-                        android:textAppearance="?attr/textAppearanceListItem"/>
+                        <EditText
+                            android:id="@+id/general_price"
+                            android:layout_width="match_parent"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:hint="@string/hint_price"
+                            android:text="testText"
+                            android:enabled="false"
+                            android:textColor="@color/white"
+                            android:textAppearance="?attr/textAppearanceListItem"/>
 
                 </android.support.design.widget.TextInputLayout>
+
+                <Spinner
+                    android:layout_width="0dp"
+                    android:id="@+id/contract_currency"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_gravity="center_vertical"/>
+
+                </LinearLayout>
 
                 <android.support.design.widget.TextInputLayout
                     android:layout_width="match_parent"
@@ -193,23 +208,26 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="buy"
-                android:layout_margin="5dp"
+                android:background="@drawable/button_selector"
+                android:layout_margin="3dp"
                 android:id="@+id/buy_button" />
 
             <Button
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dp"
+                android:layout_margin="3dp"
                 android:text="abort"
+                android:background="@drawable/button_selector"
                 android:id="@+id/abort_button" />
 
             <Button
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dp"
+                android:layout_margin="3dp"
                 android:text="confirm"
+                android:background="@drawable/button_selector"
                 android:id="@+id/confirm_button"/>
 
         </LinearLayout>

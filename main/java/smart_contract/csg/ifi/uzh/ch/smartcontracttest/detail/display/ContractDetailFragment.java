@@ -8,23 +8,30 @@ import android.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import net.glxn.qrgen.android.QRCode;
 
 import org.jdeferred.Promise;
-import org.xml.sax.ErrorHandler;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import ch.uzh.ifi.csg.contract.async.broadcast.TransactionManager;
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
+import ch.uzh.ifi.csg.contract.common.Web3;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
+import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ImageDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
@@ -32,7 +39,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.controls.ProportionalImageView;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 
-public class ContractGeneralInfoFragment extends Fragment implements View.OnClickListener {
+public class ContractDetailFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemSelectedListener {
 
     private TextView titleView;
     private TextView stateView;
@@ -48,16 +55,18 @@ public class ContractGeneralInfoFragment extends Fragment implements View.OnClic
     private LinearLayout verifyIdentityView;
     private ProportionalImageView qrImageView;
     private IPurchaseContract contract;
+    private Spinner currencySpinner;
     private boolean isVerified;
-
+    private List<String> currencyList;
+    private Currency selectedCurrency;
     private MessageHandler messageHandler;
 
-    public ContractGeneralInfoFragment() {
+    public ContractDetailFragment() {
         // Required empty public constructor
     }
 
-    public static ContractGeneralInfoFragment newInstance(String param1, String param2) {
-        ContractGeneralInfoFragment fragment = new ContractGeneralInfoFragment();
+    public static ContractDetailFragment newInstance(String param1, String param2) {
+        ContractDetailFragment fragment = new ContractDetailFragment();
         Bundle args = new Bundle();
         fragment.setArguments(args);
 
@@ -96,6 +105,17 @@ public class ContractGeneralInfoFragment extends Fragment implements View.OnClic
         abortButton.setOnClickListener(this);
         confirmButton.setOnClickListener(this);
         qrImageView.setOnClickListener(this);
+
+        currencySpinner = (Spinner) view.findViewById(R.id.contract_currency);
+        currencyList = new ArrayList<>();
+        currencyList.add(Currency.EUR.toString());
+        currencyList.add(Currency.USD.toString());
+        ArrayAdapter<String> itemsAdapter =
+                new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, currencyList);
+
+        currencySpinner.setAdapter(itemsAdapter);
+        currencySpinner.setOnItemSelectedListener(this);
+        selectedCurrency = Currency.valueOf(currencyList.get(0));
 
         return view;
     }
@@ -237,7 +257,15 @@ public class ContractGeneralInfoFragment extends Fragment implements View.OnClic
             stateView.setText(state.toString());
 
         if(value != null)
-            priceView.setText(value.toString() + " ETH");
+        {
+            Map<Currency, Float> currencyMap = ServiceProvider.getInstance().getExchangeService().getEthExchangeRates().get();
+            if(currencyMap != null)
+            {
+                BigDecimal amountEther = Web3.toEther(value);
+                Float amountCurrency = amountEther.floatValue() * currencyMap.get(selectedCurrency);
+                priceView.setText(amountCurrency.toString());
+            }
+        }
 
         if(description != null)
             descriptionView.setText(description);
@@ -286,5 +314,18 @@ public class ContractGeneralInfoFragment extends Fragment implements View.OnClic
 
         Bitmap bitmap = QRCode.from(contract.getContractAddress()).bitmap();
         qrImageView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, 125, 125, false));
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+        selectedCurrency = Currency.valueOf(currencyList.get(i));
+        updateView();
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> adapterView) {
+        currencySpinner.setSelection(0);
+        selectedCurrency = Currency.valueOf(currencyList.get(0));
+        updateView();
     }
 }

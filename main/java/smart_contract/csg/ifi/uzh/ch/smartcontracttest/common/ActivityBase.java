@@ -32,6 +32,7 @@ import java.math.MathContext;
 
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.common.Web3;
+import ch.uzh.ifi.csg.contract.service.connection.EthConnectionService;
 import ch.uzh.ifi.csg.contract.service.contract.ContractFileManager;
 import ch.uzh.ifi.csg.contract.service.contract.ContractInfo;
 import ch.uzh.ifi.csg.contract.async.broadcast.TransactionManager;
@@ -261,6 +262,8 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
             LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter(SettingsProvider.ACTION_SETTINGS_CHANGED));
             LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter(MessageHandler.ACTION_SHOW_ERROR));
             LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter(AccountActivity.ACTION_ACCOUNT_CHANGED));
+            LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter(EthConnectionService.ACTION_HANDLE_CONNECTION_DOWN));
+            LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter(EthConnectionService.ACTION_HANDLE_CONNECTION_UP));
             broadcastReceiverRegistered = true;
         }
 
@@ -300,6 +303,15 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
             } else if(intent.getAction().equals(MessageHandler.ACTION_SHOW_ERROR))
             {
                 showMessage(intent.getStringExtra(MessageHandler.MESSAGE_SHOW_ERROR));
+            } else if(intent.getAction().equals(EthConnectionService.ACTION_HANDLE_CONNECTION_DOWN))
+            {
+                //todo:handle connection down
+                showMessage("Lost connection to host!");
+
+            }else if(intent.getAction().equals(EthConnectionService.ACTION_HANDLE_CONNECTION_UP))
+            {
+                //todo:handle connection up
+                showMessage("Established connection to host!");
             }
 
             updateAccountBalance();

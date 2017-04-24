@@ -28,18 +28,33 @@
 
             </android.support.design.widget.TextInputLayout>
 
-            <android.support.design.widget.TextInputLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <EditText
-                    android:layout_width="match_parent"
-                    android:inputType="numberDecimal"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/hint_price"
-                    android:id="@+id/contract_price" />
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="2"
+                    android:layout_height="wrap_content">
 
-            </android.support.design.widget.TextInputLayout>
+                    <EditText
+                        android:layout_width="match_parent"
+                        android:inputType="numberDecimal"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/hint_price"
+                        android:id="@+id/contract_price" />
+
+                </android.support.design.widget.TextInputLayout>
+
+                <Spinner
+                    android:layout_width="0dp"
+                    android:id="@+id/contract_currency"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:layout_gravity="center_vertical"/>
+
+            </LinearLayout>
+
 
             <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
@@ -102,6 +117,7 @@
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:text="deploy"
+                    android:background="@drawable/button_selector"
                     android:id="@+id/action_deploy_contract"
                     android:layout_marginRight="10dp"/>
 
@@ -109,6 +125,7 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
+                    android:background="@drawable/button_selector"
                     android:id="@+id/action_cancel_deploy"
                     android:text="cancel" />
 

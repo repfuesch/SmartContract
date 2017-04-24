@@ -1,7 +1,5 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display;
 
-import android.app.DialogFragment;
-import android.app.Service;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -15,8 +13,7 @@ import ch.uzh.ifi.csg.contract.event.IContractObserver;
 import ch.uzh.ifi.csg.contract.service.account.UserProfile;
 import ezvcard.Ezvcard;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ImageDialogFragment;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.QrScanningActivity;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment;
@@ -28,7 +25,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
     public final static String MESSAGE_SHOW_CONTRACT_DETAILS = "ch.uzh.ifi.csg.smart_contract.detail.address";
     private static final int SCAN_PROFILE_INFO_REQUEST = 1;
 
-    private ContractGeneralInfoFragment generalInfoFragment;
+    private ContractDetailFragment generalInfoFragment;
     private ProfileFragment contactFragment;
     private IPurchaseContract contract;
 
@@ -42,7 +39,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
 
         Intent intent = getIntent();
         String contractAddress = intent.getStringExtra(MESSAGE_SHOW_CONTRACT_DETAILS);
-        generalInfoFragment = (ContractGeneralInfoFragment) getFragmentManager().findFragmentById(R.id.general_info);
+        generalInfoFragment = (ContractDetailFragment) getFragmentManager().findFragmentById(R.id.general_info);
         contactFragment = (ProfileFragment) getFragmentManager().findFragmentById(R.id.fragment_contact_info);
         contactFragment.setMode(ProfileFragment.ProfileMode.ReadOnly);
 

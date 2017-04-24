@@ -10,22 +10,31 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioGroup;
+import android.widget.Spinner;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import ch.uzh.ifi.csg.contract.async.broadcast.TransactionManager;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
+import ch.uzh.ifi.csg.contract.common.Web3;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.service.account.UserProfile;
+import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import ezvcard.Ezvcard;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.QrScanningActivity;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.validation.RequiredTextFieldValidator;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
@@ -42,6 +51,8 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
     private Button deployButton;
     private RadioGroup deployOptionsGroup;
     private ImageView qrImageView;
+    private Spinner currencySpinner;
+    private Currency selectedCurrency;
 
     private UserProfile verifiedProfile;
     private boolean isVerified;
@@ -83,6 +94,28 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
         titleField.addTextChangedListener(this);
         descriptionField.addTextChangedListener(this);
 
+        currencySpinner = (Spinner) view.findViewById(R.id.contract_currency);
+
+        final List<String> currencyList = new ArrayList<>();
+        currencyList.add(Currency.EUR.toString());
+        currencyList.add(Currency.USD.toString());
+        ArrayAdapter<String> itemsAdapter =
+                new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, currencyList);
+
+        currencySpinner.setAdapter(itemsAdapter);
+        currencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                selectedCurrency = Currency.valueOf(currencyList.get(i));
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                currencySpinner.setSelection(0);
+                selectedCurrency = Currency.valueOf(currencyList.get(0));
+        }});
+        itemsAdapter.notifyDataSetChanged();
+
         return view;
     }
 
@@ -92,7 +125,7 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
         BigInteger balance = ServiceProvider.getInstance().getAccountService().getAccountBalance(account).get();
         if(balance.compareTo(price) < 0)
         {
-            messageHandler.showMessage("You have not enough money to do that!");
+            messageHandler.showMessage("You don't have enough money to do that!");
             return false;
         }
 
@@ -101,20 +134,32 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
 
     public void deployContract()
     {
-        final BigInteger price = BigInteger.valueOf(Integer.parseInt(priceField.getText().toString()));
-        if(!(price.mod(BigInteger.valueOf(2))).equals(BigInteger.ZERO))
+        final float price = Float.parseFloat(priceField.getText().toString());
+        BigInteger priceWei = BigInteger.ZERO;
+
+        Map<Currency, Float> currencyMap = ServiceProvider.getInstance().getExchangeService().getEthExchangeRates().get();
+        if(currencyMap == null)
         {
-            priceField.setError("Price must be dividable by 2!");
+            messageHandler.showMessage("Cannot reach exchange service. Please try again later!");
             return;
         }
 
-        if(!ensureBalance(price))
+        Float exchangeRate = currencyMap.get(selectedCurrency);
+        float priceEther = price / exchangeRate;
+        priceWei = Web3.toWei(BigDecimal.valueOf(priceEther));
+
+        if(!(priceWei.mod(BigInteger.valueOf(2))).equals(BigInteger.ZERO))
+        {
+            priceWei = priceWei.add(BigInteger.ONE);
+        }
+
+        if(!ensureBalance(priceWei))
             return;
 
         final String title = titleField.getText().toString();
         final String desc = descriptionField.getText().toString();
 
-        SimplePromise<IPurchaseContract> promise = ServiceProvider.getInstance().getContractService().deployContract(price, title, desc, needsVerification)
+        SimplePromise<IPurchaseContract> promise = ServiceProvider.getInstance().getContractService().deployContract(priceWei, title, desc, needsVerification)
                 .done(new DoneCallback<IPurchaseContract>() {
                     @Override
                     public void onDone(IPurchaseContract result) {
@@ -255,6 +300,7 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
 
         super.onActivityResult(requestCode, resultCode, intent);
     }
+
 
     public static interface OnProfileVerificationRequestedListener
     {

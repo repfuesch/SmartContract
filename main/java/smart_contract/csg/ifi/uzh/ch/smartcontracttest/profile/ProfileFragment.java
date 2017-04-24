@@ -254,9 +254,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
         switch(view.getId())
         {
-            case R.id.action_edit_identity:
-                //todo:switch to edit layout
-                break;
             case R.id.action_verify_identity:
                 if(verifiedListener != null && validateProfile())
                 {

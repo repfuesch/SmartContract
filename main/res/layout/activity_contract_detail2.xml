@@ -45,7 +45,7 @@
                     android:layout_height="match_parent">
 
                 <fragment
-                    android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display.ContractGeneralInfoFragment"
+                    android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display.ContractDetailFragment"
                     android:id="@+id/general_info"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"

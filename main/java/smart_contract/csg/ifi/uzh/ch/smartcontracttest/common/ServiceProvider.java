@@ -11,9 +11,11 @@ import java.io.File;
 
 import ch.uzh.ifi.csg.contract.service.account.AccountService;
 import ch.uzh.ifi.csg.contract.service.account.CredentialProviderImpl;
+import ch.uzh.ifi.csg.contract.service.connection.EthConnectionService;
 import ch.uzh.ifi.csg.contract.service.contract.ContractService;
 import ch.uzh.ifi.csg.contract.service.EthServiceFactory;
 import ch.uzh.ifi.csg.contract.service.ServiceFactoryImpl;
+import ch.uzh.ifi.csg.contract.service.exchange.EthExchangeService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 
 /**
@@ -24,7 +26,9 @@ public class ServiceProvider
 {
     private static ContractService contractService;
     private static AccountService accountService;
+    private static EthExchangeService exchangeService;
     private static final EthServiceFactory serviceFactory = new ServiceFactoryImpl();
+    private static EthConnectionService connectionService;
 
     private final static ServiceProvider instance;
 
@@ -47,14 +51,24 @@ public class ServiceProvider
         return accountService;
     }
 
+    public EthExchangeService getExchangeService() {return exchangeService; }
+
+    public EthConnectionService getConnectionService() {return connectionService; }
+
     public void initServices(SettingsProvider settingsProvider)
     {
+        if(connectionService != null)
+            connectionService.stopPolling();
+
         accountService = serviceFactory.createParityAccountService(
                 settingsProvider.getHost(),
                 settingsProvider.getPort(),
                 AppContext.getContext().getApplicationContext().getFilesDir() + "/accounts_remote");
 
-        new File(AppContext.getContext().getApplicationContext().getFilesDir() + "/contracts").delete();
+        exchangeService = serviceFactory.createHttpExchangeService();
+
+        connectionService = serviceFactory.createConnectionService(settingsProvider.getHost(), settingsProvider.getPort(), 5000);
+
         if(settingsProvider.getSelectedAccount() != null)
         {
             contractService = serviceFactory.createClientContractService(
@@ -67,6 +81,8 @@ public class ServiceProvider
                     settingsProvider.getTransactionSleepDuration(),
                     AppContext.getContext().getApplicationContext().getFilesDir() + "/contracts");
         }
+
+        connectionService.startPolling();
 
         /*
         accountService = serviceFactory.createWalletAccountService(
