@@ -2,7 +2,6 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -17,26 +16,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.fasterxml.jackson.databind.node.BigIntegerNode;
-
 import org.jdeferred.Promise;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.common.Web3;
 import ch.uzh.ifi.csg.contract.service.connection.EthConnectionService;
-import ch.uzh.ifi.csg.contract.service.contract.ContractFileManager;
-import ch.uzh.ifi.csg.contract.service.contract.ContractInfo;
 import ch.uzh.ifi.csg.contract.async.broadcast.TransactionManager;
-import ch.uzh.ifi.csg.contract.contract.ContractState;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;

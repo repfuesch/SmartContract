@@ -2,12 +2,10 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile;
 
 
 import android.app.DialogFragment;
-import android.app.Service;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.support.design.widget.TextInputLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,7 +16,7 @@ import android.widget.LinearLayout;
 
 import net.glxn.qrgen.android.QRCode;
 
-import ch.uzh.ifi.csg.contract.service.account.UserProfile;
+import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ezvcard.VCard;
 import ezvcard.parameter.TelephoneType;
 import ezvcard.property.Address;

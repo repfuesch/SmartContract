@@ -33,10 +33,10 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
             startActivity(accountIntent);
         }else{
 
-            if(ServiceProvider.getInstance().getConnectionService().hasConnection())
-            {
+            //if(ServiceProvider.getInstance().getConnectionService().hasConnection())
+           // {
                 loadContractList();
-            }
+           // }
         }
     }
 
@@ -66,6 +66,9 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
     {
         switch (requestCode) {
             case SCAN_CONTRACT_ADDRESS_REQUEST:
+                if(intent == null)
+                    return;
+
                 String contractAddress = intent.getStringExtra(QrScanningActivity.MESSAGE_SCAN_DATA);
                 if(!ensureContract(contractAddress))
                     return;

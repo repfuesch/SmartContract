@@ -1,7 +1,7 @@
-package ch.uzh.ifi.csg.contract.service.contract;
+package ch.uzh.ifi.csg.contract.datamodel;
 
 import ch.uzh.ifi.csg.contract.contract.ContractState;
-import ch.uzh.ifi.csg.contract.service.account.UserProfile;
+import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 
 /**
  * Created by flo on 06.03.17.

@@ -4,13 +4,13 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
 
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
-import ch.uzh.ifi.csg.contract.common.Web3;
+import ch.uzh.ifi.csg.contract.datamodel.Account;
+import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 
 /**
  * Created by flo on 30.03.17.
@@ -48,25 +48,16 @@ public abstract class Web3AccountService implements AccountService
     @Override
     public UserProfile getAccountProfile(String accountId)
     {
-        for(Account acc : accountManager.getAccounts())
-        {
-            if(acc.getId().equals(accountId))
-                return acc.getProfile();
-        }
+        UserProfile profile = accountManager.getAccount(accountId).getProfile();
+        if (profile == null)
+            return  new UserProfile();
 
-        return new UserProfile();
+        return profile;
     }
 
     @Override
     public void saveAccountProfile(String accountId, UserProfile profile)
     {
-        for(Account acc : accountManager.getAccounts())
-        {
-            if(acc.getId().equals(accountId))
-            {
-                acc.setProfile(profile);
-                accountManager.save();
-            }
-        }
+        accountManager.saveAccountProfile(accountId, profile);
     }
 }

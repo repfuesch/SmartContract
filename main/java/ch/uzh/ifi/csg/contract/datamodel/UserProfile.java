@@ -1,4 +1,4 @@
-package ch.uzh.ifi.csg.contract.service.account;
+package ch.uzh.ifi.csg.contract.datamodel;
 
 
 import ezvcard.VCard;

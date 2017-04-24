@@ -12,6 +12,7 @@ import java.util.concurrent.Callable;
 
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
+import ch.uzh.ifi.csg.contract.datamodel.Account;
 
 /**
  * Wallet implementation of the AccountService.
@@ -67,8 +68,7 @@ public class WalletAccountService extends Web3AccountService{
                 String path = walletDir.getAbsolutePath();
                 Credentials credentials = WalletUtils.loadCredentials(password, path + "/" + walletFile);
                 Account newAccount = new Account(credentials.getAddress(), alias, walletFile);
-                accountManager.getAccounts().add(newAccount);
-                accountManager.save();
+                accountManager.addAccount(newAccount);
                 credentialProvider.setCredentials(credentials);
                 unlockedAccount = newAccount;
                 return newAccount;

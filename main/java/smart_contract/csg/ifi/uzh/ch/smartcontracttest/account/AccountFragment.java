@@ -17,7 +17,7 @@ import org.jdeferred.Promise;
 import java.util.ArrayList;
 import java.util.List;
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
-import ch.uzh.ifi.csg.contract.service.account.Account;
+import ch.uzh.ifi.csg.contract.datamodel.Account;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;

@@ -143,4 +143,9 @@ public class SettingsProvider extends BroadcastReceiver implements SharedPrefere
     public int getPort() {
         return port;
     }
+
+    public String getAccountDirectory()
+    {
+        return AppContext.getContext().getApplicationContext().getFilesDir() + "/accounts_remote";
+    }
 }

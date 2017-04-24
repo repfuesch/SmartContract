@@ -15,12 +15,11 @@ import ch.uzh.ifi.csg.contract.service.exchange.EthExchangeService;
 
 public interface EthServiceFactory
 {
-    AccountService createParityAccountService(String host, int port, String accoutDirectory);
+    AccountService createParityAccountService(String host, int port);
 
     AccountService createWalletAccountService(
             String host,
             int port,
-            String accountDirectory,
             String walletDirectory,
             boolean useFullEncryption);
 
@@ -31,8 +30,7 @@ public interface EthServiceFactory
             BigInteger gasPrice,
             BigInteger gasLimit,
             int transactionAttempts,
-            int transactionSleepDuration,
-            String contractDirectory);
+            int transactionSleepDuration);
 
     ContractService createClientContractService(
             String host,
@@ -41,8 +39,7 @@ public interface EthServiceFactory
             BigInteger gasPrice,
             BigInteger gasLimit,
             int transactionAttempts,
-            int transactionSleepDuration,
-            String contractDirectory);
+            int transactionSleepDuration);
 
     EthExchangeService createHttpExchangeService();
 

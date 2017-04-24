@@ -3,6 +3,8 @@ package ch.uzh.ifi.csg.contract.service.contract;
 import java.util.ArrayList;
 import java.util.List;
 
+import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
+
 /**
  * Created by flo on 06.03.17.
  */

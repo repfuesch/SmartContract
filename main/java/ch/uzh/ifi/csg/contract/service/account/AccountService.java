@@ -1,10 +1,11 @@
 package ch.uzh.ifi.csg.contract.service.account;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
+import ch.uzh.ifi.csg.contract.datamodel.Account;
+import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 
 /**
  * Created by flo on 17.02.17.

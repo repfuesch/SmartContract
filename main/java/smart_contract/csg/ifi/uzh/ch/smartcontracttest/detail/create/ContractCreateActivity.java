@@ -3,7 +3,7 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create;
 import android.os.Bundle;
 import android.widget.TabHost;
 
-import ch.uzh.ifi.csg.contract.service.account.UserProfile;
+import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment;

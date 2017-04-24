@@ -11,14 +11,13 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 
-import org.web3j.crypto.Credentials;
-
 import java.io.File;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import ch.uzh.ifi.csg.contract.common.FileManager;
-import ch.uzh.ifi.csg.contract.service.contract.ContractFileManager;
+import ch.uzh.ifi.csg.contract.datamodel.Account;
+import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ezvcard.Ezvcard;
 import ezvcard.VCard;
 
@@ -57,7 +56,21 @@ public class AccountFileManager implements AccountManager {
     }
 
     @Override
-    public void save()
+    public void addAccount(Account account) {
+
+    }
+
+    @Override
+    public Account getAccount(String accountId) {
+        return null;
+    }
+
+    @Override
+    public void saveAccountProfile(String accountId, UserProfile profile) {
+
+    }
+
+    private void save()
     {
         String accountData = serialize(accounts);
         FileManager.writeFile(accountData, new File(accountDir));

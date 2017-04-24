@@ -1,9 +1,11 @@
-package ch.uzh.ifi.csg.contract.service.account;
+package ch.uzh.ifi.csg.contract.datamodel;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Class representing an ETH account
+ * Class representing an ETH account with its associated contracts
  */
 
 public class Account implements Serializable
@@ -12,12 +14,14 @@ public class Account implements Serializable
     private String label;
     private String walletFile;
     private UserProfile profile;
+    private Map<String, ContractInfo> contracts;
 
     public Account(String id, String label, String walletFile) {
         this.id = id;
         this.label = label;
         this.walletFile = walletFile;
         this.profile = new UserProfile();
+        this.contracts = new HashMap<>();
     }
 
     public String getLabel() {
@@ -50,5 +54,9 @@ public class Account implements Serializable
 
     public void setProfile(UserProfile profile) {
         this.profile = profile;
+    }
+
+    public Map<String, ContractInfo> getContracts() {
+        return contracts;
     }
 }

@@ -1,12 +1,6 @@
 package ch.uzh.ifi.csg.contract.service.account;
 
 
-import net.glxn.qrgen.core.scheme.VCard;
-
-import org.web3j.protocol.core.DefaultBlockParameter;
-import org.web3j.protocol.core.DefaultBlockParameterName;
-import org.web3j.protocol.core.methods.response.EthAccounts;
-import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.parity.Parity;
 import org.web3j.protocol.parity.methods.response.NewAccountIdentifier;
 import org.web3j.protocol.parity.methods.response.PersonalListAccounts;
@@ -19,6 +13,7 @@ import java.util.concurrent.Callable;
 
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
+import ch.uzh.ifi.csg.contract.datamodel.Account;
 
 /**
  * Parity implementation of the AccountService. To use this service, the personal interface has to
@@ -63,10 +58,8 @@ public class ParityAccountService extends Web3AccountService{
                     Account account = new Account(accId, "alias", "");
                     if(!persisted)
                     {
-                        accountManager.getAccounts().add(account);
-                        accountManager.save();
+                        accountManager.addAccount(account);
                     }
-
 
                     accountList.add(account);
                 }
@@ -84,8 +77,7 @@ public class ParityAccountService extends Web3AccountService{
                 NewAccountIdentifier accountId = parity.personalNewAccount(password).send();
 
                 Account newAccount =  new Account(accountId.getAccountId(), alias, "");
-                accountManager.getAccounts().add(newAccount);
-                accountManager.save();
+                accountManager.addAccount(newAccount);
                 return newAccount;
             }
         });

@@ -34,7 +34,7 @@ import java.util.concurrent.Future;
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.event.IContractObserver;
-import ch.uzh.ifi.csg.contract.service.account.UserProfile;
+import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import rx.Subscription;
 import rx.functions.Action1;
 

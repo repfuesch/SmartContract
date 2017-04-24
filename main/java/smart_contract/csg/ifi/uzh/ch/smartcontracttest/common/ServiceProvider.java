@@ -27,7 +27,7 @@ public class ServiceProvider
     private static ContractService contractService;
     private static AccountService accountService;
     private static EthExchangeService exchangeService;
-    private static final EthServiceFactory serviceFactory = new ServiceFactoryImpl();
+    private static EthServiceFactory serviceFactory;
     private static EthConnectionService connectionService;
 
     private final static ServiceProvider instance;
@@ -57,17 +57,20 @@ public class ServiceProvider
 
     public void initServices(SettingsProvider settingsProvider)
     {
+        if(serviceFactory == null)
+            serviceFactory = new ServiceFactoryImpl(settingsProvider.getAccountDirectory());
+
         if(connectionService != null)
             connectionService.stopPolling();
 
         accountService = serviceFactory.createParityAccountService(
                 settingsProvider.getHost(),
-                settingsProvider.getPort(),
-                AppContext.getContext().getApplicationContext().getFilesDir() + "/accounts_remote");
+                settingsProvider.getPort()
+                );
 
         exchangeService = serviceFactory.createHttpExchangeService();
 
-        connectionService = serviceFactory.createConnectionService(settingsProvider.getHost(), settingsProvider.getPort(), 5000);
+        //connectionService = serviceFactory.createConnectionService(settingsProvider.getHost(), settingsProvider.getPort(), 5000);
 
         if(settingsProvider.getSelectedAccount() != null)
         {
@@ -78,11 +81,10 @@ public class ServiceProvider
                     settingsProvider.getGasPrice(),
                     settingsProvider.getGasLimit(),
                     settingsProvider.getTransactionAttempts(),
-                    settingsProvider.getTransactionSleepDuration(),
-                    AppContext.getContext().getApplicationContext().getFilesDir() + "/contracts");
+                    settingsProvider.getTransactionSleepDuration());
         }
 
-        connectionService.startPolling();
+        //connectionService.startPolling();
 
         /*
         accountService = serviceFactory.createWalletAccountService(
