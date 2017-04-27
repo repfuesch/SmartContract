@@ -63,7 +63,7 @@
 
                     </android.support.design.widget.TextInputLayout>
 
-                    <smart_contract.csg.ifi.uzh.ch.smartcontracttest.controls.ProportionalImageView
+                    <smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView
                         android:layout_width="32dp"
                         android:layout_margin="16dp"
                         android:layout_height="32dp"

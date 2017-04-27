@@ -42,11 +42,13 @@ public class ServiceFactoryImpl implements EthServiceFactory
 {
     private final CredentialProvider credentialProvider;
     private final FileManager fileManager;
+    private final AppContext appContext;
 
-    public ServiceFactoryImpl(String accountDirectory)
+    public ServiceFactoryImpl(String accountDirectory, AppContext context)
     {
         this.credentialProvider = new CredentialProviderImpl();
         this.fileManager = new FileManager(accountDirectory);
+        this.appContext = context;
     }
 
     @Override
@@ -122,7 +124,7 @@ public class ServiceFactoryImpl implements EthServiceFactory
         String endpoint = "http://" + host + ":" + port + "/";
         Parity parity = ParityClientFactory.build(new HttpService(endpoint, buildHttpClient(2000)));
 
-        return new Web3ConnectionService(parity, Async.getExecutorService(), LocalBroadcastManager.getInstance(AppContext.getContext()), pollingInterval);
+        return new Web3ConnectionService(parity, Async.getExecutorService(), LocalBroadcastManager.getInstance(appContext), pollingInterval);
     }
 
     private CloseableHttpClient buildHttpClient(int timeout)

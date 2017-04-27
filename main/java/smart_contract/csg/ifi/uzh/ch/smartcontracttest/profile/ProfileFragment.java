@@ -22,11 +22,12 @@ import ezvcard.parameter.TelephoneType;
 import ezvcard.property.Address;
 import ezvcard.property.StructuredName;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ImageDialogFragment;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthServiceProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthSettingProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.validation.RequiredTextFieldValidator;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 
 /**
  * A fragment for retrieving and displaying user information
@@ -53,6 +54,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     private ProfileMode mode;
     private OnProfileVerifiedListener verifiedListener;
     private MessageHandler messageHandler;
+    private ApplicationContextProvider contextProvider;
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -111,6 +113,13 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         if(context instanceof MessageHandler)
         {
             messageHandler = (MessageHandler) context;
+        }else{
+            throw new RuntimeException("Context must implement MessageHandler!");
+        }
+
+        if(context instanceof ApplicationContextProvider)
+        {
+            contextProvider = (ApplicationContextProvider) context;
         }else{
             throw new RuntimeException("Context must implement MessageHandler!");
         }
@@ -241,8 +250,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
     public void loadAccountProfileInformation()
     {
-        String selectedAccount = SettingsProvider.getInstance().getSelectedAccount();
-        UserProfile userProfile = ServiceProvider.getInstance().getAccountService().getAccountProfile(selectedAccount);
+        String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
+        UserProfile userProfile = contextProvider.getServiceProvider().getAccountService().getAccountProfile(selectedAccount);
         if(userProfile.getVCard() != null)
             setProfileInformation(userProfile);
     }
@@ -263,8 +272,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                 if(validateProfile())
                 {
                     this.profile = getProfileInformation();
-                    String selectedAccount = SettingsProvider.getInstance().getSelectedAccount();
-                    ServiceProvider.getInstance().getAccountService().saveAccountProfile(selectedAccount, profile);
+                    String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
+                    contextProvider.getServiceProvider().getAccountService().saveAccountProfile(selectedAccount, profile);
                     messageHandler.showMessage("Profile saved!");
                 }else{
                     messageHandler.showMessage("Please fill out all required fields!");

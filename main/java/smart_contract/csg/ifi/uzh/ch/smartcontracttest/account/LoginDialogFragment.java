@@ -26,13 +26,11 @@ import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.datamodel.Account;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthServiceProvider;
 
+/*
 public class LoginDialogFragment extends DialogFragment
 {
-    public final static String ACTION_ACCOUNT_CHANGED = "ch.uzh.ifi.csg.smart_contract.account_changed";
-    public final static String MESSAGE_ACCOUNT_CHANGED = "ch.uzh.ifi.csg.smart_contract.account";
-
     private MessageHandler errorHandler;
     private String selectedAccount;
 
@@ -106,7 +104,7 @@ public class LoginDialogFragment extends DialogFragment
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         //fetch all accounts asynchronously and populate the spinner
-        ServiceProvider.getInstance().getAccountService().getAccounts()
+        EthServiceProvider.getInstance().getAccountService().getAccounts()
                 .done(new DoneCallback<List<Account>>() {
                     @Override
                     public void onDone(final List<Account> result) {
@@ -179,7 +177,7 @@ public class LoginDialogFragment extends DialogFragment
                 selected = acc;
         }
 
-        ServiceProvider.getInstance().getAccountService().unlockAccount(selected, password)
+        EthServiceProvider.getInstance().getAccountService().unlockAccount(selected, password)
                 .done(new DoneCallback<Boolean>() {
                     @Override
                     public void onDone(final Boolean result) {
@@ -228,4 +226,4 @@ public class LoginDialogFragment extends DialogFragment
         passwordBox.setText("");
         passwordBox.requestFocus();
     }
-}
+}*/

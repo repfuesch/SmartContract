@@ -13,25 +13,28 @@ import android.widget.TextView;
 import java.util.List;
 import ch.uzh.ifi.csg.contract.datamodel.Account;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthSettingProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.SettingProvider;
 
 
 public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecyclerViewAdapter.ViewHolder> {
 
     private final List<Account> accounts;
     private OnAccountLoginListener loginListener;
+    private SettingProvider settingProvider;
 
-    public AccountRecyclerViewAdapter(List<Account> accounts, OnAccountLoginListener loginListener) {
+    public AccountRecyclerViewAdapter(List<Account> accounts, OnAccountLoginListener loginListener, SettingProvider settingProvider) {
 
         this.accounts = accounts;
         this.loginListener = loginListener;
+        this.settingProvider = settingProvider;
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.fragment_account, parent, false);
-        return new ViewHolder(view, loginListener);
+        return new ViewHolder(view, loginListener, settingProvider);
     }
 
     @Override
@@ -58,11 +61,14 @@ public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecy
 
         private Handler handler;
         private OnAccountLoginListener loginListener;
+        private SettingProvider settingProvider;
 
-        public ViewHolder(View view, OnAccountLoginListener loginListener) {
+        public ViewHolder(View view, OnAccountLoginListener loginListener, SettingProvider settingProvider)
+        {
             super(view);
 
             this.loginListener = loginListener;
+            this.settingProvider = settingProvider;
             this.handler = new Handler(Looper.getMainLooper());
 
             this.view = view;
@@ -82,7 +88,7 @@ public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecy
         {
             aliasView.setText(account.getLabel());
             idView.setText(account.getId());
-            if(SettingsProvider.getInstance().getSelectedAccount().equals(account.getId()))
+            if(settingProvider.getSelectedAccount().equals(account.getId()))
             {
                 accountView.setBackgroundResource(R.drawable.card_selected_background);
             }else{

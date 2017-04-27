@@ -7,12 +7,12 @@ import android.view.View;
 
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthSettingProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthServiceProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create.ContractCreateActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display.ContractDetailActivity;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 
 public class ContractOverviewActivity extends ActivityBase implements AddContractDialogFragment.AddContractDialogListener
 {
@@ -26,14 +26,14 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
 
         getSupportActionBar().setTitle(R.string.title_contract_overview);
 
-        if(SettingsProvider.getInstance().getSelectedAccount().isEmpty())
+        if(getSettingProvider().getSelectedAccount().isEmpty())
         {
             //navigate to account activity when no account selected
             Intent accountIntent = new Intent(this, AccountActivity.class);
             startActivity(accountIntent);
         }else{
 
-            //if(ServiceProvider.getInstance().getConnectionService().hasConnection())
+            //if(EthServiceProvider.getInstance().getConnectionService().hasConnection())
            // {
                 loadContractList();
            // }
@@ -91,7 +91,7 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
 
     private boolean ensureContract(String address)
     {
-        Boolean isContract = ServiceProvider.getInstance().getContractService().isContract(address).get();
+        Boolean isContract = getServiceProvider().getContractService().isContract(address).get();
         if(!isContract)
         {
             showMessage("Cannot add contract " + address + " because it is not found on the blockchain");
@@ -125,7 +125,7 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
     private void loadContractList()
     {
         listFragment = (PurchaseContractFragment) getFragmentManager().findFragmentById(R.id.purchase_list_fragment);
-        listFragment.loadContractsForAccount(SettingsProvider.getInstance().getSelectedAccount());
+        listFragment.loadContractsForAccount(getSettingProvider().getSelectedAccount());
     }
 
 }

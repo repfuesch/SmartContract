@@ -13,11 +13,11 @@ import ch.uzh.ifi.csg.contract.event.IContractObserver;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ezvcard.Ezvcard;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthSettingProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthServiceProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 
 public class ContractDetailActivity extends ActivityBase implements IContractObserver, ProfileFragment.OnProfileVerifiedListener {
 
@@ -57,7 +57,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
 
     private void LoadContract(String contractAddress)
     {
-        ServiceProvider.getInstance().getContractService().loadContract(contractAddress, SettingsProvider.getInstance().getSelectedAccount()).always(new AlwaysCallback<IPurchaseContract>() {
+        getServiceProvider().getContractService().loadContract(contractAddress, getSettingProvider().getSelectedAccount()).always(new AlwaysCallback<IPurchaseContract>() {
             @Override
             public void onAlways(Promise.State state, final IPurchaseContract resolved, Throwable rejected) {
 
@@ -175,7 +175,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
         tabHost.setCurrentTabByTag("General");
         contract.setUserProfile(profile);
         contactFragment.setMode(ProfileFragment.ProfileMode.ReadOnly);
-        ServiceProvider.getInstance().getContractService().saveContract(contract, SettingsProvider.getInstance().getSelectedAccount());
+        getServiceProvider().getContractService().saveContract(contract, getSettingProvider().getSelectedAccount());
         generalInfoFragment.identityVerified();
     }
 }

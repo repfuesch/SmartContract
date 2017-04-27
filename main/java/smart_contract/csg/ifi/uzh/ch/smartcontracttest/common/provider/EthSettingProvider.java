@@ -1,4 +1,4 @@
-package smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting;
+package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -11,29 +11,29 @@ import android.support.v4.content.LocalBroadcastManager;
 import java.math.BigInteger;
 
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.AppContext;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.LoginDialogFragment;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsActivity;
 
 /**
  * Created by flo on 20.03.17.
  */
 
-public class SettingsProvider extends BroadcastReceiver implements SharedPreferences.OnSharedPreferenceChangeListener
+public class EthSettingProvider extends BroadcastReceiver implements SettingProvider, SharedPreferences.OnSharedPreferenceChangeListener
 {
     public static final String ACTION_SETTINGS_CHANGED = "ch.uzh.ifi.csg.smart_contract.settings";
 
-    private final static SettingsProvider instance;
+    private static EthSettingProvider instance;
 
-    static {
-        instance = new SettingsProvider();
-    }
-
-    public static SettingsProvider getInstance()
+    public static EthSettingProvider create(AppContext context)
     {
+        if(instance == null)
+            instance = new EthSettingProvider(context);
+
         return instance;
     }
 
+    private final AppContext appContext;
     private String host;
     private int port;
     private String selectedAccount = "";
@@ -43,12 +43,13 @@ public class SettingsProvider extends BroadcastReceiver implements SharedPrefere
     private int transactionAttempts;
     private int transactionSleepDuration;
 
-    public SettingsProvider()
+    public EthSettingProvider(AppContext appContext)
     {
-        PreferenceManager.setDefaultValues(AppContext.getContext(), R.xml.preferences, false);
-        LocalBroadcastManager.getInstance(AppContext.getContext()).registerReceiver(this, new IntentFilter(LoginDialogFragment.ACTION_ACCOUNT_CHANGED));
+        this.appContext = appContext;
+        PreferenceManager.setDefaultValues(appContext, R.xml.preferences, false);
+        LocalBroadcastManager.getInstance(appContext).registerReceiver(this, new IntentFilter(AccountActivity.ACTION_ACCOUNT_CHANGED));
 
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(AppContext.getContext());
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(appContext);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
 
         setSetting(sharedPref, SettingsActivity.KEY_PREF_CLIENT_HOST);
@@ -58,19 +59,17 @@ public class SettingsProvider extends BroadcastReceiver implements SharedPrefere
         setSetting(sharedPref, SettingsActivity.KEY_PREF_TRANSACTION_GAS_LIMIT);
         setSetting(sharedPref, SettingsActivity.KEY_PREF_TRANSACTION_ATTEMPTS);
         setSetting(sharedPref, SettingsActivity.KEY_PREF_TRANSACTION_SLEEP_DURATION);
-        ServiceProvider.getInstance().initServices(this);
     }
 
     @Override
     public void onReceive(Context context, Intent intent)
     {
-        if(intent.getAction().equals(LoginDialogFragment.ACTION_ACCOUNT_CHANGED))
+        if(intent.getAction().equals(AccountActivity.ACTION_ACCOUNT_CHANGED))
         {
-            String account = intent.getStringExtra(LoginDialogFragment.MESSAGE_ACCOUNT_CHANGED);
+            String account = intent.getStringExtra(AccountActivity.MESSAGE_ACCOUNT_CHANGED);
             selectedAccount = account;
 
-            ServiceProvider.getInstance().initServices(this);
-            LocalBroadcastManager.getInstance(AppContext.getContext()).sendBroadcast(new Intent(ACTION_SETTINGS_CHANGED));
+            LocalBroadcastManager.getInstance(appContext).sendBroadcast(new Intent(ACTION_SETTINGS_CHANGED));
         }
     }
 
@@ -78,8 +77,7 @@ public class SettingsProvider extends BroadcastReceiver implements SharedPrefere
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s)
     {
         setSetting(sharedPreferences, s);
-        ServiceProvider.getInstance().initServices(this);
-        LocalBroadcastManager.getInstance(AppContext.getContext()).sendBroadcast(new Intent(ACTION_SETTINGS_CHANGED));
+        LocalBroadcastManager.getInstance(appContext).sendBroadcast(new Intent(ACTION_SETTINGS_CHANGED));
     }
 
     private void setSetting(SharedPreferences preferences, String key)
@@ -146,6 +144,6 @@ public class SettingsProvider extends BroadcastReceiver implements SharedPrefere
 
     public String getAccountDirectory()
     {
-        return AppContext.getContext().getApplicationContext().getFilesDir() + "/accounts_remote";
+        return appContext.getApplicationContext().getFilesDir() + "/accounts_remote";
     }
 }

@@ -1,4 +1,4 @@
-package smart_contract.csg.ifi.uzh.ch.smartcontracttest.controls;
+package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;

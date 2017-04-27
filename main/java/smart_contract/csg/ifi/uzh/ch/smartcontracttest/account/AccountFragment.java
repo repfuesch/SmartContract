@@ -20,7 +20,8 @@ import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.datamodel.Account;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthServiceProvider;
 
 public class AccountFragment extends Fragment implements AccountRecyclerViewAdapter.OnAccountLoginListener {
 
@@ -30,7 +31,9 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
     private RecyclerView accountList;
     private AccountRecyclerViewAdapter accountListAdapter;
     private List<Account> accounts;
+
     private MessageHandler messageHandler;
+    private ApplicationContextProvider contextProvider;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -61,7 +64,7 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
             accountList.setLayoutManager(new GridLayoutManager(accountList.getContext(), mColumnCount));
         }
 
-        accountListAdapter = new AccountRecyclerViewAdapter(accounts, this);
+        accountListAdapter = new AccountRecyclerViewAdapter(accounts, this, contextProvider.getSettingProvider());
         accountListAdapter.notifyDataSetChanged();
         accountList.setAdapter(accountListAdapter);
 
@@ -78,6 +81,14 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
             throw new RuntimeException(context.toString() + " must implement MessageHandler");
         }
 
+        if(context instanceof ApplicationContextProvider)
+        {
+            contextProvider = (ApplicationContextProvider) context;
+        }else{
+            throw new RuntimeException(context.toString() + " must implement ApplicationContextProvider");
+        }
+
+
         super.onAttach(context);
     }
 
@@ -90,7 +101,7 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
 
     public void reloadAccountList()
     {
-        ServiceProvider.getInstance().getAccountService().getAccounts()
+        contextProvider.getServiceProvider().getAccountService().getAccounts()
                 .always(new AlwaysCallback<List<Account>>() {
                     @Override
                     public void onAlways(Promise.State state, final List<Account> resolved, final Throwable rejected) {
@@ -114,7 +125,7 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
     public void createAccount(String accountName, String password)
     {
         showProgressView();
-        ServiceProvider.getInstance().getAccountService().createAccount(accountName, password)
+        contextProvider.getServiceProvider().getAccountService().createAccount(accountName, password)
                 .always(new AlwaysCallback<Account>() {
                     @Override
                     public void onAlways(Promise.State state, final Account resolved, final Throwable rejected) {
@@ -153,7 +164,7 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
     {
         showProgressView();
 
-        ServiceProvider.getInstance().getAccountService().unlockAccount(account, password)
+        contextProvider.getServiceProvider().getAccountService().unlockAccount(account, password)
                 .always(new AlwaysCallback<Boolean>() {
                     @Override
                     public void onAlways(Promise.State state, final Boolean resolved, final Throwable rejected) {

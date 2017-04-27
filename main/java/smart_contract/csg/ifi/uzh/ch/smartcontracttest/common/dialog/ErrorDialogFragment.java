@@ -1,4 +1,4 @@
-package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common;
+package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog;
 
 import android.app.Dialog;
 import android.content.Context;

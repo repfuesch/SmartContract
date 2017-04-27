@@ -24,7 +24,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import ch.uzh.ifi.csg.contract.async.broadcast.TransactionManager;
+import ch.uzh.ifi.csg.contract.service.account.AccountService;
+import ch.uzh.ifi.csg.contract.service.contract.ContractService;
+import ch.uzh.ifi.csg.contract.service.exchange.EthExchangeService;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.SettingProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManager;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManagerImpl;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.common.Web3;
@@ -34,11 +40,11 @@ import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import ezvcard.Ezvcard;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthServiceProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthSettingProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.validation.RequiredTextFieldValidator;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -58,8 +64,10 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
     private boolean isVerified;
     private boolean isValid;
     private boolean needsVerification;
+
     private OnProfileVerificationRequestedListener listener;
     private MessageHandler messageHandler;
+    private ApplicationContextProvider contextProvider;
 
     public ContractDeployFragment() {
         // Required empty public constructor
@@ -121,8 +129,8 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
 
     private boolean ensureBalance(BigInteger price)
     {
-        String account = SettingsProvider.getInstance().getSelectedAccount();
-        BigInteger balance = ServiceProvider.getInstance().getAccountService().getAccountBalance(account).get();
+        String account = contextProvider.getSettingProvider().getSelectedAccount();
+        BigInteger balance = contextProvider.getServiceProvider().getAccountService().getAccountBalance(account).get();
         if(balance.compareTo(price) < 0)
         {
             messageHandler.showMessage("You don't have enough money to do that!");
@@ -137,7 +145,7 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
         final float price = Float.parseFloat(priceField.getText().toString());
         BigInteger priceWei = BigInteger.ZERO;
 
-        Map<Currency, Float> currencyMap = ServiceProvider.getInstance().getExchangeService().getEthExchangeRates().get();
+        Map<Currency, Float> currencyMap = contextProvider.getServiceProvider().getExchangeService().getEthExchangeRates().get();
         if(currencyMap == null)
         {
             messageHandler.showMessage("Cannot reach exchange service. Please try again later!");
@@ -159,16 +167,16 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
         final String title = titleField.getText().toString();
         final String desc = descriptionField.getText().toString();
 
-        SimplePromise<IPurchaseContract> promise = ServiceProvider.getInstance().getContractService().deployContract(priceWei, title, desc, needsVerification)
+        SimplePromise<IPurchaseContract> promise = contextProvider.getServiceProvider().getContractService().deployContract(priceWei, title, desc, needsVerification)
                 .done(new DoneCallback<IPurchaseContract>() {
                     @Override
                     public void onDone(IPurchaseContract result) {
                         result.setUserProfile(verifiedProfile);
-                        ServiceProvider.getInstance().getContractService().saveContract(result, SettingsProvider.getInstance().getSelectedAccount());
+                        contextProvider.getServiceProvider().getContractService().saveContract(result, contextProvider.getSettingProvider().getSelectedAccount());
                     }
                 });
 
-        TransactionManager.toTransaction(promise, null);
+        contextProvider.getTransactionManager().toTransaction(promise, null);
 
         Intent intent = new Intent(getActivity(), ContractOverviewActivity.class);
         startActivity(intent);
@@ -190,6 +198,13 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
             messageHandler = (MessageHandler) context;
         }else{
             throw new RuntimeException("Context must implement MessageHandler!");
+        }
+
+        if(context instanceof ApplicationContextProvider)
+        {
+            contextProvider = (ApplicationContextProvider) context;
+        }else{
+            throw new RuntimeException("Context must implement ApplicationContextProvider!");
         }
     }
 

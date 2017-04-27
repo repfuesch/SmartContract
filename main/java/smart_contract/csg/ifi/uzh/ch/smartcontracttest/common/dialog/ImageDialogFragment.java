@@ -1,4 +1,4 @@
-package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common;
+package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog;
 
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -13,7 +13,7 @@ import android.view.View;
 import net.glxn.qrgen.android.QRCode;
 
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.controls.ProportionalImageView;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView;
 
 /**
  * Created by flo on 31.03.17.

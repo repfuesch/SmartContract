@@ -14,13 +14,12 @@ import android.widget.LinearLayout;
 import org.jdeferred.Promise;
 
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
-import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
-import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthServiceProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthSettingProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,9 +38,12 @@ public class PurchaseContractFragment extends Fragment
     private LinearLayout progressView;
 
     private int mColumnCount = 1;
-    private MessageHandler errorHandler;
+
     private PurchaseContractRecyclerViewAdapter adapter;
     private List<IPurchaseContract> contracts;
+
+    private MessageHandler errorHandler;
+    private ApplicationContextProvider contextProvider;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -102,11 +104,19 @@ public class PurchaseContractFragment extends Fragment
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+
         if (context instanceof MessageHandler) {
             errorHandler = (MessageHandler) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement MessageHandler");
+        }
+
+        if (context instanceof ApplicationContextProvider) {
+            contextProvider = (ApplicationContextProvider) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement ApplicationContextProvider");
         }
     }
 
@@ -119,7 +129,7 @@ public class PurchaseContractFragment extends Fragment
     public void loadContractsForAccount(String account)
     {
         contracts.clear();
-        ServiceProvider.getInstance().getContractService().loadContracts(account)
+        contextProvider.getServiceProvider().getContractService().loadContracts(account)
                 .always(new AlwaysCallback<List<IPurchaseContract>>() {
                     @Override
                     public void onAlways(Promise.State state, final List<IPurchaseContract> resolved, final Throwable rejected) {
@@ -142,7 +152,7 @@ public class PurchaseContractFragment extends Fragment
 
     public void loadContract(String contractAddress)
     {
-        ServiceProvider.getInstance().getContractService().loadContract(contractAddress, SettingsProvider.getInstance().getSelectedAccount())
+        contextProvider.getServiceProvider().getContractService().loadContract(contractAddress, contextProvider.getSettingProvider().getSelectedAccount())
                 .always(new AlwaysCallback<IPurchaseContract>() {
                     @Override
                     public void onAlways(Promise.State state, final IPurchaseContract resolved, final Throwable rejected) {

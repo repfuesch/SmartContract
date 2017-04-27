@@ -27,13 +27,18 @@ import java.math.MathContext;
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.common.Web3;
 import ch.uzh.ifi.csg.contract.service.connection.EthConnectionService;
-import ch.uzh.ifi.csg.contract.async.broadcast.TransactionManager;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ServiceProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.SettingProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManager;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManagerImpl;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ErrorDialogFragment;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthSettingProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsActivity;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 
 /**
  * Base class for all Activities
@@ -41,12 +46,13 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
  * Created by flo on 13.03.17.
  *
  */
-public abstract class ActivityBase extends AppCompatActivity implements MessageHandler, ErrorDialogFragment.ExceptionConfirmedListener
+public abstract class ActivityBase extends AppCompatActivity implements ApplicationContextProvider, MessageHandler, ErrorDialogFragment.ExceptionConfirmedListener
 {
     private Toolbar toolbar;
     private LinearLayout accountBalanceView;
     private TextView accountBalanceField;
 
+    private AppContext appContext;
     private Class callingActivityClass;
     private ContractBroadcastReceiver broadcastReceiver = null;
     boolean broadcastReceiverRegistered = false;
@@ -55,6 +61,7 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        appContext = (AppContext)getApplication();
         setContentView(getLayoutResourceId());
         broadcastReceiver = new ContractBroadcastReceiver();
 
@@ -74,7 +81,7 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
 
     private void checkPermissions()
     {
-        if (ContextCompat.checkSelfPermission(AppContext.getContext(),
+        if (ContextCompat.checkSelfPermission(appContext,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
 
@@ -84,7 +91,7 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
 
         }
 
-        if (ContextCompat.checkSelfPermission(AppContext.getContext(),
+        if (ContextCompat.checkSelfPermission(appContext,
                 Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
 
@@ -94,7 +101,7 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
 
         }
 
-        if (ContextCompat.checkSelfPermission(AppContext.getContext(),
+        if (ContextCompat.checkSelfPermission(appContext,
                 Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
 
@@ -111,6 +118,20 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
 
     protected abstract int getLayoutResourceId();
 
+    public final ServiceProvider getServiceProvider()
+    {
+        return appContext.getServiceProvider();
+    }
+
+    public final SettingProvider getSettingProvider()
+    {
+        return appContext.getSettingsProvider();
+    }
+
+    public final TransactionManager getTransactionManager()
+    {
+        return appContext.getTransactionManager();
+    }
 
     @Override
     public boolean onPrepareOptionsMenu(final Menu menu) {
@@ -205,10 +226,10 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
 
     private void updateAccountBalance()
     {
-        String selectedAccount = SettingsProvider.getInstance().getSelectedAccount();
+        String selectedAccount = getSettingProvider().getSelectedAccount();
         if (!selectedAccount.isEmpty())
         {
-            ServiceProvider.getInstance().getAccountService().getAccountBalance(selectedAccount)
+            appContext.getServiceProvider().getAccountService().getAccountBalance(selectedAccount)
                     .always(new AlwaysCallback<BigInteger>() {
                         @Override
                         public void onAlways(Promise.State state, final BigInteger resolved, Throwable rejected) {
@@ -249,8 +270,8 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
         super.onResume();
 
         if (!broadcastReceiverRegistered) {
-            LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter(TransactionManager.ACTION_HANDLE_TRANSACTION));
-            LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter(SettingsProvider.ACTION_SETTINGS_CHANGED));
+            LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter(TransactionManagerImpl.ACTION_HANDLE_TRANSACTION));
+            LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter(EthSettingProvider.ACTION_SETTINGS_CHANGED));
             LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter(MessageHandler.ACTION_SHOW_ERROR));
             LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter(AccountActivity.ACTION_ACCOUNT_CHANGED));
             LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter(EthConnectionService.ACTION_HANDLE_CONNECTION_DOWN));
@@ -274,17 +295,17 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
         @Override
         public void onReceive(Context context, Intent intent)
         {
-            if(intent.getAction().equals(TransactionManager.ACTION_HANDLE_TRANSACTION))
+            if(intent.getAction().equals(TransactionManagerImpl.ACTION_HANDLE_TRANSACTION))
             {
-                if(intent.getStringExtra(TransactionManager.CONTRACT_TRANSACTION_TYPE).equals(TransactionManager.CONTRACT_TRANSACTION_DEPLOY))
+                if(intent.getStringExtra(TransactionManagerImpl.CONTRACT_TRANSACTION_TYPE).equals(TransactionManagerImpl.CONTRACT_TRANSACTION_DEPLOY))
                 {
                     //Load contract and persist it, such that it is stored independent of the currently active activity
-                    final String contractAddress = intent.getStringExtra(TransactionManager.CONTRACT_TRANSACTION_ADDRESS);
+                    final String contractAddress = intent.getStringExtra(TransactionManagerImpl.CONTRACT_TRANSACTION_ADDRESS);
                     onContractCreated(contractAddress);
                     return;
                 }
 
-            } else if(intent.getAction().equals(SettingsProvider.ACTION_SETTINGS_CHANGED))
+            } else if(intent.getAction().equals(EthSettingProvider.ACTION_SETTINGS_CHANGED))
             {
                 onSettingsChanged();
 

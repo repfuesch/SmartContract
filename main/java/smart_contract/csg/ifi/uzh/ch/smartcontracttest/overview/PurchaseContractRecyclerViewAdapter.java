@@ -8,24 +8,19 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.common.Web3;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.event.IContractObserver;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display.ContractDetailActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
 
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 public class PurchaseContractRecyclerViewAdapter
         extends RecyclerView.Adapter<PurchaseContractRecyclerViewAdapter.ViewHolder> {

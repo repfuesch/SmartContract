@@ -25,7 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import ch.uzh.ifi.csg.contract.async.broadcast.TransactionManager;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManagerImpl;
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.common.Web3;
@@ -33,11 +34,11 @@ import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ImageDialogFragment;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ServiceProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.controls.ProportionalImageView;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthServiceProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthSettingProvider;
 
 public class ContractDetailFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemSelectedListener {
 
@@ -59,7 +60,9 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
     private boolean isVerified;
     private List<String> currencyList;
     private Currency selectedCurrency;
+
     private MessageHandler messageHandler;
+    private ApplicationContextProvider contextProvider;
 
     public ContractDetailFragment() {
         // Required empty public constructor
@@ -131,6 +134,14 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
         {
             throw new RuntimeException("Context must implement MessageHandler!");
         }
+
+        if(context instanceof ApplicationContextProvider)
+        {
+            contextProvider = (ApplicationContextProvider) context;
+        }else
+        {
+            throw new RuntimeException("Context must implement ApplicationContextProvider!");
+        }
     }
 
     private void disableInteractions()
@@ -158,8 +169,8 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
 
     private boolean ensureBalance()
     {
-        String account = SettingsProvider.getInstance().getSelectedAccount();
-        BigInteger balance = ServiceProvider.getInstance().getAccountService().getAccountBalance(account).get();
+        String account = contextProvider.getSettingProvider().getSelectedAccount();
+        BigInteger balance = contextProvider.getServiceProvider().getAccountService().getAccountBalance(account).get();
         BigInteger value = contract.value().get().multiply(BigInteger.valueOf(2));
         if(balance.compareTo(value) < 0)
         {
@@ -191,7 +202,7 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
                     });
                     }
                 });
-                TransactionManager.toTransaction(buyPromise, contract.getContractAddress());
+                contextProvider.getTransactionManager().toTransaction(buyPromise, contract.getContractAddress());
                 break;
             case R.id.abort_button:
                 showProgressView();
@@ -206,7 +217,7 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
                         });
                     }
                 });
-                TransactionManager.toTransaction(abortPromise, contract.getContractAddress());
+                contextProvider.getTransactionManager().toTransaction(abortPromise, contract.getContractAddress());
                 break;
             case R.id.confirm_button:
                 showProgressView();
@@ -221,7 +232,7 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
                         });
                     }
                 });
-                TransactionManager.toTransaction(confirmPromise, contract.getContractAddress());
+                contextProvider.getTransactionManager().toTransaction(confirmPromise, contract.getContractAddress());
                 break;
             case R.id.contract_qr_image:
                 DialogFragment imageDialog = new ImageDialogFragment();
@@ -250,7 +261,7 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
         String seller = contract.seller().get();
         String buyer = contract.buyer().get();
 
-        String selectedAccount = SettingsProvider.getInstance().getSelectedAccount();
+        String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
 
         titleView.setText(contract.title().get());
         if(state != null)
@@ -258,7 +269,7 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
 
         if(value != null)
         {
-            Map<Currency, Float> currencyMap = ServiceProvider.getInstance().getExchangeService().getEthExchangeRates().get();
+            Map<Currency, Float> currencyMap = contextProvider.getServiceProvider().getExchangeService().getEthExchangeRates().get();
             if(currencyMap != null)
             {
                 BigDecimal amountEther = Web3.toEther(value);

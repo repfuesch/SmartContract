@@ -92,23 +92,6 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
                 });
     }
 
-    /**
-     * Execute the provided function as a transaction asynchronously.
-     *
-     * @param function to transact with
-     * @param value    to transact to contract
-     * @return {@link Future} containing executing transaction
-     */
-    /*
-    protected Future<TransactionReceipt> executeTransactionAsync(final Function function, final BigInteger value) {
-        return Async.run(new Callable<TransactionReceipt>() {
-            @Override
-            public TransactionReceipt call() throws Exception {
-                return executeTransaction(function, value);
-            }
-        });
-    }*/
-
     protected TransactionReceipt executeTransaction(Function function, BigInteger value) throws InterruptedException,
             ExecutionException, TransactionTimeoutException {
         return executeTransaction(FunctionEncoder.encode(function), value);

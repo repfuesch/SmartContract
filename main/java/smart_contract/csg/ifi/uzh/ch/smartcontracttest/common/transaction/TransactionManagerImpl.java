@@ -1,18 +1,19 @@
-package ch.uzh.ifi.csg.contract.async.broadcast;
+package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 import org.jdeferred.Promise;
+import org.web3j.tx.*;
+
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.AppContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 
 /**
  * Created by flo on 18.03.17.
  */
 
-public class TransactionManager
+public class TransactionManagerImpl implements TransactionManager
 {
     public static final String ACTION_HANDLE_TRANSACTION = "ch.uzh.ifi.csg.smart_contract.transaction";
     public static final String CONTRACT_TRANSACTION_TYPE = "ch.uzh.ifi.csg.smart_contract.contract_action";
@@ -21,13 +22,23 @@ public class TransactionManager
     public static final String CONTRACT_TRANSACTION_ERROR = "ch.uzh.ifi.csg.smart_contract.contract_error";
     public static final String CONTRACT_TRANSACTION_ADDRESS = "ch.uzh.ifi.csg.smart_contract.contract_address";
 
-    private static final LocalBroadcastManager broadcastManager;
+    private static TransactionManagerImpl instance;
 
-    static {
-        broadcastManager = LocalBroadcastManager.getInstance(AppContext.getContext());
+    public static TransactionManagerImpl create(LocalBroadcastManager broadcastManager)
+    {
+        if(instance == null)
+            instance = new TransactionManagerImpl(broadcastManager);
+        return instance;
     }
 
-    private static void notifyContractUpdated(String contractAddress)
+    private final LocalBroadcastManager broadcastManager;
+
+    private TransactionManagerImpl(LocalBroadcastManager localBroadcastManager)
+    {
+        this.broadcastManager = localBroadcastManager;
+    }
+
+    private void notifyContractUpdated(String contractAddress)
     {
         Intent intent = new Intent();
         intent.setAction(ACTION_HANDLE_TRANSACTION);
@@ -37,7 +48,7 @@ public class TransactionManager
         broadcastManager.sendBroadcast(intent);
     }
 
-    private static void notifyContractCreated(String contractAddress)
+    private void notifyContractCreated(String contractAddress)
     {
         Intent intent = new Intent();
         intent.setAction(ACTION_HANDLE_TRANSACTION);
@@ -47,7 +58,7 @@ public class TransactionManager
         broadcastManager.sendBroadcast(intent);
     }
 
-    private static void notifyTransactionError(String contractAddress, Throwable exception)
+    private void notifyTransactionError(String contractAddress, Throwable exception)
     {
         Intent intent = new Intent();
         intent.setAction(MessageHandler.ACTION_SHOW_ERROR);
@@ -63,7 +74,7 @@ public class TransactionManager
         broadcastManager.sendBroadcast(intent);
     }
 
-    public static <T> void toTransaction(SimplePromise<T> promise, final String contractAddress)
+    public <T> void toTransaction(SimplePromise<T> promise, final String contractAddress)
     {
         promise.always(new AlwaysCallback<T>()
         {
