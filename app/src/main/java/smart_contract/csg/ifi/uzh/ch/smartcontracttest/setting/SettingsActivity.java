@@ -14,7 +14,8 @@ public class SettingsActivity extends ActivityBase
 {
     public static final String KEY_PREF_CLIENT_HOST = "pref_client_host_key";
     public static final String KEY_PREF_CLIENT_PORT = "pref_client_port_key";
-    public static final String KEY_PREF_ACCOUNT_UNLOCK_TIME = "pref_account_unlock_time_key";
+    public static final String KEY_PREF_ACCOUNT_WALLET_ENCRYPTION_STRENGTH = "pref_account_wallet_encryption_strength";
+    public static final String KEY_PREF_ACCOUNT_WALLET_FILE_DIRECTORY = "pref_account_wallet_file_directory";
     public static final String KEY_PREF_TRANSACTION_GAS_PRICE = "pref_transaction_gas_price_key";
     public static final String KEY_PREF_TRANSACTION_GAS_LIMIT = "pref_transaction_gas_limit_key";
     public static final String KEY_PREF_TRANSACTION_ATTEMPTS = "pref_transaction_attempts_key";

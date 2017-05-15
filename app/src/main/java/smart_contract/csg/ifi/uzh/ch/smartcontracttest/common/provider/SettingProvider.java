@@ -8,7 +8,8 @@ import java.math.BigInteger;
 
 public interface SettingProvider
 {
-    public int getAccountUnlockTime();
+    String getWalletFileDirectory();
+    String getWalletFileEncryptionStrength();
     String getHost();
     int getTransactionSleepDuration();
     int getTransactionAttempts();

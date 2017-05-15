@@ -26,11 +26,6 @@ public class AppContext extends Application
     private LocalBroadcastManager broadcastManager;
     private BroadcastReceiver broadcastReceiver;
 
-    public AppContext()
-    {
-
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -44,7 +39,6 @@ public class AppContext extends Application
         transactionManager = TransactionManagerImpl.create(broadcastManager);
 
         broadcastManager.registerReceiver(broadcastReceiver, new IntentFilter(EthSettingProvider.ACTION_SETTINGS_CHANGED));
-
     }
 
     public SettingProvider getSettingsProvider()

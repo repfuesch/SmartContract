@@ -42,6 +42,8 @@ public class EthSettingProvider extends BroadcastReceiver implements SettingProv
     private BigInteger gasLimit;
     private int transactionAttempts;
     private int transactionSleepDuration;
+    private String walletFileEncryptionStrength;
+    private String walletFileDirectory;
 
     public EthSettingProvider(AppContext appContext)
     {
@@ -54,7 +56,8 @@ public class EthSettingProvider extends BroadcastReceiver implements SettingProv
 
         setSetting(sharedPref, SettingsActivity.KEY_PREF_CLIENT_HOST);
         setSetting(sharedPref, SettingsActivity.KEY_PREF_CLIENT_PORT);
-        setSetting(sharedPref, SettingsActivity.KEY_PREF_ACCOUNT_UNLOCK_TIME);
+        setSetting(sharedPref, SettingsActivity.KEY_PREF_ACCOUNT_WALLET_ENCRYPTION_STRENGTH);
+        setSetting(sharedPref, SettingsActivity.KEY_PREF_ACCOUNT_WALLET_FILE_DIRECTORY);
         setSetting(sharedPref, SettingsActivity.KEY_PREF_TRANSACTION_GAS_PRICE);
         setSetting(sharedPref, SettingsActivity.KEY_PREF_TRANSACTION_GAS_LIMIT);
         setSetting(sharedPref, SettingsActivity.KEY_PREF_TRANSACTION_ATTEMPTS);
@@ -90,8 +93,11 @@ public class EthSettingProvider extends BroadcastReceiver implements SettingProv
             case SettingsActivity.KEY_PREF_CLIENT_PORT:
                 port = Integer.valueOf(preferences.getString(SettingsActivity.KEY_PREF_CLIENT_PORT, ""));
                 break;
-            case SettingsActivity.KEY_PREF_ACCOUNT_UNLOCK_TIME:
-                accountUnlockTime = Integer.valueOf(preferences.getString(SettingsActivity.KEY_PREF_ACCOUNT_UNLOCK_TIME, ""));
+            case SettingsActivity.KEY_PREF_ACCOUNT_WALLET_ENCRYPTION_STRENGTH:
+                walletFileEncryptionStrength = preferences.getString(SettingsActivity.KEY_PREF_ACCOUNT_WALLET_ENCRYPTION_STRENGTH, "");
+                break;
+            case SettingsActivity.KEY_PREF_ACCOUNT_WALLET_FILE_DIRECTORY:
+                walletFileDirectory = preferences.getString(SettingsActivity.KEY_PREF_ACCOUNT_WALLET_FILE_DIRECTORY, "");
                 break;
             case SettingsActivity.KEY_PREF_TRANSACTION_GAS_PRICE:
                 gasPrice = BigInteger.valueOf(Long.valueOf(preferences.getString(SettingsActivity.KEY_PREF_TRANSACTION_GAS_PRICE, "")));
@@ -110,9 +116,11 @@ public class EthSettingProvider extends BroadcastReceiver implements SettingProv
         }
     }
 
-    public int getAccountUnlockTime() {
-        return accountUnlockTime;
+    public String getWalletFileEncryptionStrength() {
+        return walletFileEncryptionStrength;
     }
+
+    public String getWalletFileDirectory(){return walletFileDirectory;}
 
     public String getHost() {
         return host;

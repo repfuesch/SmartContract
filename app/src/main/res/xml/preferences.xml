@@ -24,12 +24,15 @@
         android:title="@string/pref_account_title"
         android:key="pref_account_key">
 
-        <EditTextPreference
-            android:key="pref_account_unlock_time_key"
-            android:title="@string/pref_account_unlock_time"
-            android:defaultValue="60"
-            android:inputType="numberSigned">
-        </EditTextPreference>
+        <Preference
+            android:key="pref_account_wallet_directory"
+            android:title="@string/pref_account_wallet_directory" />
+
+        <ListPreference
+            android:key="pref_account_wallet_encryption_strength"
+            android:title="@string/pref_account_wallet_encryption_strength"
+            android:defaultValue="WEAK">
+        </ListPreference>
 
     </PreferenceCategory>
 
