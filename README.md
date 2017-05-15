@@ -21,7 +21,7 @@ The application has the following dependencies :
 
 ### Install from release
 
-* Download and install the latest release from the [release](.../releases) page 
+* Download and install the latest release from the release page 
 
 ### Build the application from source:
 
