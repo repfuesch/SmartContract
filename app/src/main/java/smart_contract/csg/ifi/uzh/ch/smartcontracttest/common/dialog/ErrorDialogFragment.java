@@ -1,5 +1,6 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -63,13 +64,23 @@ public class ErrorDialogFragment extends DialogFragment
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        attachContext(context);
+    }
 
+    private void attachContext(Context context)
+    {
         if(context instanceof ExceptionConfirmedListener)
         {
             listener = (ExceptionConfirmedListener) context;
         }else{
             throw new RuntimeException(context.toString() + " must implement ExceptionConfirmedListener");
         }
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        attachContext(activity);
     }
 
     public static interface ExceptionConfirmedListener

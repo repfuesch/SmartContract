@@ -5,12 +5,15 @@ import android.app.DialogFragment;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 
 import net.glxn.qrgen.android.QRCode;
+
+import java.io.File;
 
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView;
@@ -57,6 +60,8 @@ public class ImageDialogFragment extends DialogFragment
         {
             Bitmap bitmap = QRCode.from(imgSrc).bitmap();
             imageView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, 250, 250, false));
+        }else{
+            imageView.setImageURI(Uri.fromFile(new File(imgSrc)));
         }
 
         // Inflate and set the layout for the dialog

@@ -1,6 +1,7 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create;
 
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -185,7 +186,11 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        attachContext(context);
+    }
 
+    private void attachContext(Context context)
+    {
         if(context instanceof OnProfileVerificationRequestedListener)
         {
             listener = (OnProfileVerificationRequestedListener)context;
@@ -206,6 +211,12 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
         }else{
             throw new RuntimeException("Context must implement ApplicationContextProvider!");
         }
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        attachContext(activity);
     }
 
     @Override

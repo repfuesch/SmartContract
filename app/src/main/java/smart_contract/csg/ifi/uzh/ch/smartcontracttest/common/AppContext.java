@@ -15,7 +15,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthServic
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthSettingProvider;
 
 /**
- * Class for holding and accessing the EthServiceProvider and EthSettingProvider instances
+ * Custom application class for holding and accessing the EthServiceProvider and EthSettingProvider instances
  */
 
 public class AppContext extends Application

@@ -1,5 +1,6 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -100,11 +101,14 @@ public class PurchaseContractFragment extends Fragment
         return view;
     }
 
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        attachContext(context);
+    }
 
+    private void attachContext(Context context)
+    {
         if (context instanceof MessageHandler) {
             errorHandler = (MessageHandler) context;
         } else {
@@ -118,6 +122,12 @@ public class PurchaseContractFragment extends Fragment
             throw new RuntimeException(context.toString()
                     + " must implement ApplicationContextProvider");
         }
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        attachContext(activity);
     }
 
     @Override

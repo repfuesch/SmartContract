@@ -154,4 +154,9 @@ public class EthSettingProvider extends BroadcastReceiver implements SettingProv
     {
         return appContext.getApplicationContext().getFilesDir() + "/accounts_remote";
     }
+
+    public String getProfileImageDirectory()
+    {
+        return appContext.getApplicationContext().getFilesDir() + "/profile_images";
+    }
 }

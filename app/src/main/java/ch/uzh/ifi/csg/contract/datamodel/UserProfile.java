@@ -10,6 +10,7 @@ import ezvcard.VCard;
 public class UserProfile {
 
     private VCard vCard;
+    private String profileImagePath;
     private boolean isVerified;
 
     public UserProfile() {
@@ -29,5 +30,13 @@ public class UserProfile {
 
     public void setVerified(boolean verified) {
         isVerified = verified;
+    }
+
+    public String getProfileImagePath() {
+        return profileImagePath;
+    }
+
+    public void setProfileImagePath(String profileImagePath) {
+        this.profileImagePath = profileImagePath;
     }
 }

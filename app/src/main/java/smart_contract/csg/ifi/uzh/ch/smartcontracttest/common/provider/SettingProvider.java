@@ -18,4 +18,5 @@ public interface SettingProvider
     String getSelectedAccount();
     int getPort();
     String getAccountDirectory();
+    String getProfileImageDirectory();
 }

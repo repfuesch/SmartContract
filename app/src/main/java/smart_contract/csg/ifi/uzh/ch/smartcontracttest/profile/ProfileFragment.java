@@ -1,21 +1,39 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile;
 
 
+import android.app.Activity;
 import android.app.DialogFragment;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.ParcelFileDescriptor;
+import android.provider.MediaStore;
+import android.support.design.widget.Snackbar;
+import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import net.glxn.qrgen.android.QRCode;
 
+import java.io.File;
+import java.io.FileDescriptor;
+import java.net.URI;
+
+import ch.uzh.ifi.csg.contract.common.FileManager;
+import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ezvcard.VCard;
 import ezvcard.parameter.TelephoneType;
@@ -25,14 +43,17 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthServiceProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthSettingProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.validation.RequiredTextFieldValidator;
+
+import static android.app.Activity.RESULT_OK;
 
 /**
  * A fragment for retrieving and displaying user information
  */
 public class ProfileFragment extends Fragment implements View.OnClickListener {
+
+    private static final int PICK_IMAGE_REQUEST_CODE = 1;
+    private static final int IMAGE_CAPTURE_REQUEST_CODE = 2;
 
     private UserProfile profile;
 
@@ -50,6 +71,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     private Button editButton;
     private Button saveButton;
     private ImageView qrImageView;
+    private ImageView profileImage;
 
     private ProfileMode mode;
     private OnProfileVerifiedListener verifiedListener;
@@ -88,10 +110,23 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         editButton = (Button) view.findViewById(R.id.action_edit_identity);
         saveButton = (Button) view.findViewById(R.id.action_save_identity);
         qrImageView = (ImageView) view.findViewById(R.id.profile_qr_image);
+        profileImage = (ImageView) view.findViewById(R.id.profile_image);
+
         verifyButton.setOnClickListener(this);
         editButton.setOnClickListener(this);
         saveButton.setOnClickListener(this);
         qrImageView.setOnClickListener(this);
+
+        registerForContextMenu(profileImage);
+        profileImage.setOnClickListener(this);
+        profileImage.setOnLongClickListener(new View.OnLongClickListener() {
+
+            @Override
+            public boolean onLongClick(View view) {
+                getActivity().openContextMenu(profileImage);
+                return true;
+            }
+        });
 
         layout = (LinearLayout) view.findViewById(R.id.layout_profile_fragment);
 
@@ -104,7 +139,17 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        attachContext(context);
+    }
 
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        attachContext(activity);
+    }
+
+    private void attachContext(Context context)
+    {
         if(context instanceof OnProfileVerifiedListener)
         {
             verifiedListener = (OnProfileVerifiedListener) context;
@@ -154,6 +199,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     public void setProfileInformation(UserProfile userProfile)
     {
         profile.setVCard(userProfile.getVCard());
+        profile.setProfileImagePath(userProfile.getProfileImagePath());
 
         VCard card = profile.getVCard();
         StructuredName name = card.getStructuredName();
@@ -177,6 +223,9 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             phoneField.setText(card.getTelephoneNumbers().get(0).getText());
 
         loadQrImage(card);
+
+        if(profile.getProfileImagePath() != null)
+            profileImage.setImageURI(Uri.fromFile(new File(profile.getProfileImagePath())));
     }
 
     @Override
@@ -205,6 +254,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             verifyButton.setVisibility(View.GONE);
             saveButton.setVisibility(View.GONE);
             editButton.setVisibility(View.GONE);
+            profileImage.setOnLongClickListener(null);
         }
     }
 
@@ -215,19 +265,12 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             View view = viewGroup.getChildAt(i);
             if (view instanceof ViewGroup)
             {
-                /*
-                if(view instanceof TextInputLayout)
-                {
-                    TextInputLayout textInput = (TextInputLayout)view;
-                    textInput.setHintTextAppearance(R.style.HintTextBig);
-                }*/
                 changeLayoutRecursive((ViewGroup) view, mode);
             }
             else if (view instanceof EditText) {
                 view.setEnabled(mode == ProfileMode.Edit);
             }
         }
-
     }
 
     private void loadQrImage(VCard card)
@@ -254,6 +297,102 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         UserProfile userProfile = contextProvider.getServiceProvider().getAccountService().getAccountProfile(selectedAccount);
         if(userProfile.getVCard() != null)
             setProfileInformation(userProfile);
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
+    {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        menu.setHeaderTitle("Select and Image");
+        menu.add(0, v.getId(), 0, "from file");
+        menu.add(0, v.getId(), 0, "from camera");
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item){
+        if(item.getTitle().equals("from file")){
+            openFile();
+        }
+        else if(item.getTitle().equals("from camera")){
+            makePicture();
+        }else{
+            return false;
+        }
+        return true;
+    }
+
+    private void makePicture()
+    {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+            Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
+            //start camera intent
+            startActivityForResult(takePictureIntent, IMAGE_CAPTURE_REQUEST_CODE);
+        }
+    }
+
+    private void openFile() {
+
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+        // special intent for Samsung file manager
+        Intent sIntent = new Intent("com.sec.android.app.myfiles.PICK_FILE");
+        // if you want any file type, you can skip next line
+        sIntent.putExtra("CONTENT_TYPE", "*image/*");
+        sIntent.addCategory(Intent.CATEGORY_DEFAULT);
+
+        Intent chooserIntent;
+        if (getActivity().getPackageManager().resolveActivity(sIntent, 0) != null){
+            // it is device with samsung file manager
+            chooserIntent = Intent.createChooser(sIntent, "Select File");
+            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] { intent});
+        }
+        else {
+            chooserIntent = Intent.createChooser(intent, "Select File");
+        }
+        try {
+            startActivityForResult(chooserIntent, PICK_IMAGE_REQUEST_CODE);
+        } catch (android.content.ActivityNotFoundException ex) {
+            Toast.makeText(getActivity().getApplicationContext(), "No suitable File Manager was found.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        //get the new value from Intent data
+        switch(requestCode) {
+            case PICK_IMAGE_REQUEST_CODE:
+                if (resultCode == RESULT_OK) {
+                    try {
+                        Uri uri = data.getData();
+                        Bitmap bmp = ImageHelper.getCorrectlyOrientedImage(getActivity(), uri, 1280);
+                        File imgFile = ImageHelper.saveBitmap(bmp, contextProvider.getSettingProvider().getProfileImageDirectory());
+                        profile.setProfileImagePath(imgFile.getAbsolutePath());
+                        profileImage.setImageURI(Uri.fromFile(imgFile));
+                    }
+                    catch (Exception e) {
+                        messageHandler.showSnackBarMessage(e.getMessage(), Snackbar.LENGTH_LONG);
+                    }
+                }
+                break;
+            case IMAGE_CAPTURE_REQUEST_CODE:
+                if(resultCode == RESULT_OK) {
+                    Bitmap bitmap;
+                    try
+                    {
+                        Bitmap bmp = ImageHelper.getCorrectlyOrientedImage(getActivity(), data.getData(), 1280);
+                        File imgFile = ImageHelper.saveBitmap(bmp, contextProvider.getSettingProvider().getProfileImageDirectory());
+                        profile.setProfileImagePath(imgFile.getAbsolutePath());
+                        profileImage.setImageURI(Uri.fromFile(imgFile));
+                    }
+                    catch (Exception e)
+                    {
+                        messageHandler.showSnackBarMessage(e.getMessage(), Snackbar.LENGTH_LONG);
+                    }
+                }
+        }
     }
 
     @Override
@@ -287,6 +426,17 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                 args.putBoolean(ImageDialogFragment.MESSAGE_DISPLAY_QRCODE, true);
                 imageDialog.setArguments(args);
                 imageDialog.show(getFragmentManager(), "QrImageDialog");
+                break;
+            case R.id.profile_image:
+                if(profile.getProfileImagePath() == null)
+                    return;
+
+                DialogFragment profileImageDialog = new ImageDialogFragment();
+                Bundle imageArgs = new Bundle();
+                imageArgs.putString(ImageDialogFragment.MESSAGE_IMAGE_SOURCE, profile.getProfileImagePath());
+                imageArgs.putBoolean(ImageDialogFragment.MESSAGE_DISPLAY_QRCODE, false);
+                profileImageDialog.setArguments(imageArgs);
+                profileImageDialog.show(getFragmentManager(), "ProfileImageDialog");
                 break;
 
         }

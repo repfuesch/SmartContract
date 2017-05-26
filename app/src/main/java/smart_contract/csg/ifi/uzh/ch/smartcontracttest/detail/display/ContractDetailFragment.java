@@ -1,5 +1,6 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display;
 
+import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -126,7 +127,11 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        attachContext(context);
+    }
 
+    private void attachContext(Context context)
+    {
         if(context instanceof MessageHandler)
         {
             messageHandler = (MessageHandler)context;
@@ -142,6 +147,12 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
         {
             throw new RuntimeException("Context must implement ApplicationContextProvider!");
         }
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        attachContext(activity);
     }
 
     private void disableInteractions()

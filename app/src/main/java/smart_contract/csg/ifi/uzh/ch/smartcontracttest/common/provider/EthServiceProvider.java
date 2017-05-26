@@ -1,5 +1,6 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider;
 
+import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.service.account.AccountService;
 import ch.uzh.ifi.csg.contract.service.connection.EthConnectionService;
 import ch.uzh.ifi.csg.contract.service.contract.ContractService;
@@ -64,7 +65,7 @@ public class EthServiceProvider implements ServiceProvider
 
         //connectionService = serviceFactory.createConnectionService(settingsProvider.getHost(), settingsProvider.getPort(), 5000);
 
-        if(settingsProvider.getSelectedAccount() != null)
+        if(settingsProvider.getSelectedAccount() != "")
         {
             contractService = serviceFactory.createClientContractService(
                     settingsProvider.getHost(),
@@ -74,6 +75,13 @@ public class EthServiceProvider implements ServiceProvider
                     settingsProvider.getGasLimit(),
                     settingsProvider.getTransactionAttempts(),
                     settingsProvider.getTransactionSleepDuration());
+
+            //todo: remove the following lines
+            //delete all contracts for account
+            for(IPurchaseContract contract : contractService.loadContracts(settingsProvider.getSelectedAccount()).get())
+            {
+                contractService.removeContract(contract, settingsProvider.getSelectedAccount());
+            }
         }
 
         //connectionService.startPolling();

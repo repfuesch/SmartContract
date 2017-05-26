@@ -1,5 +1,6 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.account;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
@@ -74,6 +75,13 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
     @Override
     public void onAttach(Context context) {
 
+        attachContext(context);
+
+        super.onAttach(context);
+    }
+
+    private void attachContext(Context context)
+    {
         if(context instanceof MessageHandler)
         {
             messageHandler = (MessageHandler) context;
@@ -87,9 +95,13 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
         }else{
             throw new RuntimeException(context.toString() + " must implement ApplicationContextProvider");
         }
+    }
 
-
-        super.onAttach(context);
+    @Override
+    public void onAttach(Activity activity)
+    {
+        attachContext(activity);
+        super.onAttach(activity);
     }
 
     @Override

@@ -107,7 +107,7 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
 
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.CAMERA},
-                    1);
+                    0x000000);
         }
     }
 
