@@ -41,6 +41,7 @@ public class FileManager implements ContractManager, AccountManager {
                 .registerTypeAdapter(VCard.class, new VCardSerializer())
                 .registerTypeAdapter(VCard.class, new VCardDeserializer())
                 .registerTypeAdapter(new TypeToken<HashMap<String, ContractInfo>>(){}.getType(), new ContractMapDeserializer())
+                .registerTypeAdapter(new TypeToken<HashMap<String, String>>(){}.getType(), new StringMapDeserializer())
                 .create();
 
         this.accountDirectory = dataDirectory;
@@ -160,6 +161,17 @@ public class FileManager implements ContractManager, AccountManager {
             Type mapType = new TypeToken<HashMap<String, ContractInfo>>(){}.getType();
             Map<String, ContractInfo> contractMap = context.deserialize(json, mapType);
             return contractMap;
+        }
+    }
+
+    static class StringMapDeserializer implements JsonDeserializer<Map<String, String>> {
+
+        @Override
+        public Map<String, String> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
+        {
+            Type mapType = new TypeToken<HashMap<String, String>>(){}.getType();
+            Map<String, String> stringMap = context.deserialize(json, mapType);
+            return stringMap;
         }
     }
 }

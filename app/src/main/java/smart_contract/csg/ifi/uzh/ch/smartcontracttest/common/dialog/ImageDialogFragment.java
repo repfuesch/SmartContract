@@ -9,11 +9,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 import net.glxn.qrgen.android.QRCode;
 
 import java.io.File;
+import java.util.List;
 
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView;
@@ -22,14 +25,20 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.Proportio
  * Created by flo on 31.03.17.
  */
 
-public class ImageDialogFragment extends DialogFragment
-{
+public class ImageDialogFragment extends DialogFragment implements View.OnTouchListener {
     public static final String MESSAGE_IMAGE_SOURCE = "ch.uzh.ifi.csg.smart_contract.image.src";
+    public static final String MESSAGE_IMAGE_URIS = "ch.uzh.ifi.csg.smart_contract.image.uris";
+    public static final String MESSAGE_IMAGE_INDEX = "ch.uzh.ifi.csg.smart_contract.image.index";
     public static final String MESSAGE_DISPLAY_QRCODE = "ch.uzh.ifi.csg.smart_contract.image.qrcode";
 
+    private static final int MIN_DISTANCE = 150;
+
+    private float x1,x2;
     private ProportionalImageView imageView;
     private String imgSrc;
     private boolean displayQrCode;
+    private List<Uri> imgUris;
+    private int imgIndex;
 
     public ImageDialogFragment()
     {
@@ -41,6 +50,8 @@ public class ImageDialogFragment extends DialogFragment
 
         imgSrc = args.getString(MESSAGE_IMAGE_SOURCE);
         displayQrCode = args.getBoolean(MESSAGE_DISPLAY_QRCODE);
+        imgUris = (List<Uri>) args.getSerializable(MESSAGE_IMAGE_URIS);
+        imgIndex = args.getInt(MESSAGE_IMAGE_INDEX);
     }
 
     @Override
@@ -54,16 +65,21 @@ public class ImageDialogFragment extends DialogFragment
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View contentView = inflater.inflate(R.layout.fragment_image_dialog, null);
         contentView.setBackgroundColor(Color.TRANSPARENT);
+
         imageView = (ProportionalImageView) contentView.findViewById(R.id.image_view);
 
         if(displayQrCode)
         {
             Bitmap bitmap = QRCode.from(imgSrc).bitmap();
             imageView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, 250, 250, false));
-        }else{
+        }else if(imgSrc != null){
             imageView.setImageURI(Uri.fromFile(new File(imgSrc)));
+        }else{
+            imageView.setImageURI(imgUris.get(imgIndex));
         }
 
+
+        imageView.setOnTouchListener(this);
         // Inflate and set the layout for the dialog
         // Pass null as the parent view because its going in the dialog layout
         builder.setView(contentView);
@@ -74,4 +90,31 @@ public class ImageDialogFragment extends DialogFragment
         return diag;
     }
 
+
+    @Override
+    public boolean onTouch(View view, MotionEvent motionEvent)
+    {
+        switch(motionEvent.getAction())
+        {
+            case MotionEvent.ACTION_DOWN:
+                x1 = motionEvent.getX();
+                break;
+            case MotionEvent.ACTION_UP:
+                x2 = motionEvent.getX();
+                float deltaX = x2 - x1;
+                if (Math.abs(deltaX) > MIN_DISTANCE && x2 > x1)
+                {
+                    //select previous picture
+                    imageView.setImageURI(imgUris.get(Math.abs(imgIndex--) % (imgUris.size())));
+
+                }
+                else if (Math.abs(deltaX) > MIN_DISTANCE && x1 > x2)
+                {
+                    //select next picture
+                    imageView.setImageURI(imgUris.get(Math.abs(imgIndex++) % (imgUris.size())));
+                }
+                break;
+        }
+        return true;
+    }
 }

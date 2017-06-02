@@ -10,7 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import ch.uzh.ifi.csg.contract.common.Web3;
+import ch.uzh.ifi.csg.contract.common.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.event.IContractObserver;
@@ -146,7 +146,7 @@ public class PurchaseContractRecyclerViewAdapter
                 stateView.setText(state.toString());
 
             if(value != null)
-                priceView.setText(Web3.toEther(value).round(MathContext.DECIMAL32).toString() + " ETH");
+                priceView.setText(Web3Util.toEther(value).round(MathContext.DECIMAL32).toString() + " ETH");
         }
 
         @Override

@@ -52,9 +52,6 @@ import static android.app.Activity.RESULT_OK;
  */
 public class ProfileFragment extends Fragment implements View.OnClickListener {
 
-    private static final int PICK_IMAGE_REQUEST_CODE = 1;
-    private static final int IMAGE_CAPTURE_REQUEST_CODE = 2;
-
     private UserProfile profile;
 
     private LinearLayout layout;
@@ -311,59 +308,21 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     @Override
     public boolean onContextItemSelected(MenuItem item){
         if(item.getTitle().equals("from file")){
-            openFile();
+            ImageHelper.openFile(this);
         }
         else if(item.getTitle().equals("from camera")){
-            makePicture();
+            ImageHelper.makePicture(this);
         }else{
             return false;
         }
         return true;
     }
 
-    private void makePicture()
-    {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getActivity().getPackageManager()) != null) {
-            Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
-            //start camera intent
-            startActivityForResult(takePictureIntent, IMAGE_CAPTURE_REQUEST_CODE);
-        }
-    }
-
-    private void openFile() {
-
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("image/*");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-
-        // special intent for Samsung file manager
-        Intent sIntent = new Intent("com.sec.android.app.myfiles.PICK_FILE");
-        // if you want any file type, you can skip next line
-        sIntent.putExtra("CONTENT_TYPE", "*image/*");
-        sIntent.addCategory(Intent.CATEGORY_DEFAULT);
-
-        Intent chooserIntent;
-        if (getActivity().getPackageManager().resolveActivity(sIntent, 0) != null){
-            // it is device with samsung file manager
-            chooserIntent = Intent.createChooser(sIntent, "Select File");
-            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] { intent});
-        }
-        else {
-            chooserIntent = Intent.createChooser(intent, "Select File");
-        }
-        try {
-            startActivityForResult(chooserIntent, PICK_IMAGE_REQUEST_CODE);
-        } catch (android.content.ActivityNotFoundException ex) {
-            Toast.makeText(getActivity().getApplicationContext(), "No suitable File Manager was found.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         //get the new value from Intent data
         switch(requestCode) {
-            case PICK_IMAGE_REQUEST_CODE:
+            case ImageHelper.PICK_IMAGE_REQUEST_CODE:
                 if (resultCode == RESULT_OK) {
                     try {
                         Uri uri = data.getData();
@@ -377,7 +336,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                     }
                 }
                 break;
-            case IMAGE_CAPTURE_REQUEST_CODE:
+            case ImageHelper.IMAGE_CAPTURE_REQUEST_CODE:
                 if(resultCode == RESULT_OK) {
                     Bitmap bitmap;
                     try

@@ -2,50 +2,59 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create;
 
 
 import android.app.Activity;
+import android.app.DialogFragment;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.support.design.widget.Snackbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import ch.uzh.ifi.csg.contract.service.account.AccountService;
-import ch.uzh.ifi.csg.contract.service.contract.ContractService;
-import ch.uzh.ifi.csg.contract.service.exchange.EthExchangeService;
+import ch.uzh.ifi.csg.contract.common.ImageHelper;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.SettingProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManager;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManagerImpl;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
-import ch.uzh.ifi.csg.contract.common.Web3;
+import ch.uzh.ifi.csg.contract.common.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import ezvcard.Ezvcard;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthServiceProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthSettingProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.validation.RequiredTextFieldValidator;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
+
+import static android.app.Activity.RESULT_OK;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -56,12 +65,17 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
     private EditText titleField;
     private EditText descriptionField;
     private Button deployButton;
+    private Button cancelButton;
     private RadioGroup deployOptionsGroup;
     private ImageView qrImageView;
     private Spinner currencySpinner;
     private Currency selectedCurrency;
+    private ImageButton addImageButton;
+    private LinearLayout imageContainer;
 
     private UserProfile verifiedProfile;
+    private Map<ProportionalImageView, Uri> images;
+    private ProportionalImageView selectedImage;
     private boolean isVerified;
     private boolean isValid;
     private boolean needsVerification;
@@ -90,9 +104,13 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
         titleField.addTextChangedListener(new RequiredTextFieldValidator(titleField));
         descriptionField = (EditText) view.findViewById(R.id.contract_description);
         descriptionField.addTextChangedListener(new RequiredTextFieldValidator(descriptionField));
+
         deployButton = (Button) view.findViewById(R.id.action_deploy_contract);
         deployButton.setEnabled(false);
         deployButton.setOnClickListener(this);
+
+        cancelButton = (Button) view.findViewById(R.id.action_cancel_deploy);
+        cancelButton.setOnClickListener(this);
 
         deployOptionsGroup = (RadioGroup) view.findViewById(R.id.contract_options_radio_group);
         qrImageView = (ImageView) view.findViewById(R.id.action_scan_profile);
@@ -125,6 +143,13 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
         }});
         itemsAdapter.notifyDataSetChanged();
 
+        addImageButton = (ImageButton) view.findViewById(R.id.action_add_image);
+        addImageButton.setOnClickListener(this);
+        registerForContextMenu(addImageButton);
+
+        imageContainer = (LinearLayout) view.findViewById(R.id.image_container);
+        images = new LinkedHashMap<>();
+
         return view;
     }
 
@@ -155,7 +180,7 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
 
         Float exchangeRate = currencyMap.get(selectedCurrency);
         float priceEther = price / exchangeRate;
-        priceWei = Web3.toWei(BigDecimal.valueOf(priceEther));
+        priceWei = Web3Util.toWei(BigDecimal.valueOf(priceEther));
 
         if(!(priceWei.mod(BigInteger.valueOf(2))).equals(BigInteger.ZERO))
         {
@@ -168,11 +193,38 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
         final String title = titleField.getText().toString();
         final String desc = descriptionField.getText().toString();
 
-        SimplePromise<IPurchaseContract> promise = contextProvider.getServiceProvider().getContractService().deployContract(priceWei, title, desc, needsVerification)
+        final Map<String, File> imageSignatures = new HashMap<>();
+
+        for(Uri uri : images.values())
+        {
+            try{
+                Bitmap bmp = ImageHelper.getCorrectlyOrientedImage(getActivity(), uri, 800);
+                File imgFile = ImageHelper.saveBitmap(bmp, contextProvider.getSettingProvider().getProfileImageDirectory());
+                String hashSig = ImageHelper.getHash(bmp);
+                imageSignatures.put(hashSig, imgFile);
+            }catch(IOException ex)
+            {
+                messageHandler.showSnackBarMessage(ex.getMessage(), Snackbar.LENGTH_LONG);
+                return;
+            }
+        }
+
+        SimplePromise<IPurchaseContract> promise = contextProvider.getServiceProvider().getContractService().deployContract(
+                priceWei,
+                title,
+                desc,
+                new ArrayList(imageSignatures.keySet()),
+                needsVerification)
+
                 .done(new DoneCallback<IPurchaseContract>() {
                     @Override
-                    public void onDone(IPurchaseContract result) {
+                    public void onDone(IPurchaseContract result)
+                    {
                         result.setUserProfile(verifiedProfile);
+                        for(String imgSig : imageSignatures.keySet())
+                        {
+                            result.addImage(imgSig, imageSignatures.get(imgSig).getName());
+                        }
                         contextProvider.getServiceProvider().getContractService().saveContract(result, contextProvider.getSettingProvider().getSelectedAccount());
                     }
                 });
@@ -303,9 +355,55 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
                         scanIntent,
                         ContractCreateActivity.SCAN_CONTRACT_INFO_REQUEST);
                 break;
-
-
+            case R.id.action_add_image:
+                getActivity().openContextMenu(addImageButton);
+                break;
         }
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
+    {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        if(v.getId() == R.id.action_add_image)
+        {
+            menu.setHeaderTitle("Select an Image");
+            menu.add(0, v.getId(), 0, "from file");
+            menu.add(0, v.getId(), 0, "from camera");
+        }else if (v instanceof ProportionalImageView)
+        {
+            menu.setHeaderTitle("Delete image?");
+            menu.add(0, v.getId(), 0, "delete");
+        }
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item)
+    {
+        if(item.getTitle().equals("from file")){
+            ImageHelper.openFile(this);
+        }
+        else if(item.getTitle().equals("from camera")){
+            ImageHelper.makePicture(this);
+        }
+        else if(item.getTitle().equals("delete"))
+        {
+            if(selectedImage == null)
+                return false;
+
+            removeImage(selectedImage);
+        }else{
+            return false;
+        }
+
+        return true;
+    }
+
+    private void removeImage(ProportionalImageView image)
+    {
+        unregisterForContextMenu(selectedImage);
+        imageContainer.removeView(selectedImage);
+        images.remove(selectedImage);
     }
 
     @Override
@@ -322,11 +420,67 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
                 profile.setVCard(Ezvcard.parse(vCardString).first());
                 listener.onProfileVerificationRequested(profile);
                 break;
+            case ImageHelper.PICK_IMAGE_REQUEST_CODE:
+                if (resultCode == RESULT_OK) {
+                    addImage(intent.getData());
+                }
+                break;
+            case ImageHelper.IMAGE_CAPTURE_REQUEST_CODE:
+                if(resultCode == RESULT_OK) {
+                    addImage(intent.getData());
+                }
         }
 
         super.onActivityResult(requestCode, resultCode, intent);
     }
 
+    private void addImage(Uri uri)
+    {
+        try {
+            final ProportionalImageView imageView = new ProportionalImageView(getActivity());
+            int heightPx = (int)ImageHelper.convertDpToPixel(new Float(48.0), this.getActivity());
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(heightPx, heightPx);
+            layoutParams.setMargins(8,8,8,8);
+            imageView.setLayoutParams(layoutParams);
+            final Uri imgUri = uri;
+            imageView.setImageURI(imgUri);
+            imageContainer.addView(imageView);
+            images.put(imageView, imgUri);
+
+            registerForContextMenu(imageView);
+            imageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showImageDialog(imageView);
+                }
+            });
+
+            imageView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    selectedImage = imageView;
+                    getActivity().openContextMenu(selectedImage);
+                    return true;
+                }
+            });
+        }
+        catch (Exception e) {
+            messageHandler.showSnackBarMessage(e.getMessage(), Snackbar.LENGTH_LONG);
+        }
+    }
+
+    private void showImageDialog(ProportionalImageView imageView)
+    {
+        ArrayList<Uri> uris = new ArrayList<>(images.values());
+        int startIndex = uris.indexOf(images.get(imageView));
+
+        DialogFragment imageDialog = new ImageDialogFragment();
+        Bundle imageArgs = new Bundle();
+        imageArgs.putSerializable(ImageDialogFragment.MESSAGE_IMAGE_URIS, new ArrayList<>(images.values()));
+        imageArgs.putInt(ImageDialogFragment.MESSAGE_IMAGE_INDEX, startIndex);
+        imageDialog.setArguments(imageArgs);
+        imageDialog.show(getFragmentManager(), "ImageDialog");
+    }
 
     public static interface OnProfileVerificationRequestedListener
     {

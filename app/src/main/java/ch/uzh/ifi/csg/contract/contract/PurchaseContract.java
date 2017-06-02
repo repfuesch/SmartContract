@@ -4,11 +4,16 @@ import org.web3j.abi.EventEncoder;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.Array;
 import org.web3j.abi.datatypes.Bool;
+import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.StaticArray;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
+import org.web3j.abi.datatypes.generated.Bytes16;
+import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.generated.Uint8;
 import org.web3j.protocol.Web3j;
@@ -26,13 +31,16 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
+import ch.uzh.ifi.csg.contract.common.HexUtil;
 import ch.uzh.ifi.csg.contract.event.IContractObserver;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import rx.Subscription;
@@ -43,6 +51,7 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
     private List<IContractObserver> observers;
     private List<Subscription> subscriptions;
     private UserProfile userProfile;
+    private Map<String, String> images;
 
     private PurchaseContract(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit)
     {
@@ -51,6 +60,7 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
         observers = new ArrayList<>();
         subscriptions = new ArrayList<>();
         userProfile = new UserProfile();
+        images = new HashMap<>();
     }
 
     public static SimplePromise<IPurchaseContract> deployContract(
@@ -64,7 +74,7 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
         return Async.toPromise(new Callable<IPurchaseContract>() {
             @Override
             public IPurchaseContract call() throws Exception {
-                String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type<String>>asList(args));
+                String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.asList(args));
                 PurchaseContract purchase = deploy(PurchaseContract.class, web3j, transactionManager, gasPrice, gasLimit, binary, encodedConstructor, value);
                 return purchase;
             }
@@ -110,6 +120,61 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
     @Override
     public void setUserProfile(UserProfile profile) {
         userProfile = profile;
+    }
+
+    @Override
+    public void addImage(String signature, String filename)
+    {
+        images.put(signature, filename);
+    }
+
+    @Override
+    public Map<String, String> getImages() {
+        return images;
+    }
+
+    @Override
+    public SimplePromise<List<String>> getImageSignatures() {
+        return Async.toPromise(new Callable<List<String>>() {
+            @Override
+            public List<String> call() throws Exception {
+                Function function = new Function("getImageSignatures",
+                        Arrays.<Type>asList(),
+                        Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Bytes32>>() {
+                        }));
+
+                List<String> signatures = new ArrayList<String>();
+                DynamicArray<Bytes32> result = executeCallSingleValueReturn(function);
+                for(Bytes32 bytes : result.getValue())
+                {
+                    signatures.add(new String(HexUtil.byteArrayToHexString(bytes.getValue())));
+                }
+
+                return signatures;
+            }
+        });
+    }
+
+    public SimplePromise<String> setImageSignatures(List<String> imageSignatures)
+    {
+        final List<Bytes32> sigList = new ArrayList<>();
+        for(String imgSig : imageSignatures)
+        {
+            byte[] bytes = HexUtil.hexStringToByteArray(imgSig);
+            sigList.add(new Bytes32(bytes));
+        }
+
+        return Async.toPromise(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                Function function = new Function("addImageSignatures",
+                        Arrays.<Type>asList(new DynamicArray(sigList)),
+                        Collections.<TypeReference<?>>emptyList());
+
+                TransactionReceipt result = executeTransaction(function);
+                return result.getTransactionHash();
+            }
+        });
     }
 
     public SimplePromise<String> seller() {

@@ -4,8 +4,10 @@ import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.support.design.widget.Snackbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,26 +22,26 @@ import net.glxn.qrgen.android.QRCode;
 
 import org.jdeferred.Promise;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManagerImpl;
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
-import ch.uzh.ifi.csg.contract.common.Web3;
+import ch.uzh.ifi.csg.contract.common.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthServiceProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthSettingProvider;
 
 public class ContractDetailFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemSelectedListener {
 
@@ -48,15 +50,22 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
     private TextView priceView;
     private TextView descriptionView;
     private TextView addressView;
+
     private Button buyButton;
     private Button abortButton;
     private Button confirmButton;
+
     private LinearLayout bodyView;
     private LinearLayout progressView;
     private LinearLayout contractInteractionView;
     private LinearLayout verifyIdentityView;
+    private LinearLayout imageContainer;
+
     private ProportionalImageView qrImageView;
+    private Map<ProportionalImageView, Uri> images;
+
     private IPurchaseContract contract;
+
     private Spinner currencySpinner;
     private boolean isVerified;
     private List<String> currencyList;
@@ -120,6 +129,9 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
         currencySpinner.setAdapter(itemsAdapter);
         currencySpinner.setOnItemSelectedListener(this);
         selectedCurrency = Currency.valueOf(currencyList.get(0));
+
+        imageContainer = (LinearLayout)view.findViewById(R.id.image_container);
+        images = new LinkedHashMap<>();
 
         return view;
     }
@@ -271,6 +283,7 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
         String description = contract.description().get();
         String seller = contract.seller().get();
         String buyer = contract.buyer().get();
+        List<String> imageSignatures = contract.getImageSignatures().get();
 
         String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
 
@@ -283,7 +296,7 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
             Map<Currency, Float> currencyMap = contextProvider.getServiceProvider().getExchangeService().getEthExchangeRates().get();
             if(currencyMap != null)
             {
-                BigDecimal amountEther = Web3.toEther(value);
+                BigDecimal amountEther = Web3Util.toEther(value);
                 Float amountCurrency = amountEther.floatValue() * currencyMap.get(selectedCurrency);
                 priceView.setText(amountCurrency.toString());
             }
@@ -291,6 +304,17 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
 
         if(description != null)
             descriptionView.setText(description);
+
+        imageContainer.removeAllViews();
+        images.clear();
+
+        if(imageSignatures != null)
+        {
+            for(String sig : imageSignatures)
+            {
+                addImage(contract.getImages().get(sig));
+            }
+        }
 
         addressView.setText(contract.getContractAddress());
 
@@ -314,6 +338,45 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
         }else{
             confirmButton.setEnabled(false);
         }
+    }
+
+    private void addImage(String filename)
+    {
+        try {
+            final ProportionalImageView imageView = new ProportionalImageView(getActivity());
+            int heightPx = (int)ImageHelper.convertDpToPixel(new Float(48.0), this.getActivity());
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(heightPx, heightPx);
+            layoutParams.setMargins(8,8,8,8);
+            imageView.setLayoutParams(layoutParams);
+            final Uri imgUri = Uri.fromFile(new File(contextProvider.getSettingProvider().getProfileImageDirectory() + "/" + filename));
+            imageView.setImageURI(imgUri);
+            imageContainer.addView(imageView);
+            images.put(imageView, imgUri);
+
+            imageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showImageDialog(imageView);
+                }
+            });
+
+        }
+        catch (Exception e) {
+            messageHandler.showSnackBarMessage(e.getMessage(), Snackbar.LENGTH_LONG);
+        }
+    }
+
+    private void showImageDialog(ProportionalImageView imageView)
+    {
+        ArrayList<Uri> uris = new ArrayList<>(images.values());
+        int startIndex = uris.indexOf(images.get(imageView));
+
+        DialogFragment imageDialog = new ImageDialogFragment();
+        Bundle imageArgs = new Bundle();
+        imageArgs.putSerializable(ImageDialogFragment.MESSAGE_IMAGE_URIS, new ArrayList<>(images.values()));
+        imageArgs.putInt(ImageDialogFragment.MESSAGE_IMAGE_INDEX, startIndex);
+        imageDialog.setArguments(imageArgs);
+        imageDialog.show(getFragmentManager(), "ImageDialog");
     }
 
     public void identityVerified()
@@ -341,6 +404,7 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
         selectedCurrency = Currency.valueOf(currencyList.get(i));
+
         updateView();
     }
 

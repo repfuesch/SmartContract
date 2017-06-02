@@ -6,16 +6,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
-import android.widget.Button;
 import android.widget.TextView;
-import ch.uzh.ifi.csg.contract.common.Web3;
+import ch.uzh.ifi.csg.contract.common.Web3Util;
 import ezvcard.Ezvcard;
 import ezvcard.VCard;
-import github.nisrulz.qreader.QRDataListener;
 import github.nisrulz.qreader.QREader;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QReader;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrDataListener;
 
 public class QrScanningActivity extends AppCompatActivity {
 
@@ -93,7 +89,7 @@ public class QrScanningActivity extends AppCompatActivity {
 
     private boolean validateContractAddress(String address)
     {
-        return Web3.isAddress(address);
+        return Web3Util.isAddress(address);
     }
 
     private boolean validateVCard(String data)

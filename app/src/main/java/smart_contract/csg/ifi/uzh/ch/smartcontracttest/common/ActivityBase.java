@@ -25,7 +25,7 @@ import java.math.BigInteger;
 import java.math.MathContext;
 
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
-import ch.uzh.ifi.csg.contract.common.Web3;
+import ch.uzh.ifi.csg.contract.common.Web3Util;
 import ch.uzh.ifi.csg.contract.service.connection.EthConnectionService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ServiceProvider;
@@ -238,7 +238,7 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        accountBalanceField.setText(Web3.toEther(resolved).round(MathContext.DECIMAL32).toString());
+                                        accountBalanceField.setText(Web3Util.toEther(resolved).round(MathContext.DECIMAL32).toString());
                                     }
                                 });
                             }

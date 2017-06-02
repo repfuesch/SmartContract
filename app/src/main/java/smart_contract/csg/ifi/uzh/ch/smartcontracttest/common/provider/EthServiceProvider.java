@@ -76,12 +76,14 @@ public class EthServiceProvider implements ServiceProvider
                     settingsProvider.getTransactionAttempts(),
                     settingsProvider.getTransactionSleepDuration());
 
+            /*
             //todo: remove the following lines
             //delete all contracts for account
             for(IPurchaseContract contract : contractService.loadContracts(settingsProvider.getSelectedAccount()).get())
             {
                 contractService.removeContract(contract, settingsProvider.getSelectedAccount());
             }
+            */
         }
 
         //connectionService.startPolling();
