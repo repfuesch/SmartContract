@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum ContractState {
-	Created(0), Locked(1), Inactive(2);
+	Created(0), Locked(1), Inactive(2), AwaitPayment(3);
 
     private final int state;
 

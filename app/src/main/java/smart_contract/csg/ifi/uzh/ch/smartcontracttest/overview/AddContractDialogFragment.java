@@ -16,9 +16,12 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 
+import org.web3j.tx.Contract;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import ch.uzh.ifi.csg.contract.contract.ContractType;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 
 /**
@@ -29,7 +32,9 @@ public class AddContractDialogFragment extends DialogFragment implements RadioGr
     private RadioGroup radioGroup;
     private RadioButton optionCreateContract;
     private RadioButton optionAddContract;
+    private Spinner contractTypeSpinner;
     private String selectedContractAddress;
+    private ContractType selectedContractType;
     private EditText contractAddressField;
     private LinearLayout contractAddressSection;
     private View contentView;
@@ -40,8 +45,8 @@ public class AddContractDialogFragment extends DialogFragment implements RadioGr
      * implement this interface in order to receive event callbacks.
      * Each method passes the DialogFragment in case the host needs to query it. */
     public interface AddContractDialogListener {
-        void onAddContract(String contractAddress);
-        void onCreateContract();
+        void onAddContract(String contractAddress, ContractType type);
+        void onCreateContract(ContractType type);
     }
 
     // Override the Fragment.onAttach() method to instantiate the NoticeDialogListener
@@ -70,7 +75,7 @@ public class AddContractDialogFragment extends DialogFragment implements RadioGr
         contentView = inflater.inflate(R.layout.dialog_add_contract, null);
         // Inflate and set the layout for the dialog
         // Pass null as the parent view because its going in the dialog layout
-        builder.setView(contentView);
+        builder.setView(contentView, 36, 36, 36, 36);
 
         final DialogFragment fragment = this;
         builder.setTitle(R.string.add_contract_dialog_title)
@@ -81,9 +86,9 @@ public class AddContractDialogFragment extends DialogFragment implements RadioGr
                         if(optionAddContract.isSelected())
                         {
                             selectedContractAddress = contractAddressField.getText().toString();
-                            dialogListener.onAddContract(selectedContractAddress);
+                            dialogListener.onAddContract(selectedContractAddress, selectedContractType);
                         }else{
-                            dialogListener.onCreateContract();
+                            dialogListener.onCreateContract(selectedContractType);
                         }
                     }
                 })
@@ -98,6 +103,20 @@ public class AddContractDialogFragment extends DialogFragment implements RadioGr
         optionCreateContract = (RadioButton) contentView.findViewById(R.id.option_create_contract);
         radioGroup = (RadioGroup) contentView.findViewById(R.id.account_radio_group);
         radioGroup.setOnCheckedChangeListener(this);
+
+        contractTypeSpinner = (Spinner) contentView.findViewById(R.id.contract_type_spinner);
+        contractTypeSpinner.setAdapter(new ArrayAdapter<ContractType>(contentView.getContext(), android.R.layout.simple_list_item_1, ContractType.values()));
+        contractTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                selectedContractType = ContractType.values()[i];
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                selectedContractType = ContractType.Purchase;
+            }
+        });
 
         return diag;
     }

@@ -13,6 +13,7 @@ import android.widget.TextView;
 import ch.uzh.ifi.csg.contract.common.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
+import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.event.IContractObserver;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display.ContractDetailActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
@@ -25,10 +26,10 @@ import java.util.List;
 public class PurchaseContractRecyclerViewAdapter
         extends RecyclerView.Adapter<PurchaseContractRecyclerViewAdapter.ViewHolder> {
 
-    private final List<IPurchaseContract> contracts;
+    private final List<ITradeContract> contracts;
     private final List<ViewHolder> boundViewHolders;
 
-    public PurchaseContractRecyclerViewAdapter(List<IPurchaseContract> contracts)
+    public PurchaseContractRecyclerViewAdapter(List<ITradeContract> contracts)
     {
         this.contracts = contracts;
         this.boundViewHolders = new ArrayList<>();
@@ -49,7 +50,7 @@ public class PurchaseContractRecyclerViewAdapter
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position)
     {
-        IPurchaseContract contract = contracts.get(position);
+        ITradeContract contract = contracts.get(position);
         holder.attachContract(contract);
         boundViewHolders.add(holder);
     }
@@ -84,7 +85,7 @@ public class PurchaseContractRecyclerViewAdapter
         private final CardView cardView;
 
         private Handler handler;
-        private IPurchaseContract contract;
+        private ITradeContract contract;
 
         public ViewHolder(View view) {
             super(view);
@@ -103,7 +104,7 @@ public class PurchaseContractRecyclerViewAdapter
             return super.toString() + " '" + stateView.getText() + "'";
         }
 
-        public void attachContract(IPurchaseContract contract)
+        public void attachContract(ITradeContract contract)
         {
             this.contract = contract;
             contract.addObserver(this);
@@ -138,10 +139,10 @@ public class PurchaseContractRecyclerViewAdapter
 
         private void updateViewFromState()
         {
-            ContractState state = contract.state().get();
-            BigInteger value = contract.value().get();
+            ContractState state = contract.getState().get();
+            BigInteger value = contract.getPrice().get();
 
-            titleView.setText(contract.title().get());
+            titleView.setText(contract.getTitle().get());
             if(state != null)
                 stateView.setText(state.toString());
 

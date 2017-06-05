@@ -5,20 +5,23 @@ import android.support.v4.app.DialogFragment;
 import android.os.Bundle;
 import android.view.View;
 
+import org.web3j.tx.Contract;
+
+import ch.uzh.ifi.csg.contract.contract.ContractType;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthSettingProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthServiceProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create.ContractCreateActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display.ContractDetailActivity;
+
+import static ch.uzh.ifi.csg.contract.contract.ContractType.*;
 
 public class ContractOverviewActivity extends ActivityBase implements AddContractDialogFragment.AddContractDialogListener
 {
     private static final int SCAN_CONTRACT_ADDRESS_REQUEST = 1;
 
-    private PurchaseContractFragment listFragment;
+    private ContractListFragment listFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +76,8 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
                 if(!ensureContract(contractAddress))
                     return;
 
-                listFragment.loadContract(contractAddress);
+                //todo: determine contract type
+                listFragment.loadContract(Purchase, contractAddress);
                 Intent detailIntent = new Intent(this, ContractDetailActivity.class);
                 detailIntent.putExtra(ContractDetailActivity.MESSAGE_SHOW_CONTRACT_DETAILS, contractAddress);
                 startActivity(detailIntent);
@@ -86,7 +90,8 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
     protected void onContractCreated(String contractAddress) {
         super.onContractCreated(contractAddress);
 
-        listFragment.loadContract(contractAddress);
+        //todo: determine contract type
+        listFragment.loadContract(Purchase, contractAddress);
     }
 
     private boolean ensureContract(String address)
@@ -102,17 +107,20 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
     }
 
     @Override
-    public void onAddContract(String contractAddress)
+    public void onAddContract(String contractAddress, ContractType type)
     {
         if(!ensureContract(contractAddress))
             return;
 
-        listFragment.loadContract(contractAddress);
+        //todo: determine contract type
+        listFragment.loadContract(Purchase, contractAddress);
     }
 
     @Override
-    public void onCreateContract() {
+    public void onCreateContract(ContractType type)
+    {
         Intent intent = new Intent(this, ContractCreateActivity.class);
+        intent.putExtra(ContractCreateActivity.CONTRACT_TYPE_EXTRA, type);
         startActivity(intent);
     }
 
@@ -124,7 +132,7 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
 
     private void loadContractList()
     {
-        listFragment = (PurchaseContractFragment) getFragmentManager().findFragmentById(R.id.purchase_list_fragment);
+        listFragment = (ContractListFragment) getFragmentManager().findFragmentById(R.id.purchase_list_fragment);
         listFragment.loadContractsForAccount(getSettingProvider().getSelectedAccount());
     }
 

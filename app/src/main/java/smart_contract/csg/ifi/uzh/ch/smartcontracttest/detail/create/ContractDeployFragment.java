@@ -1,6 +1,7 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create;
 
 
+import android.accounts.NetworkErrorException;
 import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.Context;
@@ -38,13 +39,14 @@ import java.util.List;
 import java.util.Map;
 
 import ch.uzh.ifi.csg.contract.common.ImageHelper;
+import ch.uzh.ifi.csg.contract.contract.ContractType;
+import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.common.Web3Util;
-import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import ezvcard.Ezvcard;
@@ -59,7 +61,7 @@ import static android.app.Activity.RESULT_OK;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class ContractDeployFragment extends Fragment implements TextWatcher, RadioGroup.OnCheckedChangeListener, View.OnClickListener {
+public abstract class ContractDeployFragment extends Fragment implements TextWatcher, RadioGroup.OnCheckedChangeListener, View.OnClickListener {
 
     private EditText priceField;
     private EditText titleField;
@@ -73,7 +75,7 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
     private ImageButton addImageButton;
     private LinearLayout imageContainer;
 
-    private UserProfile verifiedProfile;
+    protected UserProfile verifiedProfile;
     private Map<ProportionalImageView, Uri> images;
     private ProportionalImageView selectedImage;
     private boolean isVerified;
@@ -82,7 +84,8 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
 
     private OnProfileVerificationRequestedListener listener;
     private MessageHandler messageHandler;
-    private ApplicationContextProvider contextProvider;
+
+    protected ApplicationContextProvider contextProvider;
 
     public ContractDeployFragment() {
         // Required empty public constructor
@@ -92,7 +95,7 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view =  inflater.inflate(R.layout.fragment_fragment_contract_create, container, false);
+        View view =  inflater.inflate(getLayoutId(), container, false);
 
         needsVerification = false;
         isVerified = false;
@@ -153,11 +156,13 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
         return view;
     }
 
-    private boolean ensureBalance(BigInteger price)
+    protected abstract int getLayoutId();
+
+    protected boolean ensureBalance(BigInteger value)
     {
         String account = contextProvider.getSettingProvider().getSelectedAccount();
         BigInteger balance = contextProvider.getServiceProvider().getAccountService().getAccountBalance(account).get();
-        if(balance.compareTo(price) < 0)
+        if(balance.compareTo(value) < 0)
         {
             messageHandler.showMessage("You don't have enough money to do that!");
             return false;
@@ -166,28 +171,25 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
         return true;
     }
 
-    public void deployContract()
+    protected BigInteger convertToWei(float value)
     {
-        final float price = Float.parseFloat(priceField.getText().toString());
-        BigInteger priceWei = BigInteger.ZERO;
-
         Map<Currency, Float> currencyMap = contextProvider.getServiceProvider().getExchangeService().getEthExchangeRates().get();
         if(currencyMap == null)
         {
             messageHandler.showMessage("Cannot reach exchange service. Please try again later!");
-            return;
+            return null;
         }
 
         Float exchangeRate = currencyMap.get(selectedCurrency);
-        float priceEther = price / exchangeRate;
-        priceWei = Web3Util.toWei(BigDecimal.valueOf(priceEther));
+        float priceEther = value / exchangeRate;
+        return Web3Util.toWei(BigDecimal.valueOf(priceEther));
+    }
 
-        if(!(priceWei.mod(BigInteger.valueOf(2))).equals(BigInteger.ZERO))
-        {
-            priceWei = priceWei.add(BigInteger.ONE);
-        }
-
-        if(!ensureBalance(priceWei))
+    public void deploy()
+    {
+        final float price = Float.parseFloat(priceField.getText().toString());
+        BigInteger priceWei = convertToWei(price);
+        if(priceWei == null)
             return;
 
         final String title = titleField.getText().toString();
@@ -209,16 +211,13 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
             }
         }
 
-        SimplePromise<IPurchaseContract> promise = contextProvider.getServiceProvider().getContractService().deployContract(
-                priceWei,
-                title,
-                desc,
-                new ArrayList(imageSignatures.keySet()),
-                needsVerification)
+        SimplePromise<ITradeContract> promise = deployContract(priceWei, title, desc, needsVerification, imageSignatures);
+        if(promise == null)
+            return;
 
-                .done(new DoneCallback<IPurchaseContract>() {
+        promise.done(new DoneCallback<ITradeContract>() {
                     @Override
-                    public void onDone(IPurchaseContract result)
+                    public void onDone(ITradeContract result)
                     {
                         result.setUserProfile(verifiedProfile);
                         for(String imgSig : imageSignatures.keySet())
@@ -234,6 +233,8 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
         Intent intent = new Intent(getActivity(), ContractOverviewActivity.class);
         startActivity(intent);
     }
+
+    protected abstract SimplePromise<ITradeContract> deployContract(BigInteger priceWei, String title, String description, boolean needsVerification, Map<String, File> imageSignatures);
 
     @Override
     public void onAttach(Context context) {
@@ -342,7 +343,7 @@ public class ContractDeployFragment extends Fragment implements TextWatcher, Rad
         switch(view.getId())
         {
             case R.id.action_deploy_contract:
-                deployContract();
+                deploy();
                 break;
             case R.id.action_cancel_deploy:
                 Intent intent = new Intent(getActivity(), ContractOverviewActivity.class);

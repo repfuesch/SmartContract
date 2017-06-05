@@ -15,12 +15,12 @@ import android.widget.LinearLayout;
 import org.jdeferred.Promise;
 
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
+import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
+import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthServiceProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthSettingProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +31,7 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link MessageHandler}
  * interface.
  */
-public class PurchaseContractFragment extends Fragment
+public class ContractListFragment extends Fragment
 {
     private static final String ARG_COLUMN_COUNT = "column-count";
 
@@ -41,7 +41,7 @@ public class PurchaseContractFragment extends Fragment
     private int mColumnCount = 1;
 
     private PurchaseContractRecyclerViewAdapter adapter;
-    private List<IPurchaseContract> contracts;
+    private List<ITradeContract> contracts;
 
     private MessageHandler errorHandler;
     private ApplicationContextProvider contextProvider;
@@ -50,12 +50,12 @@ public class PurchaseContractFragment extends Fragment
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public PurchaseContractFragment() {
+    public ContractListFragment() {
     }
 
     @SuppressWarnings("unused")
-    public static PurchaseContractFragment newInstance(int columnCount) {
-        PurchaseContractFragment fragment = new PurchaseContractFragment();
+    public static ContractListFragment newInstance(int columnCount) {
+        ContractListFragment fragment = new ContractListFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_COLUMN_COUNT, columnCount);
         fragment.setArguments(args);
@@ -140,9 +140,9 @@ public class PurchaseContractFragment extends Fragment
     {
         contracts.clear();
         contextProvider.getServiceProvider().getContractService().loadContracts(account)
-                .always(new AlwaysCallback<List<IPurchaseContract>>() {
+                .always(new AlwaysCallback<List<ITradeContract>>() {
                     @Override
-                    public void onAlways(Promise.State state, final List<IPurchaseContract> resolved, final Throwable rejected) {
+                    public void onAlways(Promise.State state, final List<ITradeContract> resolved, final Throwable rejected) {
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -160,12 +160,12 @@ public class PurchaseContractFragment extends Fragment
                 });
     }
 
-    public void loadContract(String contractAddress)
+    public void loadContract(ContractType type, String contractAddress)
     {
-        contextProvider.getServiceProvider().getContractService().loadContract(contractAddress, contextProvider.getSettingProvider().getSelectedAccount())
-                .always(new AlwaysCallback<IPurchaseContract>() {
+        contextProvider.getServiceProvider().getContractService().loadContract(type, contractAddress, contextProvider.getSettingProvider().getSelectedAccount())
+                .always(new AlwaysCallback<ITradeContract>() {
                     @Override
-                    public void onAlways(Promise.State state, final IPurchaseContract resolved, final Throwable rejected) {
+                    public void onAlways(Promise.State state, final ITradeContract resolved, final Throwable rejected) {
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {

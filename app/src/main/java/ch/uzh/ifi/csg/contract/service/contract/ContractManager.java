@@ -11,7 +11,7 @@ import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 public interface ContractManager
 {
     void saveContract(ContractInfo contract, String account);
-    void deleteContract(ContractInfo contract, String account);
+    void deleteContract(String contractAddress, String account);
     List<ContractInfo> getContracts(String account);
     ContractInfo getContract(String address, String account);
 }

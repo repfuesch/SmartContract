@@ -44,7 +44,7 @@
     </RelativeLayout>
 
     <fragment
-        android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.PurchaseContractFragment"
+        android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractListFragment"
         android:id="@+id/purchase_list_fragment"
         android:layout_weight="1"
         android:layout_width="match_parent"

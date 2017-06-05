@@ -26,7 +26,7 @@ import ezvcard.Ezvcard;
 import ezvcard.VCard;
 
 /**
- * Class for loading, saving and deleting contract data for an account in a JSON file
+ * Class for loading, saving and deleting contract data for an account from a JSON file
  */
 
 public class FileManager implements ContractManager, AccountManager {
@@ -56,13 +56,6 @@ public class FileManager implements ContractManager, AccountManager {
         if(accountMap == null)
             accountMap = new HashMap<>();
     }
-
-    /*
-    private void ensureAccount(String account)
-    {
-        if(!accountMap.containsKey(account))
-            accountMap.put(account, );
-    }*/
 
     @Override
     public void saveContract(ContractInfo contract, String account)
@@ -100,10 +93,9 @@ public class FileManager implements ContractManager, AccountManager {
     }
 
     @Override
-    public void deleteContract(ContractInfo contract, String account)
+    public void deleteContract(String contractAddress, String account)
     {
-
-        accountMap.get(account).getContracts().remove(contract.getContractAddress());
+        accountMap.get(account).getContracts().remove(contractAddress);
         save();
     }
 

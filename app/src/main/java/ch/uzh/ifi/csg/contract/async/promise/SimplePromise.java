@@ -1,6 +1,8 @@
 package ch.uzh.ifi.csg.contract.async.promise;
 
 
+import org.jdeferred.Promise;
+
 import java.util.UUID;
 
 /**
@@ -58,6 +60,8 @@ public interface SimplePromise<T>
      * @return
      */
     public SimplePromise<T> always(AlwaysCallback<T> callback);
+
+    public SimplePromise<T> then(DoneCallback<T> doneCallback);
 
     public T get();
 

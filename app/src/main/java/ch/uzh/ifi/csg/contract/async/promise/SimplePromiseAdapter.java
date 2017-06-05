@@ -1,5 +1,6 @@
 package ch.uzh.ifi.csg.contract.async.promise;
 
+import org.jdeferred.DonePipe;
 import org.jdeferred.Promise;
 
 import java.util.UUID;
@@ -55,6 +56,18 @@ public class SimplePromiseAdapter<T> implements SimplePromise<T>
             @Override
             public void onAlways(Promise.State state, T resolved, Throwable rejected) {
                 callback.onAlways(state,resolved, rejected);
+            }
+        });
+
+        return this;
+    }
+
+    public SimplePromise<T> then(final DoneCallback<T> callback)
+    {
+        promise = promise.then(new org.jdeferred.DoneCallback<T>() {
+            @Override
+            public void onDone(T result) {
+                callback.onDone(result);
             }
         });
 

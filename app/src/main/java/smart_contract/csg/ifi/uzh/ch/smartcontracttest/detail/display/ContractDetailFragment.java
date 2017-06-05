@@ -96,7 +96,7 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
                              Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        View view= inflater.inflate(R.layout.fragment_contract_general_info, container, false);
+        View view= inflater.inflate(R.layout.fragment_purchase_contract_detail, container, false);
 
         titleView = (TextView) view.findViewById(R.id.general_title);
         stateView = (TextView) view.findViewById(R.id.general_state);
@@ -194,7 +194,7 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
     {
         String account = contextProvider.getSettingProvider().getSelectedAccount();
         BigInteger balance = contextProvider.getServiceProvider().getAccountService().getAccountBalance(account).get();
-        BigInteger value = contract.value().get().multiply(BigInteger.valueOf(2));
+        BigInteger value = contract.getPrice().get().multiply(BigInteger.valueOf(2));
         if(balance.compareTo(value) < 0)
         {
             messageHandler.showMessage("You need at least " + value.toString() + " wei to do that!");
@@ -278,16 +278,16 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
 
     public void updateView()
     {
-        ContractState state = contract.state().get();
-        BigInteger value = contract.value().get();
-        String description = contract.description().get();
-        String seller = contract.seller().get();
-        String buyer = contract.buyer().get();
+        ContractState state = contract.getState().get();
+        BigInteger value = contract.getPrice().get();
+        String description = contract.getDescription().get();
+        String seller = contract.getSeller().get();
+        String buyer = contract.getBuyer().get();
         List<String> imageSignatures = contract.getImageSignatures().get();
 
         String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
 
-        titleView.setText(contract.title().get());
+        titleView.setText(contract.getTitle().get());
         if(state != null)
             stateView.setText(state.toString());
 
@@ -389,7 +389,7 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
     public void setContract(IPurchaseContract contract)
     {
         this.contract = contract;
-        Boolean verifyIdentity = contract.verifyIdentity().get();
+        Boolean verifyIdentity = contract.getVerifyIdentity().get();
 
         if(verifyIdentity && contract.getUserProfile().getVCard() == null)
         {

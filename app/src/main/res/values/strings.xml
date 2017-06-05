@@ -54,11 +54,14 @@
     <string name="title_contract_create">New</string>
     <string name="hint_title">Title</string>
     <string name="hint_price">Price</string>
+    <string name="hint_time_unit">Unit of Time</string>
+    <string name="hint_deposit">Deposit</string>
     <string name="hint_description">Description</string>
+    <string name="hint_address">Address</string>
+    <string name="hint_contract_type">Contract Type</string>
     <string name="hint_state">State</string>
     <string name="hint_first_name">First Name</string>
-    <string name="hint_last_name">Last name</string>
-    <string name="hint_address">Address</string>
+    <string name="hint_last_name">Last Name</string>
     <string name="hint_contract_Address">Address</string>
     <string name="hint_street">Street/Nr</string>
     <string name="hint_city">City</string>

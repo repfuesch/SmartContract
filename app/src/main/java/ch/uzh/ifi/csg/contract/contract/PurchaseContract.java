@@ -46,223 +46,13 @@ import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import rx.Subscription;
 import rx.functions.Action1;
 
-public class PurchaseContract extends Contract implements IPurchaseContract {
+public class PurchaseContract extends TradeContract implements IPurchaseContract {
 
-    private List<IContractObserver> observers;
-    private List<Subscription> subscriptions;
-    private UserProfile userProfile;
-    private Map<String, String> images;
+    public static final String BINARY = "0x606060405260405162000dd838038062000dd8833981016040528080518201919060200180518201919060200180519060200190919080518201919050505b83838360023481156200000057046002348115620000005704855b816002819055508260038190555033600460006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055508560009080519060200190828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f10620000f657805160ff191683800117855562000127565b8280016001018555821562000127579182015b828111156200012657825182559160200191906001019062000109565b5b5090506200014f91905b808211156200014b57600081600090555060010162000131565b5090565b505083600560146101000a81548160ff0219169083151502179055508460019080519060200190828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f10620001b957805160ff1916838001178555620001ea565b82800160010185558215620001ea579182015b82811115620001e9578251825591602001919060010190620001cc565b5b5090506200021291905b808211156200020e576000816000905550600101620001f4565b5090565b50506000600760006101000a81548160ff0219169083600381116200000057021790555062000255816200027c64010000000002620009db176401000000009004565b5b50505050505034600254600202141515620002715762000000565b5b5050505062000322565b6000600090505b81518110156200031d5760068054806001018281815481835581811511620002da57818360005260206000209182019101620002d991905b80821115620002d5576000816000905550600101620002bb565b5090565b5b505050916000526020600020900160005b84848151811015620000005790602001906020020151909190915090600019169055505b808060010191505062000283565b5b5050565b610aa680620003326000396000f300606060405236156100b8576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806308551a53146100bd57806335a063b41461010c5780634a79d50c1461011b5780637150d8ae146101b15780637284e4161461020057806373fac6f0146102965780639a078f2c146102a5578063a035b1fe14610317578063c19d93fb1461033a578063d0e30db014610368578063d69606971461038b578063e8731c3214610395575b610000565b34610000576100ca6103bc565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b34610000576101196103e2565b005b346100005761012861053f565b6040518080602001828103825283818151815260200191508051906020019080838360008314610177575b80518252602083111561017757602082019150602081019050602083039250610153565b505050905090810190601f1680156101a35780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b34610000576101be6105dd565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b346100005761020d610603565b604051808060200182810382528381815181526020019150805190602001908083836000831461025c575b80518252602083111561025c57602082019150602081019050602083039250610238565b505050905090810190601f1680156102885780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b34610000576102a36106a1565b005b34610000576102b2610862565b6040518080602001828103825283818151815260200191508051906020019060200280838360008314610304575b805182526020831115610304576020820191506020810190506020830392506102e0565b5050509050019250505060405180910390f35b34610000576103246108ce565b6040518082815260200191505060405180910390f35b34610000576103476108d4565b6040518082600381116100005760ff16815260200191505060405180910390f35b34610000576103756108e7565b6040518082815260200191505060405180910390f35b6103936108ed565b005b34610000576103a26109c8565b604051808215151515815260200191505060405180910390f35b600460009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b600460009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff1614151561043e57610000565b6000806003811161000057600760009054906101000a900460ff16600381116100005714151561046d57610000565b7f80b62b7017bb13cf105e22749ee2a06a417ffba8c7f57b665057e0f3c2e925d960405180905060405180910390a16002600760006101000a81548160ff021916908360038111610000570217905550600460009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff166108fc3073ffffffffffffffffffffffffffffffffffffffff16319081150290604051809050600060405180830381858888f19350505050151561053957610000565b5b5b505b565b60008054600181600116156101000203166002900480601f0160208091040260200160405190810160405280929190818152602001828054600181600116156101000203166002900480156105d55780601f106105aa576101008083540402835291602001916105d5565b820191906000526020600020905b8154815290600101906020018083116105b857829003601f168201915b505050505081565b600560009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b60018054600181600116156101000203166002900480601f0160208091040260200160405190810160405280929190818152602001828054600181600116156101000203166002900480156106995780601f1061066e57610100808354040283529160200191610699565b820191906000526020600020905b81548152906001019060200180831161067c57829003601f168201915b505050505081565b600560009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff161415156106fd57610000565b6001806003811161000057600760009054906101000a900460ff16600381116100005714151561072c57610000565b7f64ea507aa320f07ae13c28b5e9bf6b4833ab544315f5f2aa67308e21c252d47d60405180905060405180910390a16002600760006101000a81548160ff021916908360038111610000570217905550600560009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff166108fc6003549081150290604051809050600060405180830381858888f1935050505015806108525750600460009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff166108fc3073ffffffffffffffffffffffffffffffffffffffff16319081150290604051809050600060405180830381858888f19350505050155b1561085c57610000565b5b5b505b565b602060405190810160405280600081525060068054806020026020016040519081016040528092919081815260200182805480156108c357602002820191906000526020600020905b815460001916815260200190600101908083116108ab575b505050505090505b90565b60025481565b600760009054906101000a900460ff1681565b60035481565b6000806003811161000057600760009054906101000a900460ff16600381116100005714151561091c57610000565b600254600202341480151561093057610000565b7f764326667cab2f2f13cad5f7b7665c704653bd1acc250dcb7b422bce726896b460405180905060405180910390a133600560006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055506001600760006101000a81548160ff0219169083600381116100005702179055505b5b505b50565b600560149054906101000a900460ff1681565b6000600090505b8151811015610a755760068054806001018281815481835581811511610a3457818360005260206000209182019101610a3391905b80821115610a2f576000816000905550600101610a17565b5090565b5b505050916000526020600020900160005b848481518110156100005790602001906020020151909190915090600019169055505b80806001019150506109e2565b5b50505600a165627a7a72305820bcdb5fb3a43824011ca269b3c031313039fc0b8207ae8aeb303aba04f24b52500029";
 
     private PurchaseContract(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit)
     {
         super(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
-
-        observers = new ArrayList<>();
-        subscriptions = new ArrayList<>();
-        userProfile = new UserProfile();
-        images = new HashMap<>();
-    }
-
-    public static SimplePromise<IPurchaseContract> deployContract(
-            final Web3j web3j,
-            final TransactionManager transactionManager,
-            final BigInteger gasPrice,
-            final BigInteger gasLimit,
-            final String binary,
-            final BigInteger value,
-            final Type... args) {
-        return Async.toPromise(new Callable<IPurchaseContract>() {
-            @Override
-            public IPurchaseContract call() throws Exception {
-                String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.asList(args));
-                PurchaseContract purchase = deploy(PurchaseContract.class, web3j, transactionManager, gasPrice, gasLimit, binary, encodedConstructor, value);
-                return purchase;
-            }
-        });
-    }
-
-    public static SimplePromise<IPurchaseContract> loadContract(
-            final String contractAddress,
-            final Web3j web3j,
-            final TransactionManager transactionManager,
-            final BigInteger gasPrice,
-            final BigInteger gasLimit)
-    {
-        return Async.toPromise(
-                new Callable<IPurchaseContract>() {
-                    @Override
-                    public IPurchaseContract call() throws Exception {
-                        Constructor<PurchaseContract> constructor = PurchaseContract.class.getDeclaredConstructor(
-                                String.class, Web3j.class, TransactionManager.class, BigInteger.class, BigInteger.class);
-                        constructor.setAccessible(true);
-
-                        PurchaseContract contract = constructor.newInstance(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
-                        return contract;
-                    }
-                });
-    }
-
-    protected TransactionReceipt executeTransaction(Function function, BigInteger value) throws InterruptedException,
-            ExecutionException, TransactionTimeoutException {
-        return executeTransaction(FunctionEncoder.encode(function), value);
-    }
-
-
-    protected List<IContractObserver> getObservers() {
-        return observers;
-    }
-
-    @Override
-    public UserProfile getUserProfile() {
-        return userProfile;
-    }
-
-    @Override
-    public void setUserProfile(UserProfile profile) {
-        userProfile = profile;
-    }
-
-    @Override
-    public void addImage(String signature, String filename)
-    {
-        images.put(signature, filename);
-    }
-
-    @Override
-    public Map<String, String> getImages() {
-        return images;
-    }
-
-    @Override
-    public SimplePromise<List<String>> getImageSignatures() {
-        return Async.toPromise(new Callable<List<String>>() {
-            @Override
-            public List<String> call() throws Exception {
-                Function function = new Function("getImageSignatures",
-                        Arrays.<Type>asList(),
-                        Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Bytes32>>() {
-                        }));
-
-                List<String> signatures = new ArrayList<String>();
-                DynamicArray<Bytes32> result = executeCallSingleValueReturn(function);
-                for(Bytes32 bytes : result.getValue())
-                {
-                    signatures.add(new String(HexUtil.byteArrayToHexString(bytes.getValue())));
-                }
-
-                return signatures;
-            }
-        });
-    }
-
-    public SimplePromise<String> setImageSignatures(List<String> imageSignatures)
-    {
-        final List<Bytes32> sigList = new ArrayList<>();
-        for(String imgSig : imageSignatures)
-        {
-            byte[] bytes = HexUtil.hexStringToByteArray(imgSig);
-            sigList.add(new Bytes32(bytes));
-        }
-
-        return Async.toPromise(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                Function function = new Function("addImageSignatures",
-                        Arrays.<Type>asList(new DynamicArray(sigList)),
-                        Collections.<TypeReference<?>>emptyList());
-
-                TransactionReceipt result = executeTransaction(function);
-                return result.getTransactionHash();
-            }
-        });
-    }
-
-    public SimplePromise<String> seller() {
-        return Async.toPromise(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                Function function = new Function("seller",
-                        Arrays.<Type>asList(),
-                        Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {
-                        }));
-                Address result = executeCallSingleValueReturn(function);
-                return result.toString();
-            }
-        });
-    }
-
-    /**
-     * Todo: Return transaction wrapper object instead of only hash of transaction
-     */
-    public SimplePromise<String> abort()
-    {
-        return Async.toPromise(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                Function function = new Function("abort", Arrays.<Type>asList(), Collections.<TypeReference<?>>emptyList());
-                TransactionReceipt result = executeTransaction(function);
-                return result.getTransactionHash();
-            }
-        });
-    }
-
-    public SimplePromise<BigInteger> value() {
-        return Async.toPromise(
-                new Callable<BigInteger>() {
-                    @Override
-                    public BigInteger call() throws Exception {
-                        Function function = new Function("value",
-                                Arrays.<Type>asList(),
-                                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {
-                                }));
-                        Uint256 result = executeCallSingleValueReturn(function);
-
-                        return result.getValue();
-                    }
-                });
-    }
-
-    public SimplePromise<String> buyer() {
-        return Async.toPromise(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                Function function = new Function("buyer",
-                        Arrays.<Type>asList(),
-                        Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {
-                        }));
-                Address result = executeCallSingleValueReturn(function);
-                return result.toString();
-            }
-        });
-    }
-
-    public SimplePromise<String> title() {
-        return Async.toPromise(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                Function function = new Function("title",
-                        Arrays.<Type>asList(),
-                        Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {
-                        }));
-                Utf8String result = executeCallSingleValueReturn(function);
-                return result.toString();
-            }
-        });
-    }
-
-
-    public SimplePromise<String> description() {
-        return Async.toPromise(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                Function function = new Function("description",
-                        Arrays.<Type>asList(),
-                        Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {
-                        }));
-                Utf8String result = executeCallSingleValueReturn(function);
-                return result.toString();
-            }
-        });
     }
 
     public SimplePromise<String> confirmReceived() {
@@ -276,22 +66,6 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
         });
     }
 
-    public SimplePromise<ContractState> state() {
-        return Async.toPromise(
-                new Callable<ContractState>() {
-                    @Override
-                    public ContractState call() throws Exception {
-                        Function function = new Function("state",
-                                Arrays.<Type>asList(),
-                                Arrays.<TypeReference<?>>asList(new TypeReference<Uint8>() {
-                                }));
-                        Uint8 value = executeCallSingleValueReturn(function);
-                        BigInteger bigValue = value.getValue();
-                        return ContractState.valueOf(bigValue.intValue());
-                    }
-                });
-    }
-
     public SimplePromise<String> confirmPurchase() {
         return Async.toPromise(
                 new Callable<String>() {
@@ -299,7 +73,7 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
                     public String call() throws Exception {
                         Function function = new Function("confirmPurchase", Arrays.<Type>asList(), Collections.<TypeReference<?>>emptyList());
                         try{
-                            TransactionReceipt result = executeTransaction(function, value().get().multiply(BigInteger.valueOf(2)));
+                            TransactionReceipt result = executeTransaction(function, getPrice().get().multiply(BigInteger.valueOf(2)));
                             return result.getTransactionHash();
                         }catch(MessageDecodingException ex)
                         {
@@ -310,78 +84,17 @@ public class PurchaseContract extends Contract implements IPurchaseContract {
                 });
     }
 
-    @Override
-    public SimplePromise<Boolean> verifyIdentity() {
-        return Async.toPromise(new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                Function function = new Function("verifyIdentity",
-                        Arrays.<Type>asList(),
-                        Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {
-                        }));
-                Bool result = executeCallSingleValueReturn(function);
-                return result.getValue();
-            }
-        });
-    }
-
     protected void registerContractEvents()
     {
+        super.registerContractEvents();
         Event event = new Event("purchaseConfirmed", new ArrayList<TypeReference<?>>(), new ArrayList<TypeReference<?>>());
-        registerEvent(event);
-        event = new Event("aborted", new ArrayList<TypeReference<?>>(), new ArrayList<TypeReference<?>>());
         registerEvent(event);
         event = new Event("itemReceived", new ArrayList<TypeReference<?>>(), new ArrayList<TypeReference<?>>());
         registerEvent(event);
     }
 
-    protected void unregisterContractEvents()
-    {
-        for(Subscription subscription : subscriptions)
-        {
-            subscription.unsubscribe();
-        }
-
-        subscriptions.clear();
-    }
-
-    private void registerEvent(final Event event)
-    {
-        String encodedEventSignature = EventEncoder.encode(event);
-        EthFilter filter = new EthFilter(DefaultBlockParameterName.EARLIEST, DefaultBlockParameterName.LATEST, getContractAddress()).addSingleTopic(encodedEventSignature);
-
-        Subscription subscription = web3j.ethLogObservable(filter).subscribe(
-                new Action1<Log>() {
-                    @Override
-                    public void call(Log log) {
-                        notifyObservers(event.getName(), null);
-                    }
-                });
-
-        subscriptions.add(subscription);
-    }
-
-    private void notifyObservers(String event, Object value) {
-        for (IContractObserver observer : getObservers())
-        {
-            observer.contractStateChanged(event, value);
-        }
-    }
-
     @Override
-    public void addObserver(IContractObserver observer)
-    {
-        if(getObservers().size() == 0)
-            registerContractEvents();
-
-        getObservers().add(observer);
-    }
-
-    @Override
-    public void removeObserver(IContractObserver observer) {
-
-        getObservers().remove(observer);
-        if(getObservers().size() == 0)
-            unregisterContractEvents();
+    public ContractType getContractType() {
+        return ContractType.Purchase;
     }
 }
