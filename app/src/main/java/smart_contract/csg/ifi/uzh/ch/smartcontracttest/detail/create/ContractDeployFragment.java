@@ -37,7 +37,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
+import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
@@ -158,10 +160,16 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
 
     protected abstract int getLayoutId();
 
-    protected boolean ensureBalance(BigInteger value)
-    {
+    protected Boolean ensureBalance(final BigInteger value) {
         String account = contextProvider.getSettingProvider().getSelectedAccount();
-        BigInteger balance = contextProvider.getServiceProvider().getAccountService().getAccountBalance(account).get();
+        BigInteger balance = null;
+        try {
+            balance = contextProvider.getServiceProvider().getAccountService().getAccountBalance(account);
+        } catch (IOException e) {
+            messageHandler.handleError(e);
+            return false;
+        }
+
         if(balance.compareTo(value) < 0)
         {
             messageHandler.showMessage("You don't have enough money to do that!");
@@ -173,8 +181,10 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
 
     protected BigInteger convertToWei(float value)
     {
-        Map<Currency, Float> currencyMap = contextProvider.getServiceProvider().getExchangeService().getEthExchangeRates().get();
-        if(currencyMap == null)
+        Map<Currency, Float> currencyMap;
+        try{
+            currencyMap = contextProvider.getServiceProvider().getExchangeService().getEthExchangeRates();
+        }catch (Exception e)
         {
             messageHandler.showMessage("Cannot reach exchange service. Please try again later!");
             return null;
@@ -228,7 +238,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
                     }
                 });
 
-        contextProvider.getTransactionManager().toTransaction(promise, null);
+        contextProvider.getTransactionManager().toTransaction(promise);
 
         Intent intent = new Intent(getActivity(), ContractOverviewActivity.class);
         startActivity(intent);
@@ -416,7 +426,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
                 if(intent == null)
                     return;
 
-                String vCardString = intent.getStringExtra(QrScanningActivity.MESSAGE_SCAN_DATA);
+                String vCardString = intent.getStringExtra(QrScanningActivity.MESSAGE_PROFILE_DATA);
                 UserProfile profile = new UserProfile();
                 profile.setVCard(Ezvcard.parse(vCardString).first());
                 listener.onProfileVerificationRequested(profile);

@@ -13,14 +13,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import net.glxn.qrgen.android.QRCode;
-
-import org.jdeferred.Promise;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -29,31 +26,29 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
-import ch.uzh.ifi.csg.contract.common.ImageHelper;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
-import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
+import ch.uzh.ifi.csg.contract.async.Async;
+import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
+import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
+import ch.uzh.ifi.csg.contract.common.ImageHelper;
+import ch.uzh.ifi.csg.contract.contract.ITradeContract;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
 import ch.uzh.ifi.csg.contract.common.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
-import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView;
 
-public class ContractDetailFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemSelectedListener {
+public abstract class ContractDetailFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemSelectedListener {
 
     private TextView titleView;
     private TextView stateView;
-    private TextView priceView;
     private TextView descriptionView;
     private TextView addressView;
-
-    private Button buyButton;
-    private Button abortButton;
-    private Button confirmButton;
 
     private LinearLayout bodyView;
     private LinearLayout progressView;
@@ -64,27 +59,15 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
     private ProportionalImageView qrImageView;
     private Map<ProportionalImageView, Uri> images;
 
-    private IPurchaseContract contract;
-
     private Spinner currencySpinner;
     private boolean isVerified;
     private List<String> currencyList;
-    private Currency selectedCurrency;
 
-    private MessageHandler messageHandler;
-    private ApplicationContextProvider contextProvider;
+    protected Currency selectedCurrency;
+    protected MessageHandler messageHandler;
+    protected ApplicationContextProvider contextProvider;
 
-    public ContractDetailFragment() {
-        // Required empty public constructor
-    }
-
-    public static ContractDetailFragment newInstance(String param1, String param2) {
-        ContractDetailFragment fragment = new ContractDetailFragment();
-        Bundle args = new Bundle();
-        fragment.setArguments(args);
-
-        return fragment;
-    }
+    protected boolean verifyIdentity;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -96,11 +79,10 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
                              Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        View view= inflater.inflate(R.layout.fragment_purchase_contract_detail, container, false);
+        View view= inflater.inflate(getLayoutId(), container, false);
 
         titleView = (TextView) view.findViewById(R.id.general_title);
         stateView = (TextView) view.findViewById(R.id.general_state);
-        priceView = (TextView) view.findViewById(R.id.general_price);
         descriptionView = (TextView) view.findViewById(R.id.general_description);
         addressView = (TextView) view.findViewById(R.id.general_address);
 
@@ -108,15 +90,8 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
         bodyView = (LinearLayout) view.findViewById(R.id.contract_info_body);
         contractInteractionView = (LinearLayout) view.findViewById(R.id.contract_interactions);
 
-        buyButton = (Button) view.findViewById(R.id.buy_button);
-        abortButton = (Button) view.findViewById(R.id.abort_button);
-        confirmButton = (Button) view.findViewById(R.id.confirm_button);
         qrImageView = (ProportionalImageView) view.findViewById(R.id.contract_qr_image);
         verifyIdentityView = (LinearLayout) view.findViewById(R.id.section_verify_identity);
-
-        buyButton.setOnClickListener(this);
-        abortButton.setOnClickListener(this);
-        confirmButton.setOnClickListener(this);
         qrImageView.setOnClickListener(this);
 
         currencySpinner = (Spinner) view.findViewById(R.id.contract_currency);
@@ -167,34 +142,38 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
         attachContext(activity);
     }
 
-    private void disableInteractions()
+    protected abstract ITradeContract getContract();
+
+    protected abstract int getLayoutId();
+
+    protected void disableInteractions()
     {
         contractInteractionView.setEnabled(false);
     }
 
-    private void enableInteractions()
+    protected void enableInteractions()
     {
         contractInteractionView.setEnabled(true);
     }
 
-    private void showProgressView()
+    protected void showProgressView()
     {
         progressView.setVisibility(View.VISIBLE);
         bodyView.setVisibility(View.GONE);
     }
 
-    private void hideProgressView()
+    protected void hideProgressView()
     {
         bodyView.setVisibility(View.VISIBLE);
         progressView.setVisibility(View.GONE);
-        updateView();
+        //init();
     }
 
-    private boolean ensureBalance()
+    protected boolean ensureBalance(BigInteger value)
     {
         String account = contextProvider.getSettingProvider().getSelectedAccount();
         BigInteger balance = contextProvider.getServiceProvider().getAccountService().getAccountBalance(account).get();
-        BigInteger value = contract.getPrice().get().multiply(BigInteger.valueOf(2));
+
         if(balance.compareTo(value) < 0)
         {
             messageHandler.showMessage("You need at least " + value.toString() + " wei to do that!");
@@ -209,64 +188,21 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
     {
         switch(view.getId())
         {
-            case R.id.buy_button:
-                if(!ensureBalance())
-                    return;
-
-                showProgressView();
-                SimplePromise buyPromise = contract.confirmPurchase().always(new AlwaysCallback<String>() {
-                    @Override
-                    public void onAlways(Promise.State state, String resolved, Throwable rejected) {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            hideProgressView();
-                        }
-                    });
-                    }
-                });
-                contextProvider.getTransactionManager().toTransaction(buyPromise, contract.getContractAddress());
-                break;
-            case R.id.abort_button:
-                showProgressView();
-                SimplePromise abortPromise = contract.abort().always(new AlwaysCallback<String>() {
-                    @Override
-                    public void onAlways(Promise.State state, String resolved, Throwable rejected) {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                hideProgressView();
-                            }
-                        });
-                    }
-                });
-                contextProvider.getTransactionManager().toTransaction(abortPromise, contract.getContractAddress());
-                break;
-            case R.id.confirm_button:
-                showProgressView();
-                SimplePromise confirmPromise = contract.confirmReceived().always(new AlwaysCallback<String>() {
-                    @Override
-                    public void onAlways(Promise.State state, String resolved, Throwable rejected) {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                hideProgressView();
-                            }
-                        });
-                    }
-                });
-                contextProvider.getTransactionManager().toTransaction(confirmPromise, contract.getContractAddress());
-                break;
             case R.id.contract_qr_image:
                 DialogFragment imageDialog = new ImageDialogFragment();
                 Bundle args = new Bundle();
-                args.putString(ImageDialogFragment.MESSAGE_IMAGE_SOURCE, contract.getContractAddress());
+                args.putString(ImageDialogFragment.MESSAGE_IMAGE_SOURCE, getContract().getContractAddress());
                 args.putBoolean(ImageDialogFragment.MESSAGE_DISPLAY_QRCODE, true);
                 imageDialog.setArguments(args);
                 imageDialog.show(getFragmentManager(), "QrImageDialog");
             default:
                 break;
         }
+    }
+
+    public boolean needsIdentityVerification()
+    {
+        return verifyIdentity;
     }
 
     public void verifyIdentity()
@@ -276,69 +212,56 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
         verifyIdentityView.setVisibility(View.GONE);
     }
 
-    public void updateView()
+    public SimplePromise<Void> init(final ITradeContract contract)
     {
-        ContractState state = contract.getState().get();
-        BigInteger value = contract.getPrice().get();
-        String description = contract.getDescription().get();
-        String seller = contract.getSeller().get();
-        String buyer = contract.getBuyer().get();
-        List<String> imageSignatures = contract.getImageSignatures().get();
+        return Async.run(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
 
-        String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
+                verifyIdentity = contract.getVerifyIdentity();
+                final ContractState state = contract.getState();
+                final String description = contract.getDescription();
+                final String title = contract.getTitle();
+                final List<String> imageSignatures = contract.getImageSignatures();
 
-        titleView.setText(contract.getTitle().get());
-        if(state != null)
-            stateView.setText(state.toString());
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
 
-        if(value != null)
-        {
-            Map<Currency, Float> currencyMap = contextProvider.getServiceProvider().getExchangeService().getEthExchangeRates().get();
-            if(currencyMap != null)
-            {
-                BigDecimal amountEther = Web3Util.toEther(value);
-                Float amountCurrency = amountEther.floatValue() * currencyMap.get(selectedCurrency);
-                priceView.setText(amountCurrency.toString());
+                        if(verifyIdentity && contract.getUserProfile().getVCard() == null)
+                        {
+                            contractInteractionView.setVisibility(View.GONE);
+                            verifyIdentityView.setVisibility(View.VISIBLE);
+                        }
+
+                        //create a bitmap image containing the qr code of the address and type of the contract
+                        Bitmap bitmap = QRCode.from(contract.getContractAddress() + "," + contract.getContractType()).bitmap();
+                        qrImageView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, 125, 125, false));
+
+                        stateView.setText(state.toString());
+                        titleView.setText(title);
+                        descriptionView.setText(description);
+                        imageContainer.removeAllViews();
+                        images.clear();
+
+                        if(imageSignatures != null)
+                        {
+                            for(String sig : imageSignatures)
+                            {
+                                addImage(contract.getImages().get(sig));
+                            }
+                        }
+
+                        addressView.setText(contract.getContractAddress());
+                    }
+                });
+
+                return null;
             }
-        }
-
-        if(description != null)
-            descriptionView.setText(description);
-
-        imageContainer.removeAllViews();
-        images.clear();
-
-        if(imageSignatures != null)
-        {
-            for(String sig : imageSignatures)
-            {
-                addImage(contract.getImages().get(sig));
-            }
-        }
-
-        addressView.setText(contract.getContractAddress());
-
-        if(state.equals(ContractState.Created) && !seller.equals(selectedAccount))
-        {
-            buyButton.setEnabled(true);
-        }else{
-            buyButton.setEnabled(false);
-        }
-
-        if(state.equals(ContractState.Created) && seller.equals(selectedAccount))
-        {
-            abortButton.setEnabled(true);
-        }else{
-            abortButton.setEnabled(false);
-        }
-
-        if(state.equals(ContractState.Locked) && buyer.equals(selectedAccount))
-        {
-            confirmButton.setEnabled(true);
-        }else{
-            confirmButton.setEnabled(false);
-        }
+        });
     }
+
+    protected abstract void selectedCurrencyChanged();
 
     private void addImage(String filename)
     {
@@ -383,35 +306,21 @@ public class ContractDetailFragment extends Fragment implements View.OnClickList
     {
         contractInteractionView.setVisibility(View.VISIBLE);
         verifyIdentityView.setVisibility(View.GONE);
-        updateView();
-    }
-
-    public void setContract(IPurchaseContract contract)
-    {
-        this.contract = contract;
-        Boolean verifyIdentity = contract.getVerifyIdentity().get();
-
-        if(verifyIdentity && contract.getUserProfile().getVCard() == null)
-        {
-            contractInteractionView.setVisibility(View.GONE);
-            verifyIdentityView.setVisibility(View.VISIBLE);
-        }
-
-        Bitmap bitmap = QRCode.from(contract.getContractAddress()).bitmap();
-        qrImageView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, 125, 125, false));
+        //init();
     }
 
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
         selectedCurrency = Currency.valueOf(currencyList.get(i));
 
-        updateView();
+        selectedCurrencyChanged();
     }
 
     @Override
     public void onNothingSelected(AdapterView<?> adapterView) {
         currencySpinner.setSelection(0);
         selectedCurrency = Currency.valueOf(currencyList.get(0));
-        updateView();
+
+        selectedCurrencyChanged();
     }
 }

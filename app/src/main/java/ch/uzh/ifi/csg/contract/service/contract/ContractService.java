@@ -19,14 +19,14 @@ import ch.uzh.ifi.csg.contract.contract.TimeUnit;
 
 public interface ContractService {
 
-    SimplePromise<IPurchaseContract> deployPurchaseContract(
+    SimplePromise<ITradeContract> deployPurchaseContract(
             BigInteger price,
             String title,
             String description,
             List<String> imageSignatures,
             boolean verifyIdentity);
 
-    SimplePromise<IRentContract> deployRentContract(
+    SimplePromise<ITradeContract> deployRentContract(
             BigInteger price,
             BigInteger deposit,
             TimeUnit timeUnit,

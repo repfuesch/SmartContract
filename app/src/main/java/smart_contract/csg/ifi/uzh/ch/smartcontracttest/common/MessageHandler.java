@@ -6,8 +6,8 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common;
 
 public interface MessageHandler
 {
-    public static final String ACTION_SHOW_ERROR = "ch.uzh.ifi.csg.smart_contract.action_error";
-    public static final String MESSAGE_SHOW_ERROR = "ch.uzh.ifi.csg.smart_contract.message_error";
+    String ACTION_SHOW_ERROR = "ch.uzh.ifi.csg.smart_contract.action_error";
+    String MESSAGE_SHOW_ERROR = "ch.uzh.ifi.csg.smart_contract.message_error";
 
     void handleError(Throwable exception);
     void showMessage(String message);

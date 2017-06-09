@@ -3,6 +3,7 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -10,11 +11,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.common.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.event.IContractObserver;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display.ContractDetailActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 
@@ -22,6 +25,7 @@ import java.math.BigInteger;
 import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 public class PurchaseContractRecyclerViewAdapter
         extends RecyclerView.Adapter<PurchaseContractRecyclerViewAdapter.ViewHolder> {
@@ -77,7 +81,7 @@ public class PurchaseContractRecyclerViewAdapter
             holder.detachContract();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, IContractObserver
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, IContractObserver
     {
         private final TextView titleView;
         private final TextView stateView;
@@ -129,7 +133,8 @@ public class PurchaseContractRecyclerViewAdapter
             {
                 case R.id.card_view:
                     Intent intent = new Intent(view.getContext(), ContractDetailActivity.class);
-                    intent.putExtra(ContractDetailActivity.MESSAGE_SHOW_CONTRACT_DETAILS, contract.getContractAddress());
+                    intent.putExtra(ContractDetailActivity.EXTRA_CONTRACT_ADDRESS, contract.getContractAddress());
+                    intent.putExtra(ContractDetailActivity.EXTRA_CONTRACT_TYPE, contract.getContractType());
                     view.getContext().startActivity(intent);
                     break;
                 default:
@@ -139,15 +144,26 @@ public class PurchaseContractRecyclerViewAdapter
 
         private void updateViewFromState()
         {
-            ContractState state = contract.getState().get();
-            BigInteger value = contract.getPrice().get();
+            Async.run(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
 
-            titleView.setText(contract.getTitle().get());
-            if(state != null)
-                stateView.setText(state.toString());
+                    final ContractState state = contract.getState();
+                    final BigInteger price = contract.getPrice();
+                    final String title = contract.getTitle();
 
-            if(value != null)
-                priceView.setText(Web3Util.toEther(value).round(MathContext.DECIMAL32).toString() + " ETH");
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            titleView.setText(title);
+                            stateView.setText(state.toString());
+                            priceView.setText(Web3Util.toEther(price).round(MathContext.DECIMAL32).toString() + " ETH");
+                        }
+                    });
+
+                    return null;
+                }
+            });
         }
 
         @Override

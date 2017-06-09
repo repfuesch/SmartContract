@@ -4,6 +4,7 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
 
@@ -34,15 +35,27 @@ public abstract class Web3AccountService implements AccountService
      * @return the amount of ether for this account
      */
     @Override
-    public SimplePromise<BigInteger> getAccountBalance(final String account) {
+    public SimplePromise<BigInteger> getAccountBalanceAsync(final String account) {
         return Async.toPromise(new Callable<BigInteger>() {
             @Override
             public BigInteger call() throws Exception {
-                EthGetBalance balance = web3.ethGetBalance(account, DefaultBlockParameterName.LATEST).send();
-                BigInteger balanceWei = balance.getBalance();
-                return balanceWei;
+                return getAccountBalance(account);
             }
         });
+    }
+
+    /**
+     * Returns the account balance in ether for the specified account
+     *
+     * @param account: the account id
+     * @return the amount of ether for this account
+     */
+    @Override
+    public BigInteger getAccountBalance(final String account) throws IOException
+    {
+        EthGetBalance balance = web3.ethGetBalance(account, DefaultBlockParameterName.LATEST).send();
+        BigInteger balanceWei = balance.getBalance();
+        return balanceWei;
     }
 
     @Override

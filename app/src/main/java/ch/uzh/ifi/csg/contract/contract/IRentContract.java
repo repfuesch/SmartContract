@@ -10,9 +10,12 @@ import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 
 public interface IRentContract extends ITradeContract {
 
+    //transaction methods
     SimplePromise<String> returnItem();
     SimplePromise<String> reclaimItem();
     SimplePromise<String> rentItem();
-    SimplePromise<BigInteger> getRentingFee();
-    SimplePromise<TimeUnit> getTimeUnit();
+
+    //accessors for remote fields
+    BigInteger getRentingFee() throws Exception;
+    TimeUnit getTimeUnit() throws Exception;
 }

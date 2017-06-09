@@ -26,6 +26,7 @@ import java.math.MathContext;
 
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.common.Web3Util;
+import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.service.connection.EthConnectionService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ServiceProvider;
@@ -282,7 +283,7 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
         updateAccountBalance();
     }
 
-    protected void onContractCreated(String contractAddress)
+    protected void onContractCreated(String contractAddress, ContractType type)
     {
         showSnackBarMessage(getString(R.string.contract_created), Snackbar.LENGTH_LONG);
     }
@@ -300,8 +301,9 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
                 if(intent.getStringExtra(TransactionManagerImpl.CONTRACT_TRANSACTION_TYPE).equals(TransactionManagerImpl.CONTRACT_TRANSACTION_DEPLOY))
                 {
                     //Load contract and persist it, such that it is stored independent of the currently active activity
-                    final String contractAddress = intent.getStringExtra(TransactionManagerImpl.CONTRACT_TRANSACTION_ADDRESS);
-                    onContractCreated(contractAddress);
+                    final String contractAddress = intent.getStringExtra(TransactionManager.CONTRACT_ADDRESS);
+                    final ContractType contractType = (ContractType)intent.getSerializableExtra(TransactionManager.CONTRACT_TYPE);
+                    onContractCreated(contractAddress, contractType);
                     return;
                 }
 

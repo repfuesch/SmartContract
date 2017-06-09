@@ -62,7 +62,7 @@ public abstract class TradeContract extends Contract implements ITradeContract
         images = new HashMap<>();
     }
 
-    public static <T extends TradeContract>  SimplePromise<ITradeContract> deployContract(
+    public static <T extends TradeContract>  SimplePromise<ITradeContract> deployContractAsync(
             final Class<T> clazz,
             final Web3j web3j,
             final TransactionManager transactionManager,
@@ -75,14 +75,43 @@ public abstract class TradeContract extends Contract implements ITradeContract
         return Async.toPromise(new Callable<ITradeContract>() {
             @Override
             public ITradeContract call() throws Exception {
-                String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.asList(args));
-                ITradeContract contract = deploy(clazz, web3j, transactionManager, gasPrice, gasLimit, binary, encodedConstructor, value);
-                return contract;
+                return deployContract(clazz, web3j, transactionManager, gasPrice, gasLimit, binary, value, args);
             }
         });
     }
 
-    public static <T extends TradeContract> SimplePromise<ITradeContract> loadContract(
+    public static <T extends TradeContract>  ITradeContract deployContract(
+            final Class<T> clazz,
+            final Web3j web3j,
+            final TransactionManager transactionManager,
+            final BigInteger gasPrice,
+            final BigInteger gasLimit,
+            final String binary,
+            final BigInteger value,
+            final Type... args) throws Exception
+    {
+            String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.asList(args));
+            ITradeContract contract = deploy(clazz, web3j, transactionManager, gasPrice, gasLimit, binary, encodedConstructor, value);
+            return contract;
+    }
+
+    public static <T extends TradeContract> ITradeContract loadContract(
+            final Class<T> clazz,
+            final String contractAddress,
+            final Web3j web3j,
+            final TransactionManager transactionManager,
+            final BigInteger gasPrice,
+            final BigInteger gasLimit) throws Exception
+    {
+            Constructor<T> constructor = clazz.getDeclaredConstructor(
+                    String.class, Web3j.class, TransactionManager.class, BigInteger.class, BigInteger.class);
+            constructor.setAccessible(true);
+
+            ITradeContract contract = constructor.newInstance(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
+            return contract;
+    }
+
+    public static <T extends TradeContract> SimplePromise<ITradeContract> loadContractAsync(
             final Class<T> clazz,
             final String contractAddress,
             final Web3j web3j,
@@ -94,12 +123,7 @@ public abstract class TradeContract extends Contract implements ITradeContract
                 new Callable<ITradeContract>() {
                     @Override
                     public ITradeContract call() throws Exception {
-                        Constructor<T> constructor = clazz.getDeclaredConstructor(
-                                String.class, Web3j.class, TransactionManager.class, BigInteger.class, BigInteger.class);
-                        constructor.setAccessible(true);
-
-                        ITradeContract contract = constructor.newInstance(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
-                        return contract;
+                    return loadContract(clazz, contractAddress, web3j, transactionManager, gasPrice, gasLimit);
                     }
                 });
     }
@@ -191,77 +215,6 @@ public abstract class TradeContract extends Contract implements ITradeContract
     }
 
     @Override
-    public SimplePromise<ContractState> getState() {
-        return Async.toPromise(
-                new Callable<ContractState>() {
-                    @Override
-                    public ContractState call() throws Exception {
-                        Function function = new Function("state",
-                                Arrays.<Type>asList(),
-                                Arrays.<TypeReference<?>>asList(new TypeReference<Uint8>() {
-                                }));
-                        Uint8 value = executeCallSingleValueReturn(function);
-                        BigInteger bigValue = value.getValue();
-                        return ContractState.valueOf(bigValue.intValue());
-                    }
-                });
-    }
-
-    @Override
-    public SimplePromise<BigInteger> getDeposit() {
-        return Async.toPromise(
-                new Callable<BigInteger>() {
-                    @Override
-                    public BigInteger call() throws Exception {
-                        Function function = new Function("deposit",
-                                Arrays.<Type>asList(),
-                                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {
-                                }));
-                        Uint256 value = executeCallSingleValueReturn(function);
-                        BigInteger bigValue = value.getValue();
-                        return bigValue;
-                    }
-                });
-    }
-
-    @Override
-    public SimplePromise<Boolean> getVerifyIdentity() {
-        return Async.toPromise(new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                Function function = new Function("verifyIdentity",
-                        Arrays.<Type>asList(),
-                        Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {
-                        }));
-                Bool result = executeCallSingleValueReturn(function);
-                return result.getValue();
-            }
-        });
-    }
-
-    @Override
-    public SimplePromise<List<String>> getImageSignatures() {
-        return Async.toPromise(new Callable<List<String>>() {
-            @Override
-            public List<String> call() throws Exception {
-                Function function = new Function("getImageSignatures",
-                        Arrays.<Type>asList(),
-                        Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Bytes32>>() {
-                        }));
-
-                List<String> signatures = new ArrayList<String>();
-                DynamicArray<Bytes32> result = executeCallSingleValueReturn(function);
-                for(Bytes32 bytes : result.getValue())
-                {
-                    signatures.add(new String(HexUtil.byteArrayToHexString(bytes.getValue())));
-                }
-
-                return signatures;
-            }
-        });
-    }
-
-    @Override
     public SimplePromise<String> setImageSignatures(List<String> imageSignatures)
     {
         final List<Bytes32> sigList = new ArrayList<>();
@@ -285,21 +238,6 @@ public abstract class TradeContract extends Contract implements ITradeContract
     }
 
     @Override
-    public SimplePromise<String> getSeller() {
-        return Async.toPromise(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                Function function = new Function("seller",
-                        Arrays.<Type>asList(),
-                        Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {
-                        }));
-                Address result = executeCallSingleValueReturn(function);
-                return result.toString();
-            }
-        });
-    }
-
-    @Override
     public SimplePromise<String> abort()
     {
         return Async.toPromise(new Callable<String>() {
@@ -313,64 +251,110 @@ public abstract class TradeContract extends Contract implements ITradeContract
     }
 
     @Override
-    public SimplePromise<BigInteger> getPrice() {
-        return Async.toPromise(
-                new Callable<BigInteger>() {
-                    @Override
-                    public BigInteger call() throws Exception {
-                        Function function = new Function("price",
-                                Arrays.<Type>asList(),
-                                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {
-                                }));
-                        Uint256 result = executeCallSingleValueReturn(function);
+    public BigInteger getPrice() throws Exception
+    {
+        Function function = new Function("price",
+                Arrays.<Type>asList(),
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {
+                }));
+        Uint256 result = executeCallSingleValueReturn(function);
 
-                        return result.getValue();
-                    }
-                });
+        return result.getValue();
     }
 
     @Override
-    public SimplePromise<String> getBuyer() {
-        return Async.toPromise(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                Function function = new Function("buyer",
-                        Arrays.<Type>asList(),
-                        Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {
-                        }));
-                Address result = executeCallSingleValueReturn(function);
-                return result.toString();
-            }
-        });
+    public String getSeller() throws Exception
+    {
+        Function function = new Function("seller",
+                Arrays.<Type>asList(),
+                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {
+                }));
+        Address result = executeCallSingleValueReturn(function);
+        return result.toString();
     }
 
     @Override
-    public SimplePromise<String> getTitle() {
-        return Async.toPromise(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                Function function = new Function("title",
-                        Arrays.<Type>asList(),
-                        Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {
-                        }));
-                Utf8String result = executeCallSingleValueReturn(function);
-                return result.toString();
-            }
-        });
+    public String getBuyer() throws Exception {
+        Function function = new Function("buyer",
+                Arrays.<Type>asList(),
+                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {
+                }));
+        Address result = executeCallSingleValueReturn(function);
+        return result.toString();
     }
 
     @Override
-    public SimplePromise<String> getDescription() {
-        return Async.toPromise(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                Function function = new Function("description",
-                        Arrays.<Type>asList(),
-                        Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {
-                        }));
-                Utf8String result = executeCallSingleValueReturn(function);
-                return result.toString();
-            }
-        });
+    public String getTitle() throws Exception {
+
+        Function function = new Function("title",
+                Arrays.<Type>asList(),
+                Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {
+                }));
+        Utf8String result = executeCallSingleValueReturn(function);
+        return result.toString();
+    }
+
+    @Override
+    public String getDescription() throws Exception {
+
+        Function function = new Function("description",
+                Arrays.<Type>asList(),
+                Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {
+                }));
+        Utf8String result = executeCallSingleValueReturn(function);
+        return result.toString();
+    }
+
+    @Override
+    public ContractState getState() throws Exception {
+
+        Function function = new Function("state",
+                Arrays.<Type>asList(),
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint8>() {
+                }));
+        Uint8 value = executeCallSingleValueReturn(function);
+        BigInteger bigValue = value.getValue();
+        return ContractState.valueOf(bigValue.intValue());
+    }
+
+    @Override
+    public BigInteger getDeposit() throws Exception {
+
+        Function function = new Function("deposit",
+                Arrays.<Type>asList(),
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {
+                }));
+        Uint256 value = executeCallSingleValueReturn(function);
+        BigInteger bigValue = value.getValue();
+        return bigValue;
+    }
+
+    @Override
+    public Boolean getVerifyIdentity() throws Exception {
+
+        Function function = new Function("verifyIdentity",
+                Arrays.<Type>asList(),
+                Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {
+                }));
+        Bool result = executeCallSingleValueReturn(function);
+        return result.getValue();
+    }
+
+    @Override
+    public List<String> getImageSignatures() throws Exception
+    {
+        Function function = new Function("getImageSignatures",
+                Arrays.<Type>asList(),
+                Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Bytes32>>() {
+                }));
+
+        List<String> signatures = new ArrayList<String>();
+        DynamicArray<Bytes32> result = executeCallSingleValueReturn(function);
+        for(Bytes32 bytes : result.getValue())
+        {
+            signatures.add(new String(HexUtil.byteArrayToHexString(bytes.getValue())));
+        }
+
+        return signatures;
     }
 }

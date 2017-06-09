@@ -69,7 +69,7 @@ public class LoginDialogFragment extends DialogFragment
         final AlertDialog diag = builder.create();
         diag.setCanceledOnTouchOutside(false);
 
-        initView(contentView);
+        init(contentView);
 
         diag.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
@@ -92,7 +92,7 @@ public class LoginDialogFragment extends DialogFragment
         return diag;
     }
 
-    public void initView(View v)
+    public void init(View v)
     {
         // Create an ArrayAdapter using the string array and a default spinner layout
         final ArrayAdapter<String> adapter = new ArrayAdapter<String>(

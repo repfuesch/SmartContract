@@ -5,8 +5,12 @@ import android.support.v4.app.DialogFragment;
 import android.os.Bundle;
 import android.view.View;
 
+import org.jdeferred.Promise;
 import org.web3j.tx.Contract;
 
+import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
+import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
+import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
@@ -34,12 +38,9 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
             //navigate to account activity when no account selected
             Intent accountIntent = new Intent(this, AccountActivity.class);
             startActivity(accountIntent);
-        }else{
-
-            //if(EthServiceProvider.getInstance().getConnectionService().hasConnection())
-           // {
-                loadContractList();
-           // }
+        }else
+        {
+            loadContractList();
         }
     }
 
@@ -65,55 +66,68 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent intent)
+    protected void onActivityResult(int requestCode, int resultCode, final Intent intent)
     {
         switch (requestCode) {
             case SCAN_CONTRACT_ADDRESS_REQUEST:
                 if(intent == null)
                     return;
 
-                String contractAddress = intent.getStringExtra(QrScanningActivity.MESSAGE_SCAN_DATA);
-                if(!ensureContract(contractAddress))
-                    return;
+                final String contractAddress = intent.getStringExtra(QrScanningActivity.MESSAGE_CONTRACT_ADDRESS);
+                ensureContract(contractAddress).then(new DoneCallback<Boolean>() {
+                    @Override
+                    public void onDone(Boolean result) {
+                        final ContractType type = (ContractType) intent.getSerializableExtra(QrScanningActivity.MESSAGE_CONTRACT_TYPE);
 
-                //todo: determine contract type
-                listFragment.loadContract(Purchase, contractAddress);
-                Intent detailIntent = new Intent(this, ContractDetailActivity.class);
-                detailIntent.putExtra(ContractDetailActivity.MESSAGE_SHOW_CONTRACT_DETAILS, contractAddress);
-                startActivity(detailIntent);
+                        listFragment.loadContract(type, contractAddress);
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Intent detailIntent = new Intent(ContractOverviewActivity.this, ContractDetailActivity.class);
+                                detailIntent.putExtra(ContractDetailActivity.EXTRA_CONTRACT_ADDRESS, contractAddress);
+                                detailIntent.putExtra(ContractDetailActivity.EXTRA_CONTRACT_TYPE, type);
+                                startActivity(detailIntent);
+                            }
+                        });
+                    }
+                });
+
                 break;
         }
         super.onActivityResult(requestCode, resultCode, intent);
     }
 
     @Override
-    protected void onContractCreated(String contractAddress) {
-        super.onContractCreated(contractAddress);
+    protected void onContractCreated(String contractAddress, ContractType type) {
+        super.onContractCreated(contractAddress, type);
 
-        //todo: determine contract type
-        listFragment.loadContract(Purchase, contractAddress);
+        listFragment.loadContract(type, contractAddress);
     }
 
-    private boolean ensureContract(String address)
+    private SimplePromise<Boolean> ensureContract(final String address)
     {
-        Boolean isContract = getServiceProvider().getContractService().isContract(address).get();
-        if(!isContract)
-        {
-            showMessage("Cannot add contract " + address + " because it is not found on the blockchain");
-            return false;
-        }
-
-        return true;
+        return getServiceProvider().getContractService().isContract(address)
+                .always(new AlwaysCallback<Boolean>() {
+                    @Override
+                    public void onAlways(Promise.State state, Boolean resolved, Throwable rejected) {
+                        if(rejected != null)
+                        {
+                            showMessage("Cannot add contract " + address + " because it is not found on the blockchain");
+                        }
+                    }
+                });
     }
 
     @Override
-    public void onAddContract(String contractAddress, ContractType type)
+    public void onAddContract(final String contractAddress, final ContractType type)
     {
-        if(!ensureContract(contractAddress))
-            return;
-
-        //todo: determine contract type
-        listFragment.loadContract(Purchase, contractAddress);
+        ensureContract(contractAddress).then(new DoneCallback<Boolean>() {
+            @Override
+            public void onDone(Boolean result) {
+                listFragment.loadContract(type, contractAddress);
+            }
+        });
     }
 
     @Override

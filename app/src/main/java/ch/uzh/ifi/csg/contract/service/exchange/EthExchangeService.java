@@ -11,5 +11,6 @@ import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 
 public interface EthExchangeService
 {
-    SimplePromise<Map<Currency, Float>> getEthExchangeRates();
+    SimplePromise<Map<Currency, Float>> getEthExchangeRatesAsync();
+    Map<Currency, Float> getEthExchangeRates() throws Exception;
 }

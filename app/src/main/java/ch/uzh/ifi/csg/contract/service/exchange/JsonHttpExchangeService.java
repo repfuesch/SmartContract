@@ -50,36 +50,36 @@ public class JsonHttpExchangeService implements EthExchangeService
     }
 
     @Override
-    public SimplePromise<Map<Currency, Float>> getEthExchangeRates()
-    {
+    public SimplePromise<Map<Currency, Float>> getEthExchangeRatesAsync() {
+
         return Async.toPromise(new Callable<Map<Currency, Float>>() {
             @Override
             public Map<Currency, Float> call() throws Exception
             {
-                HttpGet request = new HttpGet(url);
-                request.setHeaders(buildHeaders());
-
-                try {
-                    return httpClient.execute(request, new ResponseHandler<Map<Currency, Float>>() {
-                        @Override
-                        public Map<Currency, Float> handleResponse(HttpResponse response) throws IOException {
-                            String responseData = readResponse(response);
-                            Map<Currency, Float> result = gson.fromJson(responseData, new TypeToken<HashMap<Currency, Float>>(){}.getType());
-                            return result;
-                        }
-                    });
-
-                } catch(ClientProtocolException ex)
-                {
-                    return null;
-                } catch(IOException ex)
-                {
-                    return null;
-                } finally {
-                    httpClient.close();
-                }
+                return getEthExchangeRates();
             }
         });
+    }
+
+    @Override
+    public Map<Currency, Float> getEthExchangeRates() throws Exception
+    {
+        HttpGet request = new HttpGet(url);
+        request.setHeaders(buildHeaders());
+
+        try {
+            return httpClient.execute(request, new ResponseHandler<Map<Currency, Float>>() {
+                @Override
+                public Map<Currency, Float> handleResponse(HttpResponse response) throws IOException {
+                    String responseData = readResponse(response);
+                    Map<Currency, Float> result = gson.fromJson(responseData, new TypeToken<HashMap<Currency, Float>>(){}.getType());
+                    return result;
+                }
+            });
+
+        } finally {
+            httpClient.close();
+        }
     }
 
     private String readResponse(HttpResponse response) throws IOException

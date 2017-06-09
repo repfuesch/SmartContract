@@ -40,6 +40,17 @@ public class Async {
     public static <T> SimplePromise<T> toPromise(Callable<T> callable)
     {
         final Promise<T, Throwable, Void> promise = deferredManager.when(callable);
+        return makePromiseAdapter(promise);
+    }
+
+    public static SimplePromise<Void> run(Callable<Void> callable)
+    {
+        final Promise<Void, Throwable, Void> promise = deferredManager.when(callable);
+        return makePromiseAdapter(promise);
+    }
+
+    private static <T> SimplePromise<T> makePromiseAdapter(Promise<T, Throwable, Void> promise)
+    {
         final UUID id = UUID.randomUUID();
         SimplePromise<T> simplePromise = new SimplePromiseAdapter<>(promise, id);
         promiseMap.put(id, simplePromise);

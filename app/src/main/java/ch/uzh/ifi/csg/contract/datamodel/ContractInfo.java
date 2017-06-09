@@ -13,19 +13,17 @@ import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 public class ContractInfo
 {
     private ContractType contractType;
-    private ContractState lastState;
     private String contractAddress;
     private UserProfile userProfile;
     private Map<String, String> images;
 
-    public ContractInfo(ContractType contractType, ContractState lastState, String contractAddress) {
-        this.lastState = lastState;
+    public ContractInfo(ContractType contractType, String contractAddress) {
         this.contractAddress = contractAddress;
         this.contractType = contractType;
     }
 
-    public ContractInfo(ContractType contractType, ContractState lastState, String contractAddress, UserProfile userProfile, Map<String, String> imageMap) {
-        this(contractType, lastState, contractAddress);
+    public ContractInfo(ContractType contractType, String contractAddress, UserProfile userProfile, Map<String, String> imageMap) {
+        this(contractType, contractAddress);
         this.userProfile = userProfile;
         this.images = imageMap;
     }
@@ -36,10 +34,6 @@ public class ContractInfo
 
     public void setContractAddress(String contractAddress) {
         this.contractAddress = contractAddress;
-    }
-
-    public ContractState getLastState() {
-        return lastState;
     }
 
     public UserProfile getUserProfile() {

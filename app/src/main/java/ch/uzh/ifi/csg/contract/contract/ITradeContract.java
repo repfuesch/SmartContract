@@ -14,6 +14,7 @@ import ch.uzh.ifi.csg.contract.event.IContractObservable;
 
 public interface ITradeContract extends IContractObservable
 {
+    //local fields and methods
     String getContractAddress();
     UserProfile getUserProfile();
     void setUserProfile(UserProfile profile);
@@ -21,16 +22,18 @@ public interface ITradeContract extends IContractObservable
     Map<String, String> getImages();
     ContractType getContractType();
 
-    SimplePromise<List<String>> getImageSignatures();
+    //remote transaction methods
     SimplePromise<String> setImageSignatures(List<String> imageSignatures);
-    SimplePromise<String> getSeller();
-    SimplePromise<BigInteger> getPrice();
-    SimplePromise<BigInteger> getDeposit();
-    SimplePromise<String> getTitle();
-    SimplePromise<String> getDescription();
-    SimplePromise<String> getBuyer();
-    SimplePromise<ContractState> getState();
-    SimplePromise<Boolean> getVerifyIdentity();
-
     SimplePromise<String> abort();
+
+    //remote getters for smart contract attributes
+    List<String> getImageSignatures() throws Exception;
+    String getSeller() throws Exception;
+    BigInteger getPrice() throws Exception;
+    BigInteger getDeposit() throws Exception;
+    String getTitle() throws Exception;
+    String getDescription() throws Exception;
+    String getBuyer() throws Exception;
+    ContractState getState() throws Exception;
+    Boolean getVerifyIdentity() throws Exception;
 }

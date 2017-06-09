@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.SurfaceView;
 import android.widget.TextView;
 import ch.uzh.ifi.csg.contract.common.Web3Util;
+import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ezvcard.Ezvcard;
 import ezvcard.VCard;
 import github.nisrulz.qreader.QREader;
@@ -17,7 +18,9 @@ public class QrScanningActivity extends AppCompatActivity {
 
     public static final String ACTION_SCAN_CONTRACT = "ch.uzh.ifi.csg.smart_contract.contract.scan";
     public static final String ACTION_SCAN_PROFILE = "ch.uzh.ifi.csg.smart_contract.account.profile.scan";
-    public static final String MESSAGE_SCAN_DATA = "ch.uzh.ifi.csg.smart_contract.message.scan.data";
+    public static final String MESSAGE_CONTRACT_ADDRESS = "ch.uzh.ifi.csg.smart_contract.address";
+    public static final String MESSAGE_CONTRACT_TYPE = "ch.uzh.ifi.csg.smart_contract.type";
+    public static final String MESSAGE_PROFILE_DATA = "ch.uzh.ifi.csg.smart_contract.account.profile.vcard";
 
     private boolean scanContract;
 
@@ -60,12 +63,25 @@ public class QrScanningActivity extends AppCompatActivity {
                     }
                 });
 
-                if(scanContract && validateContractAddress(data))
+                if(scanContract)
                 {
-                    returnResult(data);
+                    //validate contract data
+                    String[] tokens = data.split(",");
+                    if(tokens.length != 2)
+                        return;
+
+                    String address = tokens[0].trim();
+                    String type = tokens[1].trim();
+                    if(!validateContractAddress(address))
+                        return;
+                    if(!validateContractType(type))
+                        return;
+
+                    returnContractData(address, ContractType.valueOf(type));
+
                 }else if (validateVCard(data))
                 {
-                    returnResult(data);
+                    returnProfile(data);
                 }else{
                     qrEader.initAndStart(surfaceView);
                 }
@@ -79,10 +95,18 @@ public class QrScanningActivity extends AppCompatActivity {
         qrEader.initAndStart(surfaceView);
     }
 
-    private void returnResult(String data)
+    private void returnProfile(String data)
     {
         Intent result = new Intent();
-        result.putExtra(MESSAGE_SCAN_DATA, data);
+        result.putExtra(MESSAGE_PROFILE_DATA, data);
+        setResult(Activity.RESULT_OK, result);
+        finish();
+    }
+    private void returnContractData(String address, ContractType type)
+    {
+        Intent result = new Intent();
+        result.putExtra(MESSAGE_CONTRACT_ADDRESS, address);
+        result.putExtra(MESSAGE_CONTRACT_TYPE, type);
         setResult(Activity.RESULT_OK, result);
         finish();
     }
@@ -90,6 +114,17 @@ public class QrScanningActivity extends AppCompatActivity {
     private boolean validateContractAddress(String address)
     {
         return Web3Util.isAddress(address);
+    }
+
+    private boolean validateContractType(String value)
+    {
+        try{
+            Enum.valueOf(ContractType.class, value);
+        }catch(IllegalArgumentException ex)
+        {
+            return false;
+        }
+        return true;
     }
 
     private boolean validateVCard(String data)

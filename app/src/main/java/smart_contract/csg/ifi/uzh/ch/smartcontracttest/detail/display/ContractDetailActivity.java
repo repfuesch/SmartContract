@@ -10,16 +10,12 @@ import android.widget.TabHost;
 import org.jdeferred.Promise;
 
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
-import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
-import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.event.IContractObserver;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ezvcard.Ezvcard;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create.PurchaseContractDeployFragment;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create.RentContractDeployFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment;
@@ -98,10 +94,9 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                contract = (ITradeContract) resolved;
-                                detailFragment.setContract(contract);
-                                detailFragment.updateView();
-                                if(contract.getVerifyIdentity().get())
+                                contract = resolved;
+                                detailFragment.init(resolved);
+                                if(detailFragment.needsIdentityVerification())
                                 {
                                     addProfileTab();
                                     if(!contract.getUserProfile().isVerified())
@@ -174,7 +169,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
                 if(intent == null)
                     return;
 
-                String vCardString = intent.getStringExtra(QrScanningActivity.MESSAGE_SCAN_DATA);
+                String vCardString = intent.getStringExtra(QrScanningActivity.MESSAGE_PROFILE_DATA);
                 UserProfile profile = new UserProfile();
                 profile.setVCard(Ezvcard.parse(vCardString).first());
                 addProfileTab();
@@ -187,13 +182,13 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
 
     @Override
     protected void onSettingsChanged() {
-        detailFragment.updateView();
+        detailFragment.init(contract);
     }
 
     @Override
     public void contractStateChanged(String event, Object value)
     {
-        detailFragment.updateView();
+        detailFragment.init(contract);
     }
 
     @Override
