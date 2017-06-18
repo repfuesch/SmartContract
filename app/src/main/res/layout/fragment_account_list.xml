@@ -4,27 +4,9 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-<LinearLayout android:id="@+id/progress_view"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="8dp"
-    android:visibility="gone"
-    xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <ProgressBar
-        android:id="@+id/detail_progress_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:layout_gravity="center">
-    </ProgressBar>
-
-</LinearLayout>
-
 <LinearLayout
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:id="@+id/account_view"
     android:orientation="vertical">
 

@@ -20,7 +20,6 @@ import android.widget.TextView;
 import net.glxn.qrgen.android.QRCode;
 
 import java.io.File;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -29,13 +28,10 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 import ch.uzh.ifi.csg.contract.async.Async;
-import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
-import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
-import ch.uzh.ifi.csg.contract.common.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
@@ -50,8 +46,7 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
     private TextView descriptionView;
     private TextView addressView;
 
-    private LinearLayout bodyView;
-    private LinearLayout progressView;
+    //private LinearLayout progressView;
     private LinearLayout contractInteractionView;
     private LinearLayout verifyIdentityView;
     private LinearLayout imageContainer;
@@ -63,6 +58,7 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
     private boolean isVerified;
     private List<String> currencyList;
 
+    protected LinearLayout bodyView;
     protected Currency selectedCurrency;
     protected MessageHandler messageHandler;
     protected ApplicationContextProvider contextProvider;
@@ -72,6 +68,8 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
     }
 
     @Override
@@ -86,7 +84,7 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
         descriptionView = (TextView) view.findViewById(R.id.general_description);
         addressView = (TextView) view.findViewById(R.id.general_address);
 
-        progressView = (LinearLayout) view.findViewById(R.id.progress_view);
+        //progressView = (LinearLayout) view.findViewById(R.id.progress_view);
         bodyView = (LinearLayout) view.findViewById(R.id.contract_info_body);
         contractInteractionView = (LinearLayout) view.findViewById(R.id.contract_interactions);
 
@@ -146,37 +144,21 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
 
     protected abstract int getLayoutId();
 
-    protected void disableInteractions()
-    {
-        contractInteractionView.setEnabled(false);
-    }
-
-    protected void enableInteractions()
-    {
-        contractInteractionView.setEnabled(true);
-    }
-
-    protected void showProgressView()
-    {
-        progressView.setVisibility(View.VISIBLE);
-        bodyView.setVisibility(View.GONE);
-    }
-
-    protected void hideProgressView()
-    {
-        bodyView.setVisibility(View.VISIBLE);
-        progressView.setVisibility(View.GONE);
-        //init();
-    }
 
     protected boolean ensureBalance(BigInteger value)
     {
         String account = contextProvider.getSettingProvider().getSelectedAccount();
+
+        //todo: don't use blocking wait here!
         BigInteger balance = contextProvider.getServiceProvider().getAccountService().getAccountBalance(account).get();
+        if(balance == null)
+        {
+            return false;
+        }
 
         if(balance.compareTo(value) < 0)
         {
-            messageHandler.showMessage("You need at least " + value.toString() + " wei to do that!");
+            messageHandler.showErrorMessage("You need at least " + value.toString() + " wei to do that!");
             return false;
         }
 
@@ -186,6 +168,16 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
     @Override
     public void onClick(View view)
     {
+        //Prevent that user interacts with the contract when connection lost
+        if(view.getParent().equals(contractInteractionView))
+        {
+            if(!contextProvider.getServiceProvider().getConnectionService().hasConnection())
+            {
+                messageHandler.showErrorMessage("Cannot interact with the contract when connection is lost!");
+                return;
+            }
+        }
+
         switch(view.getId())
         {
             case R.id.contract_qr_image:

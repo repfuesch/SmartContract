@@ -17,8 +17,7 @@ public interface AccountService {
     SimplePromise<List<Account>> getAccounts();
     SimplePromise<Account> createAccount(String alias, String password);
     SimplePromise<Boolean> unlockAccount(Account account, String password);
-    BigInteger getAccountBalance(String account) throws IOException;
-    SimplePromise<BigInteger> getAccountBalanceAsync(String account);
+    SimplePromise<BigInteger> getAccountBalance(String account);
     UserProfile getAccountProfile(String account);
     void saveAccountProfile(String accountId, UserProfile profile);
 

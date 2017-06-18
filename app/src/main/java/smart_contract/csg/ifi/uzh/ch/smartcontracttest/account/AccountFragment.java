@@ -20,14 +20,13 @@ import java.util.List;
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.datamodel.Account;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthServiceProvider;
 
 public class AccountFragment extends Fragment implements AccountRecyclerViewAdapter.OnAccountLoginListener {
 
     private int mColumnCount = 1;
-    private LinearLayout progressView;
     private LinearLayout accountView;
     private RecyclerView accountList;
     private AccountRecyclerViewAdapter accountListAdapter;
@@ -54,7 +53,6 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_account_list, container, false);
 
-        progressView = (LinearLayout) view.findViewById(R.id.progress_view);
         accountList = (RecyclerView) view.findViewById(R.id.account_list);
         accountView = (LinearLayout) view.findViewById(R.id.account_view);
 
@@ -122,7 +120,7 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
                             @Override
                             public void run() {
                                 if(rejected != null){
-                                    messageHandler.showMessage("An error occurred: " + rejected.getMessage());
+                                    messageHandler.showErrorMessage("An error occurred: " + rejected.getMessage());
                                 }else{
                                     accounts.clear();
                                     accounts.addAll(resolved);
@@ -136,7 +134,7 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
 
     public void createAccount(String accountName, String password)
     {
-        showProgressView();
+        BusyIndicator.show(accountView);
         contextProvider.getServiceProvider().getAccountService().createAccount(accountName, password)
                 .always(new AlwaysCallback<Account>() {
                     @Override
@@ -149,33 +147,15 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
                             notifyAccountChanged(resolved);
                         }
 
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                hideProgressView();
-                            }
-                        });
+                        BusyIndicator.hide(accountView);
                     }
                 });
-    }
-
-    private void showProgressView()
-    {
-        accountView.setVisibility(View.GONE);
-        progressView.setVisibility(View.VISIBLE);
-    }
-
-    private void hideProgressView()
-    {
-        progressView.setVisibility(View.GONE);
-        accountView.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void onAccountLogin(final Account account, final String password, final AccountRecyclerViewAdapter.OnAccountLoginResultListener resultListener)
     {
-        showProgressView();
-
+        BusyIndicator.show(accountView);
         contextProvider.getServiceProvider().getAccountService().unlockAccount(account, password)
                 .always(new AlwaysCallback<Boolean>() {
                     @Override
@@ -194,13 +174,7 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
                                 resultListener.onLoginResult(true);
                                 notifyAccountChanged(account);
                             }
-
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    hideProgressView();
-                                }
-                            });
+                            BusyIndicator.hide(accountView);
                         }
                     });
     }

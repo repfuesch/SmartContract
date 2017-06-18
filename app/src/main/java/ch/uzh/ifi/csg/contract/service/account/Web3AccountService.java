@@ -35,27 +35,16 @@ public abstract class Web3AccountService implements AccountService
      * @return the amount of ether for this account
      */
     @Override
-    public SimplePromise<BigInteger> getAccountBalanceAsync(final String account) {
+    public SimplePromise<BigInteger> getAccountBalance(final String account)
+    {
         return Async.toPromise(new Callable<BigInteger>() {
             @Override
             public BigInteger call() throws Exception {
-                return getAccountBalance(account);
+                EthGetBalance balance = web3.ethGetBalance(account, DefaultBlockParameterName.LATEST).send();
+                BigInteger balanceWei = balance.getBalance();
+                return balanceWei;
             }
         });
-    }
-
-    /**
-     * Returns the account balance in ether for the specified account
-     *
-     * @param account: the account id
-     * @return the amount of ether for this account
-     */
-    @Override
-    public BigInteger getAccountBalance(final String account) throws IOException
-    {
-        EthGetBalance balance = web3.ethGetBalance(account, DefaultBlockParameterName.LATEST).send();
-        BigInteger balanceWei = balance.getBalance();
-        return balanceWei;
     }
 
     @Override

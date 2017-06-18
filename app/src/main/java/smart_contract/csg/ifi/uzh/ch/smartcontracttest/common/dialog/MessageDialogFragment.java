@@ -14,16 +14,17 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
  * Created by flo on 16.03.17.
  */
 
-public class ErrorDialogFragment extends DialogFragment
+public class MessageDialogFragment extends DialogFragment
 {
     public static final String ERROR_MESSAGE = "ERROR_MESSAGE";
     public static final String EXCEPTION_MESSAGE = "EXCEPTION_MESSAGE";
+    public static final String MESSAGE = "MESSAGE";
 
     private String message;
     private Throwable exception;
     private ExceptionConfirmedListener listener;
 
-    public ErrorDialogFragment()
+    public MessageDialogFragment()
     {
     }
 
@@ -31,10 +32,17 @@ public class ErrorDialogFragment extends DialogFragment
     public void setArguments(Bundle args) {
         super.setArguments(args);
 
-        message = args.getString(ERROR_MESSAGE);
-        exception = (Throwable)args.getSerializable(EXCEPTION_MESSAGE);
-        if(exception != null)
-            message = exception.getMessage();
+        if(args.containsKey(ERROR_MESSAGE))
+        {
+            message = args.getString(ERROR_MESSAGE);
+        }else if(args.containsKey(MESSAGE))
+        {
+            message = args.getString(MESSAGE);
+        }else{
+            exception = (Throwable)args.getSerializable(EXCEPTION_MESSAGE);
+            if(exception != null)
+                message = exception.getMessage();
+        }
     }
 
     @Override

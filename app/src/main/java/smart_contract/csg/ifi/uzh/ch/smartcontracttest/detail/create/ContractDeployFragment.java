@@ -1,7 +1,6 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create;
 
 
-import android.accounts.NetworkErrorException;
 import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.Context;
@@ -37,11 +36,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
-import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.common.ImageHelper;
-import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialogFragment;
@@ -160,19 +156,20 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
 
     protected abstract int getLayoutId();
 
-    protected Boolean ensureBalance(final BigInteger value) {
+    protected Boolean ensureBalance(final BigInteger value)
+    {
         String account = contextProvider.getSettingProvider().getSelectedAccount();
-        BigInteger balance = null;
-        try {
-            balance = contextProvider.getServiceProvider().getAccountService().getAccountBalance(account);
-        } catch (IOException e) {
-            messageHandler.handleError(e);
+
+        //todo: find a way to handle exceptions here
+        BigInteger balance = contextProvider.getServiceProvider().getAccountService().getAccountBalance(account).get();
+        if(balance == null)
+        {
             return false;
         }
 
         if(balance.compareTo(value) < 0)
         {
-            messageHandler.showMessage("You don't have enough money to do that!");
+            messageHandler.showErrorMessage("You don't have enough money to do that!");
             return false;
         }
 
@@ -182,11 +179,10 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
     protected BigInteger convertToWei(float value)
     {
         Map<Currency, Float> currencyMap;
-        try{
-            currencyMap = contextProvider.getServiceProvider().getExchangeService().getEthExchangeRates();
-        }catch (Exception e)
+        currencyMap = contextProvider.getServiceProvider().getExchangeService().getEthExchangeRatesAsync().get();
+        if(currencyMap == null)
         {
-            messageHandler.showMessage("Cannot reach exchange service. Please try again later!");
+            messageHandler.showErrorMessage("Cannot reach exchange service. Please try again later!");
             return null;
         }
 
@@ -216,14 +212,12 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
                 imageSignatures.put(hashSig, imgFile);
             }catch(IOException ex)
             {
-                messageHandler.showSnackBarMessage(ex.getMessage(), Snackbar.LENGTH_LONG);
+                messageHandler.showErrorMessage("Could not save image: " + ex.getMessage());
                 return;
             }
         }
 
         SimplePromise<ITradeContract> promise = deployContract(priceWei, title, desc, needsVerification, imageSignatures);
-        if(promise == null)
-            return;
 
         promise.done(new DoneCallback<ITradeContract>() {
                     @Override
@@ -353,7 +347,12 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         switch(view.getId())
         {
             case R.id.action_deploy_contract:
-                deploy();
+                if(contextProvider.getServiceProvider().getConnectionService().hasConnection())
+                {
+                    deploy();
+                }else{
+                    messageHandler.showErrorMessage("Cannot deploy contract when connection to host is not established!");
+                }
                 break;
             case R.id.action_cancel_deploy:
                 Intent intent = new Intent(getActivity(), ContractOverviewActivity.class);
@@ -447,37 +446,32 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
 
     private void addImage(Uri uri)
     {
-        try {
-            final ProportionalImageView imageView = new ProportionalImageView(getActivity());
-            int heightPx = (int)ImageHelper.convertDpToPixel(new Float(48.0), this.getActivity());
-            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(heightPx, heightPx);
-            layoutParams.setMargins(8,8,8,8);
-            imageView.setLayoutParams(layoutParams);
-            final Uri imgUri = uri;
-            imageView.setImageURI(imgUri);
-            imageContainer.addView(imageView);
-            images.put(imageView, imgUri);
+        final ProportionalImageView imageView = new ProportionalImageView(getActivity());
+        int heightPx = (int)ImageHelper.convertDpToPixel(new Float(48.0), this.getActivity());
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(heightPx, heightPx);
+        layoutParams.setMargins(8,8,8,8);
+        imageView.setLayoutParams(layoutParams);
+        final Uri imgUri = uri;
+        imageView.setImageURI(imgUri);
+        imageContainer.addView(imageView);
+        images.put(imageView, imgUri);
 
-            registerForContextMenu(imageView);
-            imageView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    showImageDialog(imageView);
-                }
-            });
+        registerForContextMenu(imageView);
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showImageDialog(imageView);
+            }
+        });
 
-            imageView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View view) {
-                    selectedImage = imageView;
-                    getActivity().openContextMenu(selectedImage);
-                    return true;
-                }
-            });
-        }
-        catch (Exception e) {
-            messageHandler.showSnackBarMessage(e.getMessage(), Snackbar.LENGTH_LONG);
-        }
+        imageView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                selectedImage = imageView;
+                getActivity().openContextMenu(selectedImage);
+                return true;
+            }
+        });
     }
 
     private void showImageDialog(ProportionalImageView imageView)

@@ -63,6 +63,8 @@ public interface SimplePromise<T>
 
     public SimplePromise<T> then(DoneCallback<T> doneCallback);
 
+    public <U> SimplePromise<U> thenContinue(ContinueCallback<T,U> continueCallback);
+
     public T get();
 
     public UUID getId();

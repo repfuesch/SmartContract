@@ -15,8 +15,8 @@ import android.widget.LinearLayout;
 import org.jdeferred.Promise;
 
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
+import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
-import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
@@ -40,7 +40,7 @@ public class ContractListFragment extends Fragment
 
     private int mColumnCount = 1;
 
-    private PurchaseContractRecyclerViewAdapter adapter;
+    private TradeContractRecyclerViewAdapter adapter;
     private List<ITradeContract> contracts;
 
     private MessageHandler errorHandler;
@@ -95,7 +95,7 @@ public class ContractListFragment extends Fragment
             purchaseList.setLayoutManager(new GridLayoutManager(context, mColumnCount));
         }
 
-        adapter = new PurchaseContractRecyclerViewAdapter(contracts);
+        adapter = new TradeContractRecyclerViewAdapter(contracts);
         purchaseList.setAdapter(adapter);
 
         return view;
@@ -136,10 +136,10 @@ public class ContractListFragment extends Fragment
         errorHandler = null;
     }
 
-    public void loadContractsForAccount(String account)
+    public SimplePromise<List<ITradeContract>> loadContractsForAccount(String account)
     {
         contracts.clear();
-        contextProvider.getServiceProvider().getContractService().loadContracts(account)
+        return contextProvider.getServiceProvider().getContractService().loadContracts(account)
                 .always(new AlwaysCallback<List<ITradeContract>>() {
                     @Override
                     public void onAlways(Promise.State state, final List<ITradeContract> resolved, final Throwable rejected) {
@@ -160,9 +160,9 @@ public class ContractListFragment extends Fragment
                 });
     }
 
-    public void loadContract(ContractType type, String contractAddress)
+    public SimplePromise<ITradeContract> loadContract(ContractType type, String contractAddress)
     {
-        contextProvider.getServiceProvider().getContractService().loadContract(type, contractAddress, contextProvider.getSettingProvider().getSelectedAccount())
+        return contextProvider.getServiceProvider().getContractService().loadContract(type, contractAddress, contextProvider.getSettingProvider().getSelectedAccount())
                 .always(new AlwaysCallback<ITradeContract>() {
                     @Override
                     public void onAlways(Promise.State state, final ITradeContract resolved, final Throwable rejected) {

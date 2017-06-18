@@ -22,6 +22,8 @@ import ch.uzh.ifi.csg.contract.datamodel.Account;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ch.uzh.ifi.csg.contract.service.account.AccountManager;
+import ch.uzh.ifi.csg.contract.service.serialization.GsonSerializationService;
+import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
 import ezvcard.Ezvcard;
 import ezvcard.VCard;
 
@@ -31,21 +33,15 @@ import ezvcard.VCard;
 
 public class FileManager implements ContractManager, AccountManager {
 
-    private Gson gson;
     private String accountDirectory;
     private Map<String, Account> accountMap;
+    private SerializationService serializationService;
 
     public FileManager(String dataDirectory)
     {
-        this.gson = new GsonBuilder()
-                .registerTypeAdapter(VCard.class, new VCardSerializer())
-                .registerTypeAdapter(VCard.class, new VCardDeserializer())
-                .registerTypeAdapter(new TypeToken<HashMap<String, ContractInfo>>(){}.getType(), new ContractMapDeserializer())
-                .registerTypeAdapter(new TypeToken<HashMap<String, String>>(){}.getType(), new StringMapDeserializer())
-                .create();
-
         this.accountDirectory = dataDirectory;
         this.accountMap = new HashMap<>();
+        this.serializationService = new GsonSerializationService();
         load();
     }
 
@@ -88,7 +84,7 @@ public class FileManager implements ContractManager, AccountManager {
 
     private void save()
     {
-        String data = Serialize(accountMap);
+        String data = serializationService.serialize(accountMap);
         ch.uzh.ifi.csg.contract.common.FileManager.writeFile(data, new File(accountDirectory));
     }
 
@@ -118,52 +114,10 @@ public class FileManager implements ContractManager, AccountManager {
     private Map<String, Account> Deserialize(String jsonArray)
     {
         Type mapType = new TypeToken<HashMap<String, Account>>(){}.getType();
-        Map<String, Account> accountMap = gson.fromJson(jsonArray, mapType);
+        Map<String, Account> accountMap = serializationService.deserialize(jsonArray, mapType);
         if(mapType == null)
             return new HashMap<>();
 
         return accountMap;
-    }
-
-    private String Serialize(Map<String, Account> accountInfo)
-    {
-        return gson.toJson(accountInfo);
-    }
-
-    static class VCardSerializer implements JsonSerializer<VCard> {
-        @Override
-        public JsonElement serialize(VCard card, Type typeOfSrc, JsonSerializationContext context) {
-            return new JsonPrimitive(card.writeJson());
-        }
-    }
-
-    static class VCardDeserializer implements JsonDeserializer<VCard> {
-
-        @Override
-        public VCard deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            return Ezvcard.parseJson(json.getAsString()).first();
-        }
-    }
-
-    static class ContractMapDeserializer implements JsonDeserializer<Map<String, ContractInfo>> {
-
-        @Override
-        public Map<String, ContractInfo> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
-        {
-            Type mapType = new TypeToken<HashMap<String, ContractInfo>>(){}.getType();
-            Map<String, ContractInfo> contractMap = context.deserialize(json, mapType);
-            return contractMap;
-        }
-    }
-
-    static class StringMapDeserializer implements JsonDeserializer<Map<String, String>> {
-
-        @Override
-        public Map<String, String> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
-        {
-            Type mapType = new TypeToken<HashMap<String, String>>(){}.getType();
-            Map<String, String> stringMap = context.deserialize(json, mapType);
-            return stringMap;
-        }
     }
 }

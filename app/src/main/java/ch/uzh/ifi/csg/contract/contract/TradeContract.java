@@ -15,6 +15,7 @@ import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.generated.Uint8;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.filters.FilterException;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
@@ -145,9 +146,14 @@ public abstract class TradeContract extends Contract implements ITradeContract
 
     protected void unregisterContractEvents()
     {
-        for(Subscription subscription : subscriptions)
+        try{
+            for(Subscription subscription : subscriptions)
+            {
+                subscription.unsubscribe();
+            }
+        }catch(FilterException ex)
         {
-            subscription.unsubscribe();
+            //todo:handle exception properly!
         }
 
         subscriptions.clear();

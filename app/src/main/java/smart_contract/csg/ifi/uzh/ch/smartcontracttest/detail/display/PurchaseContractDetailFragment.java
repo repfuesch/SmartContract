@@ -24,6 +24,7 @@ import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
 
 
 /**
@@ -99,46 +100,33 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
                 if(!ensureBalance(value))
                     return;
 
-                showProgressView();
+                BusyIndicator.show(bodyView);
                 SimplePromise buyPromise = contract.confirmPurchase().always(new AlwaysCallback<String>() {
                     @Override
                     public void onAlways(Promise.State state, String resolved, Throwable rejected) {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                hideProgressView();
-                            }
-                        });
+                        BusyIndicator.hide(bodyView);
+
                     }
                 });
                 contextProvider.getTransactionManager().toTransaction(buyPromise, contract.getContractAddress());
                 break;
             case R.id.abort_button:
-                showProgressView();
+                BusyIndicator.show(bodyView);
                 SimplePromise abortPromise = contract.abort().always(new AlwaysCallback<String>() {
                     @Override
                     public void onAlways(Promise.State state, String resolved, Throwable rejected) {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                hideProgressView();
-                            }
-                        });
+                        BusyIndicator.hide(bodyView);
+
                     }
                 });
                 contextProvider.getTransactionManager().toTransaction(abortPromise, contract.getContractAddress());
                 break;
             case R.id.confirm_button:
-                showProgressView();
+                BusyIndicator.show(bodyView);
                 SimplePromise confirmPromise = contract.confirmReceived().always(new AlwaysCallback<String>() {
                     @Override
                     public void onAlways(Promise.State state, String resolved, Throwable rejected) {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                hideProgressView();
-                            }
-                        });
+                        BusyIndicator.hide(bodyView);
                     }
                 });
                 contextProvider.getTransactionManager().toTransaction(confirmPromise, contract.getContractAddress());
@@ -152,6 +140,7 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
     {
         this.contract = (IPurchaseContract)contract;
 
+        BusyIndicator.show(bodyView);
         return super.init(contract).then(new DoneCallback<Void>() {
             @Override
             public void onDone(Void result) {
@@ -194,6 +183,11 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
                     }
                 });
             }
+        }).always(new AlwaysCallback<Void>() {
+            @Override
+            public void onAlways(Promise.State state, Void resolved, Throwable rejected) {
+                BusyIndicator.hide(bodyView);
+            }
         });
     }
 
@@ -205,8 +199,14 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
                     @Override
                     public void onDone(Map<Currency, Float> currencyMap) {
                         BigDecimal amountEther = Web3Util.toEther(price);
-                        Float amountCurrency = amountEther.floatValue() * currencyMap.get(selectedCurrency);
-                        priceView.setText(amountCurrency.toString());
+                        final Float amountCurrency = amountEther.floatValue() * currencyMap.get(selectedCurrency);
+
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                priceView.setText(amountCurrency.toString());
+                            }
+                        });
                     }
                 })
                 .fail(new FailCallback() {

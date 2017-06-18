@@ -7,23 +7,26 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
+import org.jdeferred.Promise;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
 import ch.uzh.ifi.csg.contract.async.Async;
+import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.common.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
-import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.contract.IRentContract;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.contract.TimeUnit;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
 
 /**
  * Created by flo on 05.06.17.
@@ -83,6 +86,7 @@ public class RentContractDetailFragment extends ContractDetailFragment
     {
         this.contract = (IRentContract) tradeContract;
 
+        BusyIndicator.show(bodyView);
         return super.init(contract).then(new DoneCallback<Void>() {
             @Override
             public void onDone(Void result) {
@@ -142,6 +146,11 @@ public class RentContractDetailFragment extends ContractDetailFragment
                         return null;
                     }
                 });
+            }
+        }).always(new AlwaysCallback<Void>() {
+            @Override
+            public void onAlways(Promise.State state, Void resolved, Throwable rejected) {
+                BusyIndicator.hide(bodyView);
             }
         });
     }

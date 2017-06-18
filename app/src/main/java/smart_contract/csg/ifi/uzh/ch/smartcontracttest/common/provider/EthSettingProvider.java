@@ -27,9 +27,7 @@ public class EthSettingProvider extends BroadcastReceiver implements SettingProv
 
     public static EthSettingProvider create(AppContext context)
     {
-        if(instance == null)
-            instance = new EthSettingProvider(context);
-
+        instance = new EthSettingProvider(context);
         return instance;
     }
 

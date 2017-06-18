@@ -83,6 +83,9 @@ public abstract class Filter<T>
      */
     public void cancel() {
 
+        if(future == null)
+            return;
+
         future.cancel(false);
 
         EthUninstallFilter ethUninstallFilter = null;

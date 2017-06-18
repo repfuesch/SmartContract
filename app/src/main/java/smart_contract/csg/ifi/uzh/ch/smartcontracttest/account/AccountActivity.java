@@ -1,12 +1,17 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.account;
 
 import android.app.DialogFragment;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
+import ch.uzh.ifi.csg.contract.contract.ContractType;
+import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
+import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.WifiBuyerCallback;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.WifiResponse;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.WifiSellerCallback;
 
 public class AccountActivity extends ActivityBase implements AccountCreateDialogFragment.AccountCreateListener{
 
@@ -27,6 +32,64 @@ public class AccountActivity extends ActivityBase implements AccountCreateDialog
     {
         DialogFragment dialogFragment = new AccountCreateDialogFragment();
         dialogFragment.show(getFragmentManager(), "accountDialog");
+    }
+
+    public void onRequestContractDataClick(View view)
+    {
+        getWifiManager().requestContractData(new WifiBuyerCallback() {
+            @Override
+            public UserProfile getUserProfile() {
+                showMessage("user profile submitted!");
+                return new UserProfile();
+            }
+
+            @Override
+            public void onUserProfileReceived(UserProfile data) {
+                UserProfile profile = data;
+                showMessage("user profile received!");
+            }
+
+            @Override
+            public void onContractInfoReceived(ContractInfo contractInfo) {
+                ContractInfo info = contractInfo;
+                showMessage("Contract info received!");
+            }
+
+            @Override
+            public void onWifiResponse(WifiResponse response) {
+                String reason = response.getReasonPhrase();
+                showMessage("Wifi response: " + reason + "\n Reason: " + response.getError().getMessage());
+            }
+        });
+    }
+
+    public void onSendContractDataClick(View view)
+    {
+        getWifiManager().requestBuyerConnection(new WifiSellerCallback() {
+            @Override
+            public UserProfile getUserProfile() {
+                showMessage("retrieving user profile");
+                return new UserProfile();
+            }
+
+            @Override
+            public ContractInfo getContractInfo() {
+                showMessage("restrieving contract info");
+                return new ContractInfo(ContractType.Purchase, "ausdfgbhiaudgflidaugfdsaiugfbdaiugfhbidsagbdsig");
+            }
+
+            @Override
+            public void onUserProfileReceived(UserProfile data) {
+                UserProfile profile = data;
+                showMessage("received user profile");
+            }
+
+            @Override
+            public void onWifiResponse(WifiResponse response) {
+                String reason = response.getReasonPhrase();
+                showMessage("Wifi response: " + reason + "\n Reason: " + response.getError().getMessage());
+            }
+        }, false);
     }
 
     @Override

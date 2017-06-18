@@ -3,7 +3,6 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -14,10 +13,8 @@ import android.widget.TextView;
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.common.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
-import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.event.IContractObserver;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display.ContractDetailActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 
@@ -27,13 +24,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-public class PurchaseContractRecyclerViewAdapter
-        extends RecyclerView.Adapter<PurchaseContractRecyclerViewAdapter.ViewHolder> {
+public class TradeContractRecyclerViewAdapter
+        extends RecyclerView.Adapter<TradeContractRecyclerViewAdapter.ViewHolder> {
 
     private final List<ITradeContract> contracts;
     private final List<ViewHolder> boundViewHolders;
 
-    public PurchaseContractRecyclerViewAdapter(List<ITradeContract> contracts)
+    public TradeContractRecyclerViewAdapter(List<ITradeContract> contracts)
     {
         this.contracts = contracts;
         this.boundViewHolders = new ArrayList<>();

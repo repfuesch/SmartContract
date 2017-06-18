@@ -3,18 +3,13 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile;
 
 import android.app.Activity;
 import android.app.DialogFragment;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.os.ParcelFileDescriptor;
-import android.provider.MediaStore;
 import android.support.design.widget.Snackbar;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -24,15 +19,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import net.glxn.qrgen.android.QRCode;
 
 import java.io.File;
-import java.io.FileDescriptor;
-import java.net.URI;
 
-import ch.uzh.ifi.csg.contract.common.FileManager;
 import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ezvcard.VCard;
@@ -372,9 +363,9 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                     this.profile = getProfileInformation();
                     String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
                     contextProvider.getServiceProvider().getAccountService().saveAccountProfile(selectedAccount, profile);
-                    messageHandler.showMessage("Profile saved!");
+                    messageHandler.showErrorMessage("Profile saved!");
                 }else{
-                    messageHandler.showMessage("Please fill out all required fields!");
+                    messageHandler.showErrorMessage("Please fill out all required fields!");
                 }
 
                 break;

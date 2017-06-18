@@ -1,6 +1,5 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider;
 
-import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.service.account.AccountService;
 import ch.uzh.ifi.csg.contract.service.connection.EthConnectionService;
 import ch.uzh.ifi.csg.contract.service.contract.ContractService;
@@ -19,9 +18,7 @@ public class EthServiceProvider implements ServiceProvider
 
     public static EthServiceProvider create(AppContext context)
     {
-        if(instance == null)
-            instance = new EthServiceProvider(context);
-
+        instance = new EthServiceProvider(context);
         return instance;
     }
 
@@ -63,7 +60,8 @@ public class EthServiceProvider implements ServiceProvider
 
         exchangeService = serviceFactory.createHttpExchangeService();
 
-        //connectionService = serviceFactory.createConnectionService(settingsProvider.getHost(), settingsProvider.getPort(), 5000);
+        connectionService = serviceFactory.createConnectionService(settingsProvider.getHost(), settingsProvider.getPort(), 5000);
+        connectionService.startPolling();
 
         if(settingsProvider.getSelectedAccount() != "")
         {

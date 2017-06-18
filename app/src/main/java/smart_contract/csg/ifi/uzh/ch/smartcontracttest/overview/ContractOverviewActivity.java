@@ -1,19 +1,27 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.DialogFragment;
 import android.os.Bundle;
+import android.util.AttributeSet;
 import android.view.View;
+import android.widget.LinearLayout;
 
 import org.jdeferred.Promise;
 import org.web3j.tx.Contract;
 
+import java.util.List;
+
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
+import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
+import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create.ContractCreateActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
@@ -26,6 +34,7 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
     private static final int SCAN_CONTRACT_ADDRESS_REQUEST = 1;
 
     private ContractListFragment listFragment;
+    private LinearLayout bodyView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,9 +47,13 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
             //navigate to account activity when no account selected
             Intent accountIntent = new Intent(this, AccountActivity.class);
             startActivity(accountIntent);
-        }else
-        {
-            loadContractList();
+        }else{
+            bodyView = (LinearLayout)findViewById(R.id.overview_body);
+
+            if(getServiceProvider().getConnectionService().hasConnection())
+            {
+                loadContractList();
+            }
         }
     }
 
@@ -79,8 +92,6 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
                     public void onDone(Boolean result) {
                         final ContractType type = (ContractType) intent.getSerializableExtra(QrScanningActivity.MESSAGE_CONTRACT_TYPE);
 
-                        listFragment.loadContract(type, contractAddress);
-
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -102,19 +113,26 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
     protected void onContractCreated(String contractAddress, ContractType type) {
         super.onContractCreated(contractAddress, type);
 
-        listFragment.loadContract(type, contractAddress);
+        BusyIndicator.show(bodyView);
+        listFragment.loadContract(type, contractAddress)
+        .always(new AlwaysCallback<ITradeContract>() {
+            @Override
+            public void onAlways(Promise.State state, ITradeContract resolved, Throwable rejected) {
+                if(rejected != null)
+                    handleError(rejected);
+
+                BusyIndicator.hide(bodyView);
+            }
+        });
     }
 
     private SimplePromise<Boolean> ensureContract(final String address)
     {
         return getServiceProvider().getContractService().isContract(address)
-                .always(new AlwaysCallback<Boolean>() {
+                .fail(new FailCallback() {
                     @Override
-                    public void onAlways(Promise.State state, Boolean resolved, Throwable rejected) {
-                        if(rejected != null)
-                        {
-                            showMessage("Cannot add contract " + address + " because it is not found on the blockchain");
-                        }
+                    public void onFail(Throwable result) {
+                        handleError(result);
                     }
                 });
     }
@@ -122,10 +140,17 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
     @Override
     public void onAddContract(final String contractAddress, final ContractType type)
     {
+        BusyIndicator.show(bodyView);
         ensureContract(contractAddress).then(new DoneCallback<Boolean>() {
             @Override
             public void onDone(Boolean result) {
-                listFragment.loadContract(type, contractAddress);
+                listFragment.loadContract(type, contractAddress)
+                        .always(new AlwaysCallback<ITradeContract>() {
+                            @Override
+                            public void onAlways(Promise.State state, ITradeContract resolved, Throwable rejected) {
+                                BusyIndicator.hide(bodyView);
+                            }
+                        });
             }
         });
     }
@@ -144,10 +169,36 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
         loadContractList();
     }
 
+    @Override
+    protected void onConnectionLost() {
+        super.onConnectionLost();
+
+        bodyView.setEnabled(false);
+    }
+
+    @Override
+    protected void onConnectionEstablished() {
+        super.onConnectionEstablished();
+
+        bodyView.setEnabled(true);
+        loadContractList();
+    }
+
     private void loadContractList()
     {
         listFragment = (ContractListFragment) getFragmentManager().findFragmentById(R.id.purchase_list_fragment);
-        listFragment.loadContractsForAccount(getSettingProvider().getSelectedAccount());
+
+        BusyIndicator.show(bodyView);
+        listFragment.loadContractsForAccount(getSettingProvider().getSelectedAccount())
+                .always(new AlwaysCallback<List<ITradeContract>>() {
+                    @Override
+                    public void onAlways(Promise.State state, List<ITradeContract> resolved, Throwable rejected) {
+                        if(rejected != null)
+                            handleError(rejected);
+
+                        BusyIndicator.hide(bodyView);
+                    }
+                });
     }
 
 }

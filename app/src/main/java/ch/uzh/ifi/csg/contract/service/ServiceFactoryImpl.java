@@ -122,7 +122,8 @@ public class ServiceFactoryImpl implements EthServiceFactory
     public EthConnectionService createConnectionService(String host, int port, int pollingInterval)
     {
         String endpoint = "http://" + host + ":" + port + "/";
-        Parity parity = ParityClientFactory.build(new HttpService(endpoint, buildHttpClient(2000)));
+        CloseableHttpClient client = HttpClients.custom().setConnectionManagerShared(true).build();
+        Parity parity = ParityClientFactory.build(new HttpService(endpoint, client));
 
         return new Web3ConnectionService(parity, Async.getExecutorService(), LocalBroadcastManager.getInstance(appContext), pollingInterval);
     }

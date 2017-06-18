@@ -4,6 +4,7 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.view.View;
 import android.widget.TabHost;
 
@@ -38,6 +39,11 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().setTitle(R.string.title_contract_detail);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
 
         Intent intent = getIntent();
         String contractAddress = intent.getStringExtra(EXTRA_CONTRACT_ADDRESS);
