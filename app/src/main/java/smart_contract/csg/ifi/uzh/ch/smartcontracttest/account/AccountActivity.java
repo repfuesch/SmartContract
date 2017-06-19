@@ -58,7 +58,7 @@ public class AccountActivity extends ActivityBase implements AccountCreateDialog
             @Override
             public void onWifiResponse(WifiResponse response) {
                 String reason = response.getReasonPhrase();
-                showMessage("Wifi response: " + reason + "\n Reason: " + response.getError().getMessage());
+                showMessage("Wifi response: " + reason);
             }
         });
     }
@@ -87,9 +87,9 @@ public class AccountActivity extends ActivityBase implements AccountCreateDialog
             @Override
             public void onWifiResponse(WifiResponse response) {
                 String reason = response.getReasonPhrase();
-                showMessage("Wifi response: " + reason + "\n Reason: " + response.getError().getMessage());
+                showMessage("Wifi response: " + reason);
             }
-        }, false);
+        }, true);
     }
 
     @Override

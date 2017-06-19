@@ -60,22 +60,22 @@ public class BuyerPeer implements TradingPeer {
                  * Create a buyerServer socket and wait for client connections. This
                  * call blocks until a connection is accepted from a client
                  */
+                boolean running = true;
                 ServerSocket serverSocket = null;
                 try{
 
                     if(state != BuyerPeerState.ExpectConnectionRequest)
                     {
-                        client.waitConnectionAvailable();
                         //send connection request to seller peer first
                         client.sendConnectionRequest(new ConnectionRequest());
                     }
 
                     serverSocket = new ServerSocket(port);
+                    serverSocket.setReuseAddress(true);
 
-                    while(true)
+                    while(running)
                     {
                         Socket socketClient = serverSocket.accept();
-
                         InputStream inputStream = socketClient.getInputStream();
 
                         switch(state)
@@ -97,7 +97,6 @@ public class BuyerPeer implements TradingPeer {
                                 }else{
                                     state = BuyerPeerState.ExpectContractInfo;
                                 }
-                                client.sendRequestResponse(new RequestResponse(true));
                                 break;
                             case ExpectSellerProfile:
                                 String jsonString = convertStreamToString(inputStream);
@@ -109,7 +108,7 @@ public class BuyerPeer implements TradingPeer {
                                 String jsonString2 = convertStreamToString(inputStream);
                                 ContractInfo contractInfo = serializationService.deserialize(jsonString2, new TypeToken<ContractInfo>(){}.getType());
                                 callback.onContractInfoReceived(contractInfo);
-                                stop();
+                                running = false;
                                 break;
                         }
 
@@ -117,8 +116,7 @@ public class BuyerPeer implements TradingPeer {
 
                 } catch (Exception e) {
                     //todo:exception handling
-                    callback.onWifiResponse(new WifiResponse(false, e, "Error"));
-                    stop();
+                    callback.onWifiResponse(new WifiResponse(false, e, "An error occurred while communicating with the other peer."));
                     /*
                     switch(state)
                     {
@@ -135,8 +133,8 @@ public class BuyerPeer implements TradingPeer {
                 }
                 finally {
                     try {
-                        if(serverSocket != null)
-                            serverSocket.close();
+                        serverSocket.close();
+                        stop();
                     } catch (IOException e) {
                         //todo: log
                         e.printStackTrace();
@@ -148,7 +146,10 @@ public class BuyerPeer implements TradingPeer {
 
     public void stop()
     {
-        task.cancel(true);
+        if(!task.isDone())
+            task.cancel(true);
+
+        stoppedHandler.OnTradingPeerStopped();
     }
 
     private static String convertStreamToString(java.io.InputStream is) {

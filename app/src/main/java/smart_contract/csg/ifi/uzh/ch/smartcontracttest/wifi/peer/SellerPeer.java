@@ -58,12 +58,12 @@ public class SellerPeer implements TradingPeer
                  * Create a buyerServer socket and wait for client connections. This
                  * call blocks until a connection is accepted from a client
                  */
+                boolean running = true;
                 ServerSocket serverSocket = null;
                 try{
 
                     if(state != WifiServerState.ExpectConnectionRequest)
                     {
-                        client.waitConnectionAvailable();
                         client.sendConnectionRequest(new ConnectionRequest());
                         //send the connection configuration to the buyers device. If this is successful, we notify the callback
                         //that the buyer is ready to receive the data
@@ -72,8 +72,9 @@ public class SellerPeer implements TradingPeer
                     }
 
                     serverSocket = new ServerSocket(port);
+                    serverSocket.setReuseAddress(true);
 
-                    while(true)
+                    while(running)
                     {
                         Socket clientSocket = serverSocket.accept();
                         InputStream inputStream = clientSocket.getInputStream();
@@ -84,33 +85,39 @@ public class SellerPeer implements TradingPeer
                                 String connectionString = convertStreamToString(inputStream);
                                 serializationService.deserialize(connectionString, new TypeToken<ConnectionRequest>(){}.getType());
                                 client.setHost(clientSocket.getInetAddress());
-                                if(useIdentification)
-                                {
-                                    state = WifiServerState.ExpectUserProfile;
-                                }
                                 //send the connection configuration to the buyers device. If this is successful, we notify the callback
                                 //that the buyer is ready to receive the data
                                 ConnectionConfig config = new ConnectionConfig(useIdentification);
                                 client.sendConnectionConfiguration(config);
+                                if(useIdentification)
+                                {
+                                    state = WifiServerState.ExpectUserProfile;
+                                }else{
+                                    client.sendProfile(callback.getUserProfile());
+                                    client.sendContract(callback.getContractInfo());
+                                    running = false;
+                                }
                                 break;
                             case ExpectUserProfile:
                                 String jsonString = convertStreamToString(inputStream);
                                 UserProfile userProfile = serializationService.deserialize(jsonString, new TypeToken<UserProfile>(){}.getType());
                                 callback.onUserProfileReceived(userProfile);
-                                stop();
+                                client.sendProfile(callback.getUserProfile());
+                                client.sendContract(callback.getContractInfo());
+                                running = false;
                                 break;
                         }
                     }
 
                 } catch (Exception e) {
                     //todo:error handling based on states
-                    callback.onWifiResponse(new WifiResponse(false, e, "Error"));
+                    callback.onWifiResponse(new WifiResponse(false, e, "An error occurred while communicating with the other peer."));
                     stop();
                 }
                 finally {
                     try {
-                        if(serverSocket != null)
-                            serverSocket.close();
+                        serverSocket.close();
+                        stop();
                     } catch (IOException e) {
                         //todo: log
                         e.printStackTrace();
@@ -122,7 +129,9 @@ public class SellerPeer implements TradingPeer
 
     public void stop()
     {
-        task.cancel(true);
+        if(!task.isDone())
+            task.cancel(true);
+
         stoppedHandler.OnTradingPeerStopped();
     }
 

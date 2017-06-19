@@ -136,19 +136,33 @@ public class WifiClient implements TradingClient
          * Create a client socket with the host,
          * port, and timeout information.
          */
-        socket.bind(null);
-        socket.connect((new InetSocketAddress(host, port)), 500);
+        try {
+            socket.bind(null);
+            socket.connect((new InetSocketAddress(host, port)));
 
-        /**
-         * Create a byte stream from a JPEG file and pipe it to the output stream
-         * of the socket. This data will be retrieved by the buyerServer device.
-         */
-        OutputStream outputStream = socket.getOutputStream();
-        while ((len = inputStream.read(buf)) != -1) {
-            outputStream.write(buf, 0, len);
+            /**
+             * Create a byte stream from a JPEG file and pipe it to the output stream
+             * of the socket. This data will be retrieved by the buyerServer device.
+             */
+            OutputStream outputStream = socket.getOutputStream();
+            while ((len = inputStream.read(buf)) != -1) {
+                outputStream.write(buf, 0, len);
+            }
+
+            outputStream.close();
+            inputStream.close();
+        }catch(ConnectException e)
+        {
+            System.out.println("Connect failed, waiting and trying again");
+            try
+            {
+                Thread.sleep(1000);//2 seconds
+            }
+            catch(InterruptedException ie){
+                ie.printStackTrace();
+            }
+
+            send(inputStream);
         }
-
-        outputStream.close();
-        inputStream.close();
     }
 }

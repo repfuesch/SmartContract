@@ -1,5 +1,6 @@
 package ch.uzh.ifi.csg.contract.datamodel;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import ch.uzh.ifi.csg.contract.contract.ContractState;
@@ -20,6 +21,7 @@ public class ContractInfo
     public ContractInfo(ContractType contractType, String contractAddress) {
         this.contractAddress = contractAddress;
         this.contractType = contractType;
+        this.images = new HashMap<>();
     }
 
     public ContractInfo(ContractType contractType, String contractAddress, UserProfile userProfile, Map<String, String> imageMap) {

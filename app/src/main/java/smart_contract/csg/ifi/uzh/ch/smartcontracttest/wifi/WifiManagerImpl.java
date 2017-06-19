@@ -13,11 +13,16 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
+import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
+import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.service.serialization.GsonSerializationService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.dialog.ConnectionListDialogFragment;
@@ -53,13 +58,15 @@ public class WifiManagerImpl
         return instance;
     }
 
-    private WifiP2pManager p2pManager;
-    private WifiP2pManager.Channel p2pChannel;
+    private final WifiP2pManager p2pManager;
+    private final WifiP2pManager.Channel p2pChannel;
     private IntentFilter intentFilter;
 
     private TradingPeer tradingPeer;
 
+    private ConnectionListDialogFragment connectionDialog;
     private ArrayList<WifiP2pDevice> deviceList;
+    private WifiP2pDevice selectedDevice;
     private boolean isConnected;
     private boolean isGroupOwner;
     private InetAddress groupOwnerAddress;
@@ -67,6 +74,8 @@ public class WifiManagerImpl
     private WifiBuyerCallback buyerCallback;
     private WifiSellerCallback sellerCallback;
     private boolean identificationRequired;
+
+    private ScheduledFuture discoveryTask;
 
     private AppCompatActivity activity;
     private MessageHandler messageHandler;
@@ -95,21 +104,6 @@ public class WifiManagerImpl
         this.activity = activity;
         this.messageHandler = messageHandler;
         activity.registerReceiver(this, intentFilter);
-
-        p2pManager.discoverPeers(p2pChannel, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                if (p2pManager != null)
-                {
-                    p2pManager.requestPeers(p2pChannel, WifiManagerImpl.this);
-                }
-            }
-
-            @Override
-            public void onFailure(int reasonCode) {
-                //buyerCallback.onConnectionRequest(false);
-            }
-        });
     }
 
     public void detach()
@@ -133,15 +127,35 @@ public class WifiManagerImpl
         int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
         if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
             // Wifi P2P is enabled
+            if(discoveryTask == null || discoveryTask.isCancelled())
+            {
+                discoveryTask = Async.getExecutorService().scheduleAtFixedRate(new Runnable() {
+                    @Override
+                    public void run() {
+                        p2pManager.discoverPeers(p2pChannel, new WifiP2pManager.ActionListener() {
+                            @Override
+                            public void onSuccess() {
+                            }
+
+                            @Override
+                            public void onFailure(int reasonCode) {
+                                //buyerCallback.onConnectionRequest(false);
+                            }
+                        });
+                    }
+                }, 0, 1000, TimeUnit.MILLISECONDS);
+            }
         } else {
             // Wi-Fi P2P is not enabled
+            if(discoveryTask != null && !discoveryTask.isCancelled())
+                discoveryTask.cancel(true);
         }
         } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
             // request available peers from the wifi p2p manager. This is an
             // asynchronous call and the calling activity is notified with a
             // buyerCallback on PeerListListener.onPeersAvailable()
-            if (p2pManager != null)
-                p2pManager.requestPeers(p2pChannel, this);
+            //if (p2pManager != null)
+                //p2pManager.requestPeers(p2pChannel, this);
            // }
         } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
             // Respond to new connection or disconnections
@@ -154,9 +168,11 @@ public class WifiManagerImpl
             if (networkInfo.isConnected()) {
                 // We are connected with the other device, request connection
                 // info to find group owner IP
+                isConnected = true;
                 p2pManager.requestConnectionInfo(p2pChannel, this);
             }else{
                 //handle disconnection of peer
+                isConnected = false;
                 if(tradingPeer != null)
                     tradingPeer.stop();
             }
@@ -175,6 +191,18 @@ public class WifiManagerImpl
         {
             deviceList.add(deviceIterator.next());
         }
+
+        if(sellerCallback != null && selectedDevice == null && tradingPeer == null && connectionDialog == null)
+        {
+            if(deviceList.size() > 0)
+            {
+                connectionDialog = new ConnectionListDialogFragment();
+                Bundle args = new Bundle();
+                args.putSerializable(ConnectionListDialogFragment.DEVICE_LIST_MESSAGE, deviceList);
+                connectionDialog.setArguments(args);
+                connectionDialog.show(activity.getSupportFragmentManager(), "ConnectionDialogFragment");
+            }
+        }
     }
 
     @Override
@@ -182,29 +210,24 @@ public class WifiManagerImpl
     {
         this.sellerCallback = callback;
         this.identificationRequired = useIdentification;
-
-        //if connection is requested by user, show connection list dialog
-        if(deviceList != null)
+        if (p2pManager != null)
         {
-            ConnectionListDialogFragment connectionDialog = new ConnectionListDialogFragment();
-            Bundle args = new Bundle();
-            args.putSerializable(ConnectionListDialogFragment.DEVICE_LIST_MESSAGE, deviceList);
-            connectionDialog.setArguments(args);
-            connectionDialog.show(activity.getSupportFragmentManager(), "ConnectionDialogFragment");
+            p2pManager.requestPeers(p2pChannel, WifiManagerImpl.this);
         }
     }
 
     public void requestContractData(WifiBuyerCallback callback)
     {
         this.buyerCallback = callback;
+
         if(isConnected && isGroupOwner)
         {
-            TradingClient client = new WifiClient(8887, new GsonSerializationService());
+            TradingClient client = new WifiClient(8885, new GsonSerializationService());
             startBuyerPeer(8888, client);
         }else if(isConnected && !isGroupOwner)
         {
             TradingClient client = new WifiClient(groupOwnerAddress, 8888, new GsonSerializationService());
-            startBuyerPeer(8887, client);
+            startBuyerPeer(8885, client);
         }
 
     }
@@ -224,8 +247,7 @@ public class WifiManagerImpl
             @Override
             public void onFailure(int reason) {
                 //failure logic
-                buyerCallback = null;
-                buyerCallback.onWifiResponse(new WifiResponse(false, null, "Cannot establish connection to peer!"));
+                sellerCallback.onWifiResponse(new WifiResponse(false, null, "Cannot establish connection to peer!"));
             }
         });
     }
@@ -250,7 +272,7 @@ public class WifiManagerImpl
             if(sellerCallback != null)
             {
                 startSellerPeer(8888, client);
-            }else{
+            }else if(buyerCallback != null){
                 startBuyerPeer(8888, client);
             }
 
@@ -262,7 +284,7 @@ public class WifiManagerImpl
             if(sellerCallback != null)
             {
                 startSellerPeer(8885, client);
-            }else{
+            }else if(buyerCallback != null){
                 startBuyerPeer(8885, client);
             }
         }
@@ -293,12 +315,45 @@ public class WifiManagerImpl
         tradingPeer.start();
     }
 
-    //When a running peer server stopps, we reset the state of the WifiManager
+    private void deletePersistentGroups(){
+        try {
+            Method[] methods = WifiP2pManager.class.getMethods();
+            for (int i = 0; i < methods.length; i++) {
+                if (methods[i].getName().equals("deletePersistentGroup")) {
+                    // Delete any persistent group
+                    for (int netid = 0; netid < 32; netid++) {
+                        methods[i].invoke(p2pManager, p2pChannel, netid, null);
+                    }
+                }
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    //When a running peer server stops, we reset the state of the WifiManager
     @Override
     public void OnTradingPeerStopped()
     {
         tradingPeer = null;
         buyerCallback = null;
         sellerCallback = null;
+        selectedDevice = null;
+        connectionDialog = null;
+        if(isConnected)
+        {
+            deletePersistentGroups();
+            p2pManager.removeGroup(p2pChannel, new WifiP2pManager.ActionListener() {
+                @Override
+                public void onSuccess() {
+                }
+
+                @Override
+                public void onFailure(int i) {
+                    System.out.println("fail");
+                }
+            });
+        }
+
     }
 }
