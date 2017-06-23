@@ -38,6 +38,8 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverview
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.WifiManager;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.service.P2PBuyerService;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.service.P2PSellerService;
 
 /**
  * Base class for all Activities
@@ -122,15 +124,21 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
     }
 
     public final SettingProvider getSettingProvider() {
-        return appContext.getSettingsProvider();
+        return appContext.getSettingProvider();
     }
 
     public final TransactionManager getTransactionManager() {
         return appContext.getTransactionManager();
     }
 
-    public final WifiManager getWifiManager(){
-        return appContext.getWifiManager();
+    @Override
+    public P2PSellerService getP2PSellerService() {
+        return appContext.getP2PSellerService();
+    }
+
+    @Override
+    public P2PBuyerService getP2PBuyerService() {
+        return appContext.getP2PBuyerService();
     }
 
     @Override
@@ -280,9 +288,9 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
     protected void onPause() {
         super.onPause();
 
+        appContext.onActivityStopped(this);
         if (broadcastReceiverRegistered) {
             LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
-            getWifiManager().detach();
             broadcastReceiverRegistered = false;
         }
     }
@@ -291,9 +299,9 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
     protected void onResume() {
         super.onResume();
 
+        appContext.onActivityResumed(this);
         if (!broadcastReceiverRegistered) {
             LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, contractIntentFilter);
-            getWifiManager().attach(this, this);
             broadcastReceiverRegistered = true;
         }
 

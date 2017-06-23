@@ -13,16 +13,23 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import ch.uzh.ifi.csg.contract.async.Async;
+import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
+import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.service.serialization.GsonSerializationService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.dialog.ConnectionListDialogFragment;
@@ -38,7 +45,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.WifiSellerCallb
 /**
  * Created by flo on 16.06.17.
  */
-
+/*
 public class WifiManagerImpl
         extends BroadcastReceiver
         implements
@@ -68,8 +75,10 @@ public class WifiManagerImpl
     private ArrayList<WifiP2pDevice> deviceList;
     private WifiP2pDevice selectedDevice;
     private boolean isConnected;
+
     private boolean isGroupOwner;
     private InetAddress groupOwnerAddress;
+    private int groupOwnerPort;
 
     private WifiBuyerCallback buyerCallback;
     private WifiSellerCallback sellerCallback;
@@ -113,10 +122,6 @@ public class WifiManagerImpl
         messageHandler = null;
         if(tradingPeer != null)
             tradingPeer.stop();
-    }
-
-    public List<WifiP2pDevice> getDeviceList() {
-        return deviceList;
     }
 
     @Override
@@ -219,17 +224,7 @@ public class WifiManagerImpl
     public void requestContractData(WifiBuyerCallback callback)
     {
         this.buyerCallback = callback;
-
-        if(isConnected && isGroupOwner)
-        {
-            TradingClient client = new WifiClient(8885, new GsonSerializationService());
-            startBuyerPeer(8888, client);
-        }else if(isConnected && !isGroupOwner)
-        {
-            TradingClient client = new WifiClient(groupOwnerAddress, 8888, new GsonSerializationService());
-            startBuyerPeer(8885, client);
-        }
-
+        startPeer();
     }
 
     @Override
@@ -267,30 +262,82 @@ public class WifiManagerImpl
             // We are the group owner and the initiator of the connection
             // we do not know the address of the other peer and thus, we expect the connection request from the other peer
             isGroupOwner = true;
-            TradingClient client = new WifiClient(8885, new GsonSerializationService());
 
-            if(sellerCallback != null)
-            {
-                startSellerPeer(8888, client);
-            }else if(buyerCallback != null){
-                startBuyerPeer(8888, client);
-            }
+            findFreePort("localhost")
+                    .done(new DoneCallback<Integer>() {
+                        @Override
+                        public void onDone(Integer result) {
+                            groupOwnerPort = result;
+                            startPeer();
+                        }
+                    });
 
         } else if (info.groupFormed) {
             isGroupOwner = false;
 
-            TradingClient client = new WifiClient(groupOwnerAddress, 8888, new GsonSerializationService());
+            findFreePort(groupOwnerAddress.getHostAddress())
+                    .done(new DoneCallback<Integer>() {
+                        @Override
+                        public void onDone(Integer result) {
+                            groupOwnerPort = result;
+                            startPeer();
+                        }
+                    });
+        }
+    }
 
-            if(sellerCallback != null)
+    private void startPeer()
+    {
+        if(isGroupOwner)
+        {
+            TradingClient client = new WifiClient(new GsonSerializationService());
+
+            if(buyerCallback != null)
             {
-                startSellerPeer(8885, client);
-            }else if(buyerCallback != null){
-                startBuyerPeer(8885, client);
+                startBuyerPeer(groupOwnerPort, client);
+            }else if(sellerCallback != null){
+                startSellerPeer(groupOwnerPort, client);
+            }
+        }else{
+
+            TradingClient client = new WifiClient(groupOwnerAddress.getHostAddress(), groupOwnerPort, new GsonSerializationService());
+
+            if(buyerCallback != null)
+            {
+                startBuyerPeer(null, client);
+            }else if(sellerCallback != null){
+                startSellerPeer(null, client);
             }
         }
     }
 
-    private void startSellerPeer(int port, TradingClient client)
+    private static SimplePromise<Integer> findFreePort(final String host)
+    {
+        return Async.toPromise(new Callable<Integer>() {
+            @Override
+            public Integer call() throws Exception {
+                for(int i = 5000; i < 10000; ++i)
+                {
+                    try {
+                        (new Socket(host, i)).close();
+
+                        // Successful connection means the port is taken.
+                        continue;
+                    }
+                    catch(SocketException e) {
+                        // Could not connect.
+                        return i;
+                    } catch (IOException e) {
+                        continue;
+                    }
+                }
+
+                return -1;
+            }
+        });
+    }
+
+    private void startSellerPeer(Integer port, TradingClient client)
     {
         this.tradingPeer = new SellerPeer(
                 new GsonSerializationService(),
@@ -303,7 +350,7 @@ public class WifiManagerImpl
         tradingPeer.start();
     }
 
-    private void startBuyerPeer(int port, TradingClient client)
+    private void startBuyerPeer(Integer port, TradingClient client)
     {
         this.tradingPeer = new BuyerPeer(
                 new GsonSerializationService(),
@@ -340,6 +387,8 @@ public class WifiManagerImpl
         sellerCallback = null;
         selectedDevice = null;
         connectionDialog = null;
+        groupOwnerAddress = null;
+
         if(isConnected)
         {
             deletePersistentGroups();
@@ -357,3 +406,4 @@ public class WifiManagerImpl
 
     }
 }
+*/

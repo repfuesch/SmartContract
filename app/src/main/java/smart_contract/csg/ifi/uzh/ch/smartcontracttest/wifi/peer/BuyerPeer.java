@@ -28,13 +28,13 @@ public class BuyerPeer implements TradingPeer {
     private TradingClient client;
     private SerializationService serializationService;
     private OnTradingPeerStoppedHandler stoppedHandler;
-    private int port;
+    private Integer port;
 
     private ContractInfo contractInfo;
 
     private ScheduledFuture task;
 
-    public BuyerPeer(SerializationService serializationService, WifiBuyerCallback callback, TradingClient client, OnTradingPeerStoppedHandler stoppedHandler, int port)
+    public BuyerPeer(SerializationService serializationService, WifiBuyerCallback callback, TradingClient client, OnTradingPeerStoppedHandler stoppedHandler, Integer port)
     {
         this.serializationService = serializationService;
         this.state = BuyerPeerState.ExpectConnectionConfig;
@@ -43,12 +43,6 @@ public class BuyerPeer implements TradingPeer {
         this.stoppedHandler = stoppedHandler;
         this.port = port;
 
-        if(client.getHost() == null)
-        {
-            state = BuyerPeerState.ExpectConnectionRequest;
-        }else{
-            state = BuyerPeerState.ExpectConnectionConfig;
-        }
     }
 
     public void start()
@@ -64,13 +58,20 @@ public class BuyerPeer implements TradingPeer {
                 ServerSocket serverSocket = null;
                 try{
 
-                    if(state != BuyerPeerState.ExpectConnectionRequest)
+                    if(port == null)
                     {
+                        serverSocket = new ServerSocket(0);
                         //send connection request to seller peer first
-                        client.sendConnectionRequest(new ConnectionRequest());
+                        client.sendConnectionRequest(new ConnectionRequest(serverSocket.getLocalPort()));
+                        state = BuyerPeerState.ExpectConnectionConfig;
+
+                    }else{
+                        //wait such that other peer can detect the free local port
+                        Thread.sleep(1000);
+                        serverSocket = new ServerSocket(port);
+                        state = BuyerPeerState.ExpectConnectionRequest;
                     }
 
-                    serverSocket = new ServerSocket(port);
                     serverSocket.setReuseAddress(true);
 
                     while(running)
@@ -82,9 +83,10 @@ public class BuyerPeer implements TradingPeer {
                         {
                             case ExpectConnectionRequest:
                                 String connRequestString = convertStreamToString(inputStream);
-                                serializationService.deserialize(connRequestString, new TypeToken<ConnectionRequest>(){}.getType());
+                                ConnectionRequest request = serializationService.deserialize(connRequestString, new TypeToken<ConnectionRequest>(){}.getType());
                                 InetAddress peerAddress = socketClient.getInetAddress();
-                                client.setHost(peerAddress);
+                                client.setHost(peerAddress.getHostAddress());
+                                client.setPort(request.getListeningPort());
                                 state = BuyerPeerState.ExpectConnectionConfig;
                                 break;
                             case ExpectConnectionConfig:

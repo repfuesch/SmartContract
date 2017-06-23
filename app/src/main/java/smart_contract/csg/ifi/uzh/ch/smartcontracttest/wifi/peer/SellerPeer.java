@@ -4,13 +4,11 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.InetAddress;
+
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
@@ -27,26 +25,18 @@ public class SellerPeer implements TradingPeer
     private SellerPeer.WifiServerState state;
     private OnTradingPeerStoppedHandler stoppedHandler;
     private TradingClient client;
-    private int port;
+    private Integer port;
 
     private ScheduledFuture task;
 
-    public SellerPeer(SerializationService serializationService, WifiSellerCallback callback, TradingClient client, OnTradingPeerStoppedHandler stoppedHandler, boolean useIdentification, int port)
+    public SellerPeer(SerializationService serializationService, WifiSellerCallback callback, TradingClient client, OnTradingPeerStoppedHandler stoppedHandler, boolean useIdentification, Integer port)
     {
         this.serializationService = serializationService;
         this.callback = callback;
         this.useIdentification = useIdentification;
-        state = WifiServerState.ExpectConnectionRequest;
         this.stoppedHandler = stoppedHandler;
         this.client = client;
         this.port = port;
-
-        if(client.getHost() == null)
-        {
-            state = WifiServerState.ExpectConnectionRequest;
-        }else{
-            state = WifiServerState.ExpectUserProfile;
-        }
     }
 
     public void start()
@@ -62,16 +52,31 @@ public class SellerPeer implements TradingPeer
                 ServerSocket serverSocket = null;
                 try{
 
-                    if(state != WifiServerState.ExpectConnectionRequest)
+                    if(port == null)
                     {
-                        client.sendConnectionRequest(new ConnectionRequest());
+                        serverSocket = new ServerSocket(0);
+                        //send connection request to buyer peer first
+                        client.sendConnectionRequest(new ConnectionRequest(serverSocket.getLocalPort()));
                         //send the connection configuration to the buyers device. If this is successful, we notify the callback
                         //that the buyer is ready to receive the data
                         ConnectionConfig config = new ConnectionConfig(useIdentification);
                         client.sendConnectionConfiguration(config);
+
+                        if(useIdentification)
+                        {
+                            state = WifiServerState.ExpectUserProfile;
+                        }else{
+                            client.sendProfile(callback.getUserProfile());
+                            client.sendContract(callback.getContractInfo());
+                        }
+
+                    }else{
+                        //wait such that other peer can detect the free local port
+                        Thread.sleep(1000);
+                        serverSocket = new ServerSocket(port);
+                        state = WifiServerState.ExpectConnectionRequest;
                     }
 
-                    serverSocket = new ServerSocket(port);
                     serverSocket.setReuseAddress(true);
 
                     while(running)
@@ -83,8 +88,9 @@ public class SellerPeer implements TradingPeer
                         {
                             case ExpectConnectionRequest:
                                 String connectionString = convertStreamToString(inputStream);
-                                serializationService.deserialize(connectionString, new TypeToken<ConnectionRequest>(){}.getType());
-                                client.setHost(clientSocket.getInetAddress());
+                                ConnectionRequest connectionRequest = serializationService.deserialize(connectionString, new TypeToken<ConnectionRequest>(){}.getType());
+                                client.setHost(clientSocket.getInetAddress().getHostAddress());
+                                client.setPort(connectionRequest.getListeningPort());
                                 //send the connection configuration to the buyers device. If this is successful, we notify the callback
                                 //that the buyer is ready to receive the data
                                 ConnectionConfig config = new ConnectionConfig(useIdentification);
@@ -144,10 +150,5 @@ public class SellerPeer implements TradingPeer
     private static String convertStreamToString(java.io.InputStream is) {
         java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
         return s.hasNext() ? s.next() : "";
-    }
-
-    private static void writeJson(Object obj, OutputStream os, SerializationService serializationService) throws IOException {
-        String data = serializationService.serialize(obj);
-        os.write(data.getBytes());
     }
 }

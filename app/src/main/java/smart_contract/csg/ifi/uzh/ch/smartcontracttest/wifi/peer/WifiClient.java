@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ConnectException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -23,24 +22,24 @@ import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
 
 public class WifiClient implements TradingClient
 {
-    private InetAddress host;
+    private String host;
     private int port;
     private SerializationService serializationService;
 
-    public WifiClient(int port, SerializationService serializationService)
+    public WifiClient(SerializationService serializationService)
     {
-        this.port = port;
         this.serializationService = serializationService;
     }
 
-    public WifiClient(InetAddress host, int port, SerializationService serializationService)
+    public WifiClient(String host, int port, SerializationService serializationService)
     {
-        this(port, serializationService);
+        this(serializationService);
         this.host = host;
+        this.port = port;
     }
 
     @Override
-    public InetAddress getHost() {
+    public String getHost() {
         return host;
     }
 
@@ -72,10 +71,12 @@ public class WifiClient implements TradingClient
         }
     }
 
-    public void setHost(InetAddress address)
+    public void setHost(String address)
     {
         this.host = address;
     }
+
+    public void setPort(int port) { this.port = port; }
 
     public void sendConnectionConfiguration(final ConnectionConfig config) throws IOException
     {

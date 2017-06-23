@@ -36,7 +36,7 @@ public class AccountActivity extends ActivityBase implements AccountCreateDialog
 
     public void onRequestContractDataClick(View view)
     {
-        getWifiManager().requestContractData(new WifiBuyerCallback() {
+        getP2PBuyerService().connect(new WifiBuyerCallback() {
             @Override
             public UserProfile getUserProfile() {
                 showMessage("user profile submitted!");
@@ -65,7 +65,7 @@ public class AccountActivity extends ActivityBase implements AccountCreateDialog
 
     public void onSendContractDataClick(View view)
     {
-        getWifiManager().requestBuyerConnection(new WifiSellerCallback() {
+        getP2PSellerService().connect(new WifiSellerCallback() {
             @Override
             public UserProfile getUserProfile() {
                 showMessage("retrieving user profile");

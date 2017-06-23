@@ -12,8 +12,9 @@ import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 
 public interface TradingClient
 {
-    void setHost(InetAddress address);
-    InetAddress getHost();
+    void setHost(String address);
+    String getHost();
+    void setPort(int port);
 
     void waitConnectionAvailable();
     void sendProfile(final UserProfile userProfile) throws IOException;

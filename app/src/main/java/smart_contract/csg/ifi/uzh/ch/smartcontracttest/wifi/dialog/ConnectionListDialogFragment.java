@@ -16,6 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
@@ -33,6 +34,9 @@ public class ConnectionListDialogFragment extends DialogFragment
     private WifiP2pDevice selectedDevice;
     private ConnectionListDialogListener listener;
 
+    private Spinner connectionListSpinner;
+    private View contentView;
+
     public ConnectionListDialogFragment()
     {
     }
@@ -44,6 +48,40 @@ public class ConnectionListDialogFragment extends DialogFragment
         deviceList = (List<WifiP2pDevice>) args.getSerializable(DEVICE_LIST_MESSAGE);
     }
 
+    public void updateDeviceList(List<WifiP2pDevice> devices)
+    {
+        List<WifiP2pDevice> devList = new ArrayList<>();
+        boolean changed = false;
+        if(deviceList.size() != devices.size())
+            changed = true;
+
+        for(WifiP2pDevice device : devices)
+        {
+            boolean newDevice = true;
+            for(WifiP2pDevice dev : deviceList)
+            {
+                if(device.deviceName.equals(dev.deviceName))
+                    newDevice = false;
+            }
+
+            devList.add(device);
+            if(newDevice)
+                changed = true;
+        }
+
+        deviceList = devList;
+        if(!changed)
+            return;
+
+        List<String> deviceNames = new ArrayList<>(deviceList.size());
+        for(WifiP2pDevice device : deviceList)
+        {
+            deviceNames.add(device.deviceName);
+        }
+
+        connectionListSpinner.setAdapter(new ArrayAdapter<String>(contentView.getContext(), android.R.layout.simple_list_item_1, deviceNames));
+    }
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState)
     {
@@ -53,17 +91,11 @@ public class ConnectionListDialogFragment extends DialogFragment
 
         // Get the layout inflater
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View contentView = inflater.inflate(R.layout.fragment_connection_list_dialog, null);
+        contentView = inflater.inflate(R.layout.fragment_connection_list_dialog, null);
         contentView.setBackgroundColor(Color.TRANSPARENT);
 
-        Spinner connectionListSpinner = (Spinner) contentView.findViewById(R.id.connection_list_spinner);
-        List<String> deviceNames = new ArrayList<>(deviceList.size());
-        for(WifiP2pDevice device : deviceList)
-        {
-            deviceNames.add(device.deviceName);
-        }
-
-        connectionListSpinner.setAdapter(new ArrayAdapter<String>(contentView.getContext(), android.R.layout.simple_list_item_1, deviceNames));
+        connectionListSpinner = (Spinner) contentView.findViewById(R.id.connection_list_spinner);
+        updateDeviceList(deviceList);
         connectionListSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
@@ -105,7 +137,7 @@ public class ConnectionListDialogFragment extends DialogFragment
     {
         if(context instanceof ApplicationContextProvider)
         {
-            listener = (ConnectionListDialogListener) (((ApplicationContextProvider) context).getWifiManager());
+            listener = (ConnectionListDialogListener) (((ApplicationContextProvider) context).getP2PSellerService());
         }else{
             throw new RuntimeException(context.toString() + " must implement ConnectionListDialogListener");
         }
@@ -119,5 +151,6 @@ public class ConnectionListDialogFragment extends DialogFragment
 
     public static interface ConnectionListDialogListener {
         void onDeviceSelected(WifiP2pDevice device);
+        void onDialogCancelled();
     }
 }

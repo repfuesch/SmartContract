@@ -5,4 +5,15 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer;
  */
 
 public class ConnectionRequest {
+
+    private int listeningPort;
+
+    public ConnectionRequest(int listeningPort)
+    {
+        this.listeningPort = listeningPort;
+    }
+
+    public int getListeningPort() {
+        return listeningPort;
+    }
 }
