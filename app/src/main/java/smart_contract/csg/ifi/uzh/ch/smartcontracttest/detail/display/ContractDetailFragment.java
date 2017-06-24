@@ -49,6 +49,7 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
     //private LinearLayout progressView;
     private LinearLayout contractInteractionView;
     private LinearLayout verifyIdentityView;
+    private LinearLayout exportContractView;
     private LinearLayout imageContainer;
 
     private ProportionalImageView qrImageView;
@@ -91,6 +92,8 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
         qrImageView = (ProportionalImageView) view.findViewById(R.id.contract_qr_image);
         verifyIdentityView = (LinearLayout) view.findViewById(R.id.section_verify_identity);
         qrImageView.setOnClickListener(this);
+
+        exportContractView = (LinearLayout) view.findViewById(R.id.section_export);
 
         currencySpinner = (Spinner) view.findViewById(R.id.contract_currency);
         currencyList = new ArrayList<>();
@@ -138,6 +141,10 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         attachContext(activity);
+    }
+
+    public boolean isVerifyIdentity() {
+        return verifyIdentity;
     }
 
     protected abstract ITradeContract getContract();
@@ -224,6 +231,11 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
                         {
                             contractInteractionView.setVisibility(View.GONE);
                             verifyIdentityView.setVisibility(View.VISIBLE);
+                        }
+
+                        if(contract.getUserProfile().getVCard() != null)
+                        {
+                            exportContractView.setVisibility(View.GONE);
                         }
 
                         //create a bitmap image containing the qr code of the address and type of the contract

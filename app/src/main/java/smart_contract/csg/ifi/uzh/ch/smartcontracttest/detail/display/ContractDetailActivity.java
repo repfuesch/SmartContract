@@ -5,6 +5,7 @@ import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.support.v4.app.DialogFragment;
 import android.view.View;
 import android.widget.TabHost;
 
@@ -13,6 +14,7 @@ import org.jdeferred.Promise;
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
+import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.event.IContractObserver;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ezvcard.Ezvcard;
@@ -20,8 +22,10 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.dialog.ContractExportDialog;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.dialog.ContractImportDialog;
 
-public class ContractDetailActivity extends ActivityBase implements IContractObserver, ProfileFragment.OnProfileVerifiedListener {
+public class ContractDetailActivity extends ActivityBase implements IContractObserver, ProfileFragment.OnProfileVerifiedListener, ContractExportDialog.ContractExportListener {
 
     public final static String EXTRA_CONTRACT_ADDRESS = "ch.uzh.ifi.csg.smart_contract.address";
     public final static String EXTRA_CONTRACT_TYPE = "ch.uzh.ifi.csg.smart_contract.type";
@@ -206,5 +210,30 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
         contactFragment.setMode(ProfileFragment.ProfileMode.ReadOnly);
         getServiceProvider().getContractService().saveContract(contract, getSettingProvider().getSelectedAccount());
         detailFragment.identityVerified();
+    }
+
+    public void onExportContractClick(View view)
+    {
+        DialogFragment exportFragment = new ContractExportDialog();
+        Bundle args = new Bundle();
+        args.putBoolean(ContractExportDialog.MESSAGE_IDENTIFICATION_USED, detailFragment.isVerifyIdentity());
+        args.putSerializable(ContractExportDialog.MESSAGE_CONTRACT_DATA, new ContractInfo(contract.getContractType(), contract.getContractAddress(), new UserProfile(), contract.getImages()));
+        exportFragment.setArguments(args);
+        exportFragment.show(getSupportFragmentManager(), "importDialogFragment");
+    }
+
+    @Override
+    public void onContractDataExchanged(UserProfile buyerProfile) {
+        addProfileTab();
+        if(buyerProfile != null)
+        {
+            addProfileTab();
+            contactFragment.setProfileInformation(buyerProfile);
+            tabHost.setCurrentTabByTag("Contact");
+        }
+    }
+
+    @Override
+    public void onContractDialogCanceled() {
     }
 }

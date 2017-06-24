@@ -9,7 +9,6 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.support.design.widget.Snackbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.ContextMenu;
@@ -73,14 +72,11 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
     private ImageButton addImageButton;
     private LinearLayout imageContainer;
 
-    protected UserProfile verifiedProfile;
     private Map<ProportionalImageView, Uri> images;
     private ProportionalImageView selectedImage;
-    private boolean isVerified;
-    private boolean isValid;
-    private boolean needsVerification;
 
-    private OnProfileVerificationRequestedListener listener;
+    private boolean needsVerification;
+    private boolean isValid;
     private MessageHandler messageHandler;
 
     protected ApplicationContextProvider contextProvider;
@@ -96,8 +92,6 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         View view =  inflater.inflate(getLayoutId(), container, false);
 
         needsVerification = false;
-        isVerified = false;
-        isValid = false;
 
         priceField = (EditText) view.findViewById(R.id.contract_price);
         priceField.addTextChangedListener(new RequiredTextFieldValidator(priceField));
@@ -218,20 +212,6 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         }
 
         SimplePromise<ITradeContract> promise = deployContract(priceWei, title, desc, needsVerification, imageSignatures);
-
-        promise.done(new DoneCallback<ITradeContract>() {
-                    @Override
-                    public void onDone(ITradeContract result)
-                    {
-                        result.setUserProfile(verifiedProfile);
-                        for(String imgSig : imageSignatures.keySet())
-                        {
-                            result.addImage(imgSig, imageSignatures.get(imgSig).getName());
-                        }
-                        contextProvider.getServiceProvider().getContractService().saveContract(result, contextProvider.getSettingProvider().getSelectedAccount());
-                    }
-                });
-
         contextProvider.getTransactionManager().toTransaction(promise);
 
         Intent intent = new Intent(getActivity(), ContractOverviewActivity.class);
@@ -248,13 +228,6 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
 
     private void attachContext(Context context)
     {
-        if(context instanceof OnProfileVerificationRequestedListener)
-        {
-            listener = (OnProfileVerificationRequestedListener)context;
-        }else{
-            throw new RuntimeException("Context must implement OnProfileVerificationRequestedListener!");
-        }
-
         if(context instanceof MessageHandler)
         {
             messageHandler = (MessageHandler) context;
@@ -292,33 +265,8 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
             isValid = false;
         }else{
             isValid = true;
-        }
-
-        checkStatus();
-    }
-
-    private void checkStatus()
-    {
-        if(isValid && needsVerification && isVerified)
-        {
             deployButton.setEnabled(true);
-            return;
         }
-
-        if(isValid && !needsVerification)
-        {
-            deployButton.setEnabled(true);
-            return;
-        }
-
-        deployButton.setEnabled(false);
-    }
-
-    public void verifyIdentity(UserProfile profile)
-    {
-        verifiedProfile = profile;
-        isVerified = true;
-        checkStatus();
     }
 
     @Override
@@ -328,17 +276,10 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         {
             case R.id.option_verification:
                 needsVerification = true;
-                isVerified = false;
-                checkStatus();
-                qrImageView.setVisibility(View.VISIBLE);
-                listener.onProfileVerificationEnabled(true);
                 break;
             default:
                 qrImageView.setVisibility(View.GONE);
                 needsVerification = false;
-                isVerified = true;
-                checkStatus();
-                listener.onProfileVerificationEnabled(false);
         }
     }
 
@@ -421,15 +362,6 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
     {
         switch (requestCode)
         {
-            case ContractCreateActivity.SCAN_CONTRACT_INFO_REQUEST:
-                if(intent == null)
-                    return;
-
-                String vCardString = intent.getStringExtra(QrScanningActivity.MESSAGE_PROFILE_DATA);
-                UserProfile profile = new UserProfile();
-                profile.setVCard(Ezvcard.parse(vCardString).first());
-                listener.onProfileVerificationRequested(profile);
-                break;
             case ImageHelper.PICK_IMAGE_REQUEST_CODE:
                 if (resultCode == RESULT_OK) {
                     addImage(intent.getData());
@@ -485,11 +417,5 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         imageArgs.putInt(ImageDialogFragment.MESSAGE_IMAGE_INDEX, startIndex);
         imageDialog.setArguments(imageArgs);
         imageDialog.show(getFragmentManager(), "ImageDialog");
-    }
-
-    public static interface OnProfileVerificationRequestedListener
-    {
-        void onProfileVerificationEnabled(boolean enabled);
-        void onProfileVerificationRequested(UserProfile profile);
     }
 }

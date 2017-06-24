@@ -2,12 +2,12 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.dialog;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -56,6 +56,7 @@ public class ContractExportDialog extends DialogFragment implements WifiSellerCa
 
         useIdentification = args.getBoolean(MESSAGE_IDENTIFICATION_USED);
         contractInfo = (ContractInfo) args.getSerializable(MESSAGE_CONTRACT_DATA);
+        System.out.print("aewsrfdgfds");
     }
 
     @Override
@@ -93,8 +94,16 @@ public class ContractExportDialog extends DialogFragment implements WifiSellerCa
         // Create the AlertDialog object and return it
         dialog = builder.create();
 
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-                .setEnabled(false);
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialogInterface) {
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                        .setEnabled(false);
+
+                contextProvider.getP2PSellerService().connect(ContractExportDialog.this, useIdentification);
+                BusyIndicator.show(exportDialogContent);
+            }
+        });
 
         return dialog;
     }
@@ -102,34 +111,39 @@ public class ContractExportDialog extends DialogFragment implements WifiSellerCa
     @Override
     public void onUserProfileRequested(final UserProfileListener listener)
     {
-        BusyIndicator.hide(exportDialogContent);
-        exportDialogInfo.setText("User profile requested by other peer");
-
-        verifyProfileView.setVisibility(View.VISIBLE);
-        final Button okButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-
-        okButton.setEnabled(true);
-        okButton.setOnClickListener(new View.OnClickListener() {
+        getActivity().runOnUiThread(new Runnable() {
             @Override
-            public void onClick(View view) {
-                okButton.setEnabled(false);
-                okButton.setOnClickListener(null);
+            public void run() {
+                BusyIndicator.hide(exportDialogContent);
+                exportDialogInfo.setText("User profile requested by other peer");
 
-                //construct new UserProfile based on selection of user
-                String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
-                UserProfile localProfile = contextProvider.getServiceProvider().getAccountService().getAccountProfile(selectedAccount);
+                verifyProfileView.setVisibility(View.VISIBLE);
+                final Button okButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
 
-                UserProfile profile = new UserProfile();
-                profile.setVCard(localProfile.getVCard());
+                okButton.setEnabled(true);
+                okButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        okButton.setEnabled(false);
+                        okButton.setOnClickListener(null);
 
-                if(profileImageCheckbox.isChecked())
-                {
-                    //todo:add image path to profile
-                }
+                        //construct new UserProfile based on selection of user
+                        String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
+                        UserProfile localProfile = contextProvider.getServiceProvider().getAccountService().getAccountProfile(selectedAccount);
 
-                listener.onUserProfileReceived(profile);
+                        UserProfile profile = new UserProfile();
+                        profile.setVCard(localProfile.getVCard());
 
-                BusyIndicator.show(exportDialogContent);
+                        if(profileImageCheckbox.isChecked())
+                        {
+                            //todo:add image path to profile
+                        }
+
+                        listener.onUserProfileReceived(profile);
+
+                        BusyIndicator.show(exportDialogContent);
+                    }
+                });
             }
         });
     }
@@ -154,10 +168,8 @@ public class ContractExportDialog extends DialogFragment implements WifiSellerCa
         {
             exportListener = (ContractExportListener)context;
         }else{
-            throw new RuntimeException(context.toString() + " must implement ContractImportListener");
+            throw new RuntimeException(context.toString() + " must implement ContractExportListener");
         }
-
-        contextProvider.getP2PSellerService().connect(this, useIdentification);
     }
 
     @Override
@@ -167,31 +179,49 @@ public class ContractExportDialog extends DialogFragment implements WifiSellerCa
     }
 
     @Override
-    public void onContractInfoRequested(ContractInfoListener listener) {
-        exportDialogInfo.setText("Contract info requested by other peer");
-        listener.onContractInfoReceived(contractInfo);
-
-        //After transmission of contract data, we enable the ''OK' button and inform the listener
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+    public void onContractInfoRequested(final ContractInfoListener listener)
+    {
+        getActivity().runOnUiThread(new Runnable() {
             @Override
-            public void onClick(View view) {
-                if(exportListener != null)
-                    exportListener.onContractDataExchanged(userProfile);
+            public void run() {
+                exportDialogInfo.setText("Contract info requested by other peer");
+                listener.onContractInfoReceived(contractInfo);
+
+                //After transmission of contract data, we enable the ''OK' button and inform the listener
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if(exportListener != null)
+                            exportListener.onContractDataExchanged(userProfile);
+                    }
+                });
+
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+
+                BusyIndicator.hide(exportDialogContent);
             }
         });
-
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
     }
 
     @Override
-    public void onUserProfileReceived(UserProfile data) {
-        exportDialogInfo.setText("User profile received");
-        this.userProfile = data;
+    public void onUserProfileReceived(final UserProfile data) {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                exportDialogInfo.setText("User profile received");
+                userProfile = data;
+            }
+        });
     }
 
     @Override
-    public void onWifiResponse(WifiResponse response) {
-        exportDialogInfo.setText(response.getReasonPhrase());
+    public void onWifiResponse(final WifiResponse response) {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                exportDialogInfo.setText(response.getReasonPhrase());
+            }
+        });
     }
 
     public static interface ContractExportListener

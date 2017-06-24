@@ -64,7 +64,7 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
         return R.layout.activity_contract_overview;
     }
 
-    public void onImportFromDeviceButtonClick()
+    public void onImportFromDeviceButtonClick(View view)
     {
         DialogFragment importFragment = new ContractImportDialog();
         importFragment.show(getSupportFragmentManager(), "importDialogFragment");

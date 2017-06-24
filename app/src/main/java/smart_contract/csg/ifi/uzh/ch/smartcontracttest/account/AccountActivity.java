@@ -34,64 +34,6 @@ public class AccountActivity extends ActivityBase implements AccountCreateDialog
         dialogFragment.show(getFragmentManager(), "accountDialog");
     }
 
-    public void onRequestContractDataClick(View view)
-    {
-        getP2PBuyerService().connect(new WifiBuyerCallback() {
-            @Override
-            public UserProfile getUserProfile() {
-                showMessage("user profile submitted!");
-                return new UserProfile();
-            }
-
-            @Override
-            public void onUserProfileReceived(UserProfile data) {
-                UserProfile profile = data;
-                showMessage("user profile received!");
-            }
-
-            @Override
-            public void onContractInfoReceived(ContractInfo contractInfo) {
-                ContractInfo info = contractInfo;
-                showMessage("Contract info received!");
-            }
-
-            @Override
-            public void onWifiResponse(WifiResponse response) {
-                String reason = response.getReasonPhrase();
-                showMessage("Wifi response: " + reason);
-            }
-        });
-    }
-
-    public void onSendContractDataClick(View view)
-    {
-        getP2PSellerService().connect(new WifiSellerCallback() {
-            @Override
-            public UserProfile getUserProfile() {
-                showMessage("retrieving user profile");
-                return new UserProfile();
-            }
-
-            @Override
-            public ContractInfo getContractInfo() {
-                showMessage("restrieving contract info");
-                return new ContractInfo(ContractType.Purchase, "ausdfgbhiaudgflidaugfdsaiugfbdaiugfhbidsagbdsig");
-            }
-
-            @Override
-            public void onUserProfileReceived(UserProfile data) {
-                UserProfile profile = data;
-                showMessage("received user profile");
-            }
-
-            @Override
-            public void onWifiResponse(WifiResponse response) {
-                String reason = response.getReasonPhrase();
-                showMessage("Wifi response: " + reason);
-            }
-        }, true);
-    }
-
     @Override
     protected int getLayoutResourceId() {
         return R.layout.activity_account;

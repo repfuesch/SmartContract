@@ -76,8 +76,16 @@ public class ContractImportDialog extends DialogFragment implements WifiBuyerCal
         // Create the AlertDialog object and return it
         dialog = builder.create();
 
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-                .setEnabled(false);
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialogInterface) {
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                        .setEnabled(false);
+
+                contextProvider.getP2PBuyerService().connect(ContractImportDialog.this);
+                BusyIndicator.show(importDialogContent);
+            }
+        });
 
         return dialog;
     }
@@ -85,64 +93,88 @@ public class ContractImportDialog extends DialogFragment implements WifiBuyerCal
     @Override
     public void onUserProfileRequested(final UserProfileListener listener)
     {
-        BusyIndicator.hide(importDialogContent);
-        importDialogInfo.setText("User profile requested by other peer");
-
-        verifyProfileView.setVisibility(View.VISIBLE);
-        final Button okButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-
-        okButton.setEnabled(true);
-        okButton.setOnClickListener(new View.OnClickListener() {
+        getActivity().runOnUiThread(new Runnable() {
             @Override
-            public void onClick(View view) {
-                okButton.setEnabled(false);
-                okButton.setOnClickListener(null);
+            public void run() {
+                BusyIndicator.hide(importDialogContent);
+                importDialogInfo.setText("User profile requested by other peer");
 
-                //construct new UserProfile based on selection of user
-                String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
-                UserProfile localProfile = contextProvider.getServiceProvider().getAccountService().getAccountProfile(selectedAccount);
+                verifyProfileView.setVisibility(View.VISIBLE);
+                final Button okButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
 
-                UserProfile profile = new UserProfile();
-                profile.setVCard(localProfile.getVCard());
+                okButton.setEnabled(true);
+                okButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        okButton.setEnabled(false);
+                        okButton.setOnClickListener(null);
 
-                if(profileImageCheckbox.isChecked())
-                {
-                    //todo:add image path to profile
-                }
+                        //construct new UserProfile based on selection of user
+                        String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
+                        UserProfile localProfile = contextProvider.getServiceProvider().getAccountService().getAccountProfile(selectedAccount);
 
-                listener.onUserProfileReceived(profile);
+                        UserProfile profile = new UserProfile();
+                        profile.setVCard(localProfile.getVCard());
 
-                BusyIndicator.show(importDialogContent);
+                        if(profileImageCheckbox.isChecked())
+                        {
+                            //todo:add image path to profile
+                        }
+
+                        listener.onUserProfileReceived(profile);
+
+                        BusyIndicator.show(importDialogContent);
+                    }
+                });
+            }
+        });
+
+    }
+
+    @Override
+    public void onUserProfileReceived(final UserProfile data) {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                importDialogInfo.setText("User profile received");
+                userProfile = data;
             }
         });
     }
 
     @Override
-    public void onUserProfileReceived(UserProfile data) {
-        importDialogInfo.setText("User profile received");
-        userProfile = data;
-    }
+    public void onContractInfoReceived(final ContractInfo info) {
 
-    @Override
-    public void onContractInfoReceived(ContractInfo info) {
-        importDialogInfo.setText("Contract info received");
-        this.contractInfo = new ContractInfo(info.getContractType(), info.getContractAddress(), userProfile, info.getImages());
-
-        //After transmission of contract data, we enable the ''OK' button and inform the listener
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+        getActivity().runOnUiThread(new Runnable() {
             @Override
-            public void onClick(View view) {
-                if(importListener != null)
-                    importListener.onContractDataReceived(contractInfo);
+            public void run() {
+                importDialogInfo.setText("Contract info received");
+                contractInfo = new ContractInfo(info.getContractType(), info.getContractAddress(), userProfile, info.getImages());
+
+                //After transmission of contract data, we enable the ''OK' button and inform the listener
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if(importListener != null)
+                            importListener.onContractDataReceived(contractInfo);
+                    }
+                });
+
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                BusyIndicator.hide(importDialogContent);
             }
         });
-
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
     }
 
     @Override
-    public void onWifiResponse(WifiResponse response) {
-        importDialogInfo.setText(response.getReasonPhrase());
+    public void onWifiResponse(final WifiResponse response) {
+
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                importDialogInfo.setText(response.getReasonPhrase());
+            }
+        });
     }
 
     @Override
@@ -166,9 +198,6 @@ public class ContractImportDialog extends DialogFragment implements WifiBuyerCal
         }else{
             throw new RuntimeException(context.toString() + " must implement ContractImportListener");
         }
-
-        BusyIndicator.show(importDialogContent);
-        contextProvider.getP2PBuyerService().connect(this);
     }
 
     @Override

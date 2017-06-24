@@ -23,25 +23,6 @@
             android:layout_alignParentRight="true"
             android:layout_height="wrap_content">
 
-
-            <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_action_scan_qr_code"
-                android:layout_alignParentRight="true"
-                android:layout_margin="8dp"
-                android:onClick="onRequestContractDataClick"
-                android:background="?android:attr/colorBackground"/>
-
-            <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_action_select_image"
-                android:layout_alignParentRight="true"
-                android:layout_margin="8dp"
-                android:onClick="onSendContractDataClick"
-                android:background="?android:attr/colorBackground"/>
-
             <ImageButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
