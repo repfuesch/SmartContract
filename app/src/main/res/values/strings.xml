@@ -63,6 +63,7 @@
     <string name="hint_description">Description</string>
     <string name="hint_address">Address</string>
     <string name="hint_contract_type">Contract Type</string>
+    <string name="hint_profile_info">Profile inormation to share</string>
     <string name="hint_state">State</string>
     <string name="hint_first_name">First Name</string>
     <string name="hint_last_name">Last Name</string>

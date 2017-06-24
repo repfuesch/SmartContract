@@ -126,6 +126,18 @@ public class P2PSellerServiceImpl implements P2PSellerService, P2PConnectionList
     }
 
     @Override
+    public void disconnect()
+    {
+        callback = null;
+        if(sellerPeer != null)
+            sellerPeer.stop();
+
+        sellerPeer = null;
+        connectionManager.stopListening();
+        connectionManager.disconnect();
+    }
+
+    @Override
     public void onDeviceSelected(WifiP2pDevice device) {
         //connectionManager.stopListening();
         connectionDialog = null;

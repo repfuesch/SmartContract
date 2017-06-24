@@ -9,19 +9,23 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import ch.uzh.ifi.csg.contract.async.Async;
+import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
+import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.service.UserProfileListener;
 
 /**
  * Created by flo on 18.06.17.
  */
 
-public class BuyerPeer implements TradingPeer {
+public class BuyerPeer implements TradingPeer, UserProfileListener {
 
     private BuyerPeerState state;
     private WifiBuyerCallback callback;
@@ -94,7 +98,7 @@ public class BuyerPeer implements TradingPeer {
                                 ConnectionConfig config = serializationService.deserialize(configString, new TypeToken<ConnectionConfig>(){}.getType());
                                 if(config.isIdentificationUsed())
                                 {
-                                    client.sendProfile(callback.getUserProfile());
+                                    callback.onUserProfileRequested(BuyerPeer.this);
                                     state = BuyerPeerState.ExpectSellerProfile;
                                 }else{
                                     state = BuyerPeerState.ExpectContractInfo;
@@ -119,19 +123,6 @@ public class BuyerPeer implements TradingPeer {
                 } catch (Exception e) {
                     //todo:exception handling
                     callback.onWifiResponse(new WifiResponse(false, e, "An error occurred while communicating with the other peer."));
-                    /*
-                    switch(state)
-                    {
-                        case ExpectConnectionConfig:
-                            break;
-                        case ExpectSellerProfile:
-                            callback.onProfileReceived(new WifiDataResponse<UserProfile>(false, e, null));
-                            break;
-                        case ExpectContractInfo:
-                            callback.onContractInfoReceived(new WifiDataResponse<ContractInfo>(false, e, null));
-                            break;
-                    }
-                    */
                 }
                 finally {
                     try {
@@ -157,6 +148,24 @@ public class BuyerPeer implements TradingPeer {
     private static String convertStreamToString(java.io.InputStream is) {
         java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
         return s.hasNext() ? s.next() : "";
+    }
+
+    @Override
+    public void onUserProfileReceived(final UserProfile profile) {
+
+        Async.run(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                client.sendProfile(profile);
+                return null;
+            }
+        }).fail(new FailCallback() {
+            @Override
+            public void onFail(Throwable result) {
+                //todo:handle error
+                stop();
+            }
+        });
     }
 
     private enum BuyerPeerState

@@ -8,4 +8,5 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.WifiSellerCallb
 
 public interface P2PSellerService {
     void connect(WifiSellerCallback callback, boolean useIdentification);
+    void disconnect();
 }

@@ -19,6 +19,7 @@ import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
+import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
@@ -26,10 +27,11 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create.ContractCreateActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display.ContractDetailActivity;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.dialog.ContractImportDialog;
 
 import static ch.uzh.ifi.csg.contract.contract.ContractType.*;
 
-public class ContractOverviewActivity extends ActivityBase implements AddContractDialogFragment.AddContractDialogListener
+public class ContractOverviewActivity extends ActivityBase implements AddContractDialogFragment.AddContractDialogListener, ContractImportDialog.ContractImportListener
 {
     private static final int SCAN_CONTRACT_ADDRESS_REQUEST = 1;
 
@@ -60,6 +62,12 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
     @Override
     protected int getLayoutResourceId() {
         return R.layout.activity_contract_overview;
+    }
+
+    public void onImportFromDeviceButtonClick()
+    {
+        DialogFragment importFragment = new ContractImportDialog();
+        importFragment.show(getSupportFragmentManager(), "importDialogFragment");
     }
 
     public void onAddButtonClick(View view)
@@ -201,4 +209,31 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
                 });
     }
 
+    @Override
+    public void onContractDataReceived(final ContractInfo contractInfo)
+    {
+        BusyIndicator.show(bodyView);
+        ensureContract(contractInfo.getContractAddress()).then(new DoneCallback<Boolean>() {
+            @Override
+            public void onDone(Boolean result) {
+                listFragment.loadContract(contractInfo.getContractType(), contractInfo.getContractAddress())
+                        .always(new AlwaysCallback<ITradeContract>() {
+                            @Override
+                            public void onAlways(Promise.State state, ITradeContract resolved, Throwable rejected) {
+                                BusyIndicator.hide(bodyView);
+                                //todo: make sure that Userprofile is not lost when contract cannot be loaded
+                                if(resolved != null)
+                                {
+                                    resolved.setUserProfile(contractInfo.getUserProfile());
+                                    getServiceProvider().getContractService().saveContract(resolved, getSettingProvider().getSelectedAccount());
+                                }
+                            }
+                        });
+            }
+        });
+    }
+
+    @Override
+    public void onContractDialogCanceled() {
+    }
 }

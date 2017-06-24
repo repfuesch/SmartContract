@@ -28,7 +28,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
+                android:layout_margin="8dp"
                 android:orientation="horizontal">
+
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:onClick="onImportFromDeviceButtonClick"
+                    android:background="?android:attr/colorBackground"
+                    android:layout_marginRight="8dp"
+                    android:src="@drawable/ic_action_wifi"/>
 
                 <ImageButton
                     android:layout_width="wrap_content"
@@ -36,13 +46,13 @@
                     android:layout_gravity="center_vertical"
                     android:onClick="onScanButtonClick"
                     android:background="?android:attr/colorBackground"
+                    android:layout_marginRight="8dp"
                     android:src="@drawable/ic_action_scan_qr_code"/>
 
                 <ImageButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@drawable/ic_action_add"
-                    android:layout_margin="8dp"
                     android:onClick="onAddButtonClick"
                     android:background="?android:attr/colorBackground"/>
 

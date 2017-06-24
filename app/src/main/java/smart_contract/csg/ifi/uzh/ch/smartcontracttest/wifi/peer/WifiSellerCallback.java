@@ -2,6 +2,8 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer;
 
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.service.ContractInfoListener;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.service.UserProfileListener;
 
 /**
  * Created by flo on 17.06.17.
@@ -9,7 +11,7 @@ import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 
 public interface WifiSellerCallback extends WifiCallback
 {
-    UserProfile getUserProfile();
-    ContractInfo getContractInfo();
+    void onUserProfileRequested(UserProfileListener listener);
+    void onContractInfoRequested(ContractInfoListener listener);
     void onUserProfileReceived(UserProfile data);
 }

@@ -37,6 +37,18 @@ public class P2PBuyerServiceImpl implements P2PBuyerService, P2PConnectionListen
     }
 
     @Override
+    public void disconnect()
+    {
+        callback = null;
+        if(buyerPeer != null)
+            buyerPeer.stop();
+
+        buyerPeer = null;
+        connectionManager.stopListening();
+        connectionManager.disconnect();
+    }
+
+    @Override
     public void onConnectionLost() {
         callback.onWifiResponse(new WifiResponse(false, null, "Connection to other Peer lost"));
     }

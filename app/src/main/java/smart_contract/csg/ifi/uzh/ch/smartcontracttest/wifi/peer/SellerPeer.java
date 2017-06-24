@@ -7,17 +7,22 @@ import java.io.InputStream;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import ch.uzh.ifi.csg.contract.async.Async;
+import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
+import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.service.ContractInfoListener;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.service.UserProfileListener;
 
 /**
  * Created by flo on 18.06.17.
  */
 
-public class SellerPeer implements TradingPeer
+public class SellerPeer implements TradingPeer, UserProfileListener, ContractInfoListener
 {
     private WifiSellerCallback callback;
     private SerializationService serializationService;
@@ -66,8 +71,7 @@ public class SellerPeer implements TradingPeer
                         {
                             state = WifiServerState.ExpectUserProfile;
                         }else{
-                            client.sendProfile(callback.getUserProfile());
-                            client.sendContract(callback.getContractInfo());
+                            callback.onContractInfoRequested(SellerPeer.this);
                         }
 
                     }else{
@@ -99,18 +103,14 @@ public class SellerPeer implements TradingPeer
                                 {
                                     state = WifiServerState.ExpectUserProfile;
                                 }else{
-                                    client.sendProfile(callback.getUserProfile());
-                                    client.sendContract(callback.getContractInfo());
-                                    running = false;
+                                    callback.onContractInfoRequested(SellerPeer.this);
                                 }
                                 break;
                             case ExpectUserProfile:
                                 String jsonString = convertStreamToString(inputStream);
                                 UserProfile userProfile = serializationService.deserialize(jsonString, new TypeToken<UserProfile>(){}.getType());
                                 callback.onUserProfileReceived(userProfile);
-                                client.sendProfile(callback.getUserProfile());
-                                client.sendContract(callback.getContractInfo());
-                                running = false;
+                                callback.onUserProfileRequested(SellerPeer.this);
                                 break;
                         }
                     }
@@ -139,6 +139,41 @@ public class SellerPeer implements TradingPeer
             task.cancel(true);
 
         stoppedHandler.OnTradingPeerStopped();
+    }
+
+    @Override
+    public void onContractInfoReceived(final ContractInfo contractInfo) {
+        Async.run(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                client.sendContract(contractInfo);
+                stop();
+
+                return null;
+            }
+        }).fail(new FailCallback() {
+                    @Override
+                    public void onFail(Throwable result) {
+                        stop();
+                    }
+                });
+    }
+
+    @Override
+    public void onUserProfileReceived(final UserProfile profile) {
+        Async.run(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                client.sendProfile(profile);
+                callback.onContractInfoRequested(SellerPeer.this);
+                return null;
+            }
+        }).fail(new FailCallback() {
+            @Override
+            public void onFail(Throwable result) {
+                stop();
+            }
+        });
     }
 
     private enum WifiServerState

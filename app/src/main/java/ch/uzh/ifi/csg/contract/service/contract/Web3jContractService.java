@@ -216,6 +216,7 @@ public class Web3jContractService implements ContractService
                 account);
     }
 
+
     /**
      * Removes a contract from a persisted storage. This method does not delete a contract from the
      * blockchain.
