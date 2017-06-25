@@ -12,6 +12,7 @@ import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,10 +48,16 @@ public class FileManager implements ContractManager, AccountManager {
 
     private void load()
     {
-        String accountData = ch.uzh.ifi.csg.contract.common.FileManager.readFile(new File(accountDirectory));
-        accountMap = Deserialize(accountData);
-        if(accountMap == null)
-            accountMap = new HashMap<>();
+        try{
+            String accountData = ch.uzh.ifi.csg.contract.common.FileManager.readFile(new File(accountDirectory));
+            accountMap = Deserialize(accountData);
+            if(accountMap == null)
+                accountMap = new HashMap<>();
+        }catch(IOException e)
+        {
+            //todo:log
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -85,7 +92,12 @@ public class FileManager implements ContractManager, AccountManager {
     private void save()
     {
         String data = serializationService.serialize(accountMap);
-        ch.uzh.ifi.csg.contract.common.FileManager.writeFile(data, new File(accountDirectory));
+        try {
+            ch.uzh.ifi.csg.contract.common.FileManager.writeFile(data, new File(accountDirectory));
+        } catch (IOException e) {
+            //todo:log
+            e.printStackTrace();
+        }
     }
 
     @Override

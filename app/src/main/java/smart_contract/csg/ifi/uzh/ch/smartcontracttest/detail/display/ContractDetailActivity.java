@@ -224,7 +224,6 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
 
     @Override
     public void onContractDataExchanged(UserProfile buyerProfile) {
-        addProfileTab();
         if(buyerProfile != null)
         {
             addProfileTab();

@@ -11,6 +11,6 @@ public interface P2PConnectionManager
 {
     void startListening(P2PConnectionListener connectionListener);
     void stopListening();
-    void connect(WifiP2pDevice device);
+    void connect(String deviceName);
     void disconnect();
 }

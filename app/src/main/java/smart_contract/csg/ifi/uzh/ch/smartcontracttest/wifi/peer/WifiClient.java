@@ -109,6 +109,11 @@ public class WifiClient implements TradingClient
         sendJson(serializationService.serialize(requestResponse));
     }
 
+    @Override
+    public void sendTransmissionConfirmed(TransmissionConfirmedResponse response) throws IOException {
+        sendJson(serializationService.serialize(response));
+    }
+
     public void sendProfile(final UserProfile userProfile) throws IOException
     {
         String imagePath = userProfile.getProfileImagePath();
@@ -122,7 +127,7 @@ public class WifiClient implements TradingClient
         send(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
     }
 
-    private void sendFile(String path) throws IOException
+    public void sendFile(String path) throws IOException
     {
         send(new FileInputStream(path));
     }
@@ -157,7 +162,7 @@ public class WifiClient implements TradingClient
             System.out.println("Connect failed, waiting and trying again");
             try
             {
-                Thread.sleep(1000);//2 seconds
+                Thread.sleep(1000);//1 second
             }
             catch(InterruptedException ie){
                 ie.printStackTrace();

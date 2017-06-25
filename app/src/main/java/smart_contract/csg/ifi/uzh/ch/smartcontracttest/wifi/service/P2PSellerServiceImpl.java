@@ -1,16 +1,10 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.service;
 
-import android.net.wifi.p2p.WifiP2pDevice;
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import java.util.ArrayList;
 import java.util.List;
 import ch.uzh.ifi.csg.contract.service.serialization.GsonSerializationService;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityChangedListener;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.connection.ConnectionInfo;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.connection.P2PConnectionListener;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.connection.P2PConnectionManager;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.dialog.ConnectionListDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.SellerPeer;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.TradingClient;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.TradingPeer;
@@ -22,15 +16,12 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.WifiSellerCallb
  * Created by flo on 23.06.17.
  */
 
-public class P2PSellerServiceImpl implements P2PSellerService, P2PConnectionListener, TradingPeer.OnTradingPeerStoppedHandler, ConnectionListDialogFragment.ConnectionListDialogListener, ActivityChangedListener {
+public class P2PSellerServiceImpl implements P2PSellerService, P2PConnectionListener, TradingPeer.OnTradingPeerStoppedHandler {
 
     private final P2PConnectionManager connectionManager;
     private WifiSellerCallback callback;
     private boolean useIdentification;
     private TradingPeer sellerPeer;
-
-    private AppCompatActivity activity;
-    private ConnectionListDialogFragment connectionDialog;
 
     public P2PSellerServiceImpl(P2PConnectionManager connectionManager)
     {
@@ -43,34 +34,15 @@ public class P2PSellerServiceImpl implements P2PSellerService, P2PConnectionList
     }
 
     @Override
-    public void onPeersChanged(final List<WifiP2pDevice> deviceList)
+    public void onPeersChanged(final List<String> deviceList)
     {
-        if(activity == null)
-            return;
-
         if(callback == null)
             return;
 
         if(sellerPeer != null)
             return;
 
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if(connectionDialog == null)
-                {
-                    connectionDialog = new ConnectionListDialogFragment();
-                    Bundle args = new Bundle();
-                    args.putSerializable(ConnectionListDialogFragment.DEVICE_LIST_MESSAGE, new ArrayList<>(deviceList));
-                    connectionDialog.setArguments(args);
-                    connectionDialog.show(activity.getSupportFragmentManager(), "ConnectionDialogFragment");
-
-                }else
-                {
-                    connectionDialog.updateDeviceList(deviceList);
-                }
-            }
-        });
+        callback.onPeersChanged(deviceList);
     }
 
     @Override
@@ -112,17 +84,21 @@ public class P2PSellerServiceImpl implements P2PSellerService, P2PConnectionList
     @Override
     public void OnTradingPeerStopped() {
         sellerPeer = null;
-        connectionDialog = null;
         connectionManager.stopListening();
         connectionManager.disconnect();
     }
 
     @Override
-    public void connect(WifiSellerCallback callback, boolean useIdentification)
+    public void requestConnection(WifiSellerCallback callback, boolean useIdentification)
     {
         this.callback = callback;
         this.useIdentification = useIdentification;
         connectionManager.startListening(this);
+    }
+
+    @Override
+    public void connect(String deviceName) {
+        connectionManager.connect(deviceName);
     }
 
     @Override
@@ -135,29 +111,5 @@ public class P2PSellerServiceImpl implements P2PSellerService, P2PConnectionList
         sellerPeer = null;
         connectionManager.stopListening();
         connectionManager.disconnect();
-    }
-
-    @Override
-    public void onDeviceSelected(WifiP2pDevice device) {
-        //connectionManager.stopListening();
-        connectionDialog = null;
-        connectionManager.connect(device);
-    }
-
-    @Override
-    public void onDialogCancelled() {
-        connectionManager.stopListening();
-        sellerPeer = null;
-        connectionDialog = null;
-    }
-
-    @Override
-    public void onActivityResumed(AppCompatActivity activity) {
-        this.activity = activity;
-    }
-
-    @Override
-    public void onActivityStopped(AppCompatActivity activity) {
-        this.activity = null;
     }
 }

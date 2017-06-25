@@ -229,10 +229,10 @@ public class WifiManagerImpl
 
     @Override
     public void onDeviceSelected(final WifiP2pDevice device) {
-        //connect to selected device
+        //requestConnection to selected device
         WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = device.deviceAddress;
-        p2pManager.connect(p2pChannel, config, new WifiP2pManager.ActionListener() {
+        p2pManager.requestConnection(p2pChannel, config, new WifiP2pManager.ActionListener() {
 
             @Override
             public void onSuccess() {
@@ -325,7 +325,7 @@ public class WifiManagerImpl
                         continue;
                     }
                     catch(SocketException e) {
-                        // Could not connect.
+                        // Could not requestConnection.
                         return i;
                     } catch (IOException e) {
                         continue;

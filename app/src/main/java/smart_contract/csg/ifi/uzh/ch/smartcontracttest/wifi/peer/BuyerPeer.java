@@ -4,6 +4,7 @@ import android.content.pm.ConfigurationInfo;
 
 import com.google.gson.reflect.TypeToken;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -16,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
+import ch.uzh.ifi.csg.contract.common.FileManager;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
@@ -35,6 +37,7 @@ public class BuyerPeer implements TradingPeer, UserProfileListener {
     private Integer port;
 
     private ContractInfo contractInfo;
+    private UserProfile sellerProfile;
 
     private ScheduledFuture task;
 
@@ -105,19 +108,65 @@ public class BuyerPeer implements TradingPeer, UserProfileListener {
                                 }
                                 break;
                             case ExpectSellerProfile:
-                                String jsonString = convertStreamToString(inputStream);
-                                UserProfile userProfile = serializationService.deserialize(jsonString, new TypeToken<UserProfile>(){}.getType());
-                                callback.onUserProfileReceived(userProfile);
+
+                                if(sellerProfile == null) {
+                                    //We are the first time in this state
+                                    String jsonString = convertStreamToString(inputStream);
+                                    sellerProfile = serializationService.deserialize(jsonString, new TypeToken<UserProfile>(){}.getType());
+                                    if(sellerProfile.getProfileImagePath() != null)
+                                        return;
+                                }else{
+                                    //We receive the profile image of the seller
+                                    File tempFile = FileManager.createTemporaryFile("image", "jpg");
+                                    FileManager.copyInputStreamToFile(inputStream, tempFile);
+                                    sellerProfile.setProfileImagePath(tempFile.getAbsolutePath());
+                                }
+
+                                callback.onUserProfileReceived(sellerProfile);
                                 state = BuyerPeerState.ExpectContractInfo;
                                 break;
                             case ExpectContractInfo:
-                                String jsonString2 = convertStreamToString(inputStream);
-                                ContractInfo contractInfo = serializationService.deserialize(jsonString2, new TypeToken<ContractInfo>(){}.getType());
+
+                                if(contractInfo == null)
+                                {
+                                    //We are the first time in this state
+                                    String jsonString2 = convertStreamToString(inputStream);
+                                    contractInfo = serializationService.deserialize(jsonString2, new TypeToken<ContractInfo>(){}.getType());
+
+                                    //reset the image paths received in the image map
+                                    for(String sig : contractInfo.getImages().keySet())
+                                    {
+                                        contractInfo.getImages().put(sig, null);
+                                    }
+
+                                    if(contractInfo.getImages().size() != 0)
+                                        break;
+
+                                }else{
+                                    //We receive additional image files belonging to the contract and save them in a temporary file
+                                    File tempFile = FileManager.createTemporaryFile("image", "jpg");
+                                    FileManager.copyInputStreamToFile(inputStream, tempFile);
+
+                                    int count = 0;
+                                    for(String sig : contractInfo.getImages().keySet())
+                                    {
+                                        count++;
+                                        if(contractInfo.getImages().get(sig) == null)
+                                        {
+                                            contractInfo.getImages().put(sig, tempFile.getAbsolutePath());
+                                            break;
+                                        }
+                                    }
+
+                                    if(count != contractInfo.getImages().size())
+                                        break;
+                                }
+
                                 callback.onContractInfoReceived(contractInfo);
+                                client.sendTransmissionConfirmed(new TransmissionConfirmedResponse());
                                 running = false;
                                 break;
                         }
-
                     }
 
                 } catch (Exception e) {

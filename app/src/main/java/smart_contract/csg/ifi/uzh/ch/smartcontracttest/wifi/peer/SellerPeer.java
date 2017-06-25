@@ -112,6 +112,11 @@ public class SellerPeer implements TradingPeer, UserProfileListener, ContractInf
                                 callback.onUserProfileReceived(userProfile);
                                 callback.onUserProfileRequested(SellerPeer.this);
                                 break;
+                            case ExpectTransmissionConfirmed:
+                                String confirmedString = convertStreamToString(inputStream);
+                                serializationService.deserialize(confirmedString, new TypeToken<TransmissionConfirmedResponse>(){}.getType());
+                                callback.onTransmissionConfirmed();
+                                running = false;
                         }
                     }
 
@@ -146,8 +151,14 @@ public class SellerPeer implements TradingPeer, UserProfileListener, ContractInf
         Async.run(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
+                state = WifiServerState.ExpectTransmissionConfirmed;
                 client.sendContract(contractInfo);
-                stop();
+
+                //send all file of the contract to the buyer
+                for(String file : contractInfo.getImages().values())
+                {
+                    client.sendFile(file);
+                }
 
                 return null;
             }
@@ -165,6 +176,10 @@ public class SellerPeer implements TradingPeer, UserProfileListener, ContractInf
             @Override
             public Void call() throws Exception {
                 client.sendProfile(profile);
+
+                if(profile.getProfileImagePath() != null)
+                    client.sendFile(profile.getProfileImagePath());
+
                 callback.onContractInfoRequested(SellerPeer.this);
                 return null;
             }
@@ -179,7 +194,8 @@ public class SellerPeer implements TradingPeer, UserProfileListener, ContractInf
     private enum WifiServerState
     {
         ExpectConnectionRequest,
-        ExpectUserProfile
+        ExpectUserProfile,
+        ExpectTransmissionConfirmed
     }
 
     private static String convertStreamToString(java.io.InputStream is) {

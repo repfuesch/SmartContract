@@ -17,29 +17,22 @@ import java.util.Date;
 
 public class FileManager
 {
-    public static boolean writeFile(String data, File file)
-    {
+    public static boolean writeFile(String data, File file) throws IOException {
         FileOutputStream outputStream;
 
-        try {
+        if(!file.exists())
+            file.createNewFile();
 
-            if(!file.exists())
-                file.createNewFile();
-
-            outputStream = new FileOutputStream(file);
-            outputStream.write(data.getBytes());
-            outputStream.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        outputStream = new FileOutputStream(file);
+        outputStream.write(data.getBytes());
+        outputStream.close();
 
         return true;
     }
 
     // Copy an InputStream to a File.
-    public static void copyInputStreamToFile(InputStream in, File file) {
+    public static void copyInputStreamToFile(InputStream in, File file) throws IOException
+    {
         OutputStream out = null;
 
         try {
@@ -50,64 +43,47 @@ public class FileManager
                 out.write(buf,0,len);
             }
         }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
         finally {
             // Ensure that the InputStreams are closed even if there's an exception.
-            try {
-                if ( out != null ) {
-                    out.close();
-                }
+            if ( out != null ) {
+                out.close();
+            }
 
-                // If you want to close the "in" InputStream yourself then remove this
-                // from here but ensure that you close it yourself eventually.
-                in.close();
-            }
-            catch ( IOException e ) {
-                e.printStackTrace();
-            }
+            // If you want to close the "in" InputStream yourself then remove this
+            // from here but ensure that you close it yourself eventually.
+            in.close();
         }
     }
 
-    public static String readFile(File file)
-    {
+    public static String readFile(File file) throws IOException {
         FileInputStream inputStream;
 
-        try {
-            if(!file.exists())
-                file.createNewFile();
+        if(!file.exists())
+            file.createNewFile();
 
-            inputStream = new FileInputStream(file);
-            int numBytes = inputStream.available();
-            byte[] buffer = new byte[numBytes];
-            inputStream.read(buffer, 0, numBytes);
-            String data = new String(buffer, "UTF8");
-            inputStream.close();
+        inputStream = new FileInputStream(file);
+        int numBytes = inputStream.available();
+        byte[] buffer = new byte[numBytes];
+        inputStream.read(buffer, 0, numBytes);
+        String data = new String(buffer, "UTF8");
+        inputStream.close();
 
-            return data;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
+        return data;
     }
 
-    public static File createTemporaryFile(String part, String ext) throws Exception
+    public static File createTemporaryFile(String part, String ext) throws IOException
     {
-        File tempDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);
-
-        //File tempDir= Environment.getExternalStorageDirectory();
-        //tempDir=new File(tempDir.getAbsolutePath()+"/.temp/");
+        File tempDir= Environment.getExternalStorageDirectory();
+        tempDir=new File(tempDir.getAbsolutePath()+"/.temp/");
         if(!tempDir.exists())
         {
             tempDir.mkdirs();
         }
+
         return File.createTempFile(part, ext, tempDir);
     }
 
-    public static boolean copyFile(File inputFile, File outputFile)
+    public static boolean copyFile(File inputFile, File outputFile) throws IOException
     {
         String content = readFile(inputFile);
         if(content == null)

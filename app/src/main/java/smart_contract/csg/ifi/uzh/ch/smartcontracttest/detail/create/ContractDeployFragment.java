@@ -211,7 +211,21 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
             }
         }
 
-        SimplePromise<ITradeContract> promise = deployContract(priceWei, title, desc, needsVerification, imageSignatures);
+        SimplePromise<ITradeContract> promise = deployContract(priceWei, title, desc, needsVerification, imageSignatures)
+                .done(new DoneCallback<ITradeContract>() {
+                    @Override
+                    public void onDone(ITradeContract result) {
+                        //add image paths to contract after creation
+                        for(String sig : imageSignatures.keySet())
+                        {
+                            result.getImages().put(sig, imageSignatures.get(sig).getAbsolutePath());
+                        }
+
+                        //persist contract on the file system
+                        contextProvider.getServiceProvider().getContractService().saveContract(result, contextProvider.getSettingProvider().getSelectedAccount());
+                    }
+                });
+
         contextProvider.getTransactionManager().toTransaction(promise);
 
         Intent intent = new Intent(getActivity(), ContractOverviewActivity.class);

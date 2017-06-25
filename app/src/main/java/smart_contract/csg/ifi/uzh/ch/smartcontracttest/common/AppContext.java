@@ -89,13 +89,11 @@ public class AppContext extends Application implements ActivityChangedListener, 
     @Override
     public void onActivityResumed(AppCompatActivity activity) {
         wifiManager.onActivityResumed(activity);
-        p2PSellerService.onActivityResumed(activity);
     }
 
     @Override
     public void onActivityStopped(AppCompatActivity activity) {
         wifiManager.onActivityStopped(activity);
-        p2PSellerService.onActivityStopped(activity);
     }
 
     private class BroadCastReceiver extends BroadcastReceiver{

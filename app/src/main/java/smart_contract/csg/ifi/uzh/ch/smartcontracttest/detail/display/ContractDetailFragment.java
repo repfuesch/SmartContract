@@ -275,7 +275,7 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
             LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(heightPx, heightPx);
             layoutParams.setMargins(8,8,8,8);
             imageView.setLayoutParams(layoutParams);
-            final Uri imgUri = Uri.fromFile(new File(contextProvider.getSettingProvider().getProfileImageDirectory() + "/" + filename));
+            final Uri imgUri = Uri.fromFile(new File(filename));
             imageView.setImageURI(imgUri);
             imageContainer.addView(imageView);
             images.put(imageView, imgUri);

@@ -32,7 +32,7 @@ public class Async {
     private static ScheduledExecutorService executorService;
 
     static {
-        executorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+        executorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 4);
         deferredManager = new DefaultDeferredManager(executorService);
         promiseMap = new HashMap<>();
     }

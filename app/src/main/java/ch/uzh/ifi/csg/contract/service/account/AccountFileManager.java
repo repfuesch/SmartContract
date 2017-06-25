@@ -12,6 +12,7 @@ import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +45,12 @@ public class AccountFileManager implements AccountManager {
 
     private List<Account> loadAccounts()
     {
-        String accountData = FileManager.readFile(new File(accountDir));
+        String accountData = null;
+        try {
+            accountData = FileManager.readFile(new File(accountDir));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         List<Account> accounts = deserialize(accountData);
         return accounts;
     }
@@ -73,7 +79,11 @@ public class AccountFileManager implements AccountManager {
     private void save()
     {
         String accountData = serialize(accounts);
-        FileManager.writeFile(accountData, new File(accountDir));
+        try {
+            FileManager.writeFile(accountData, new File(accountDir));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private List<Account> deserialize(String jsonArray)

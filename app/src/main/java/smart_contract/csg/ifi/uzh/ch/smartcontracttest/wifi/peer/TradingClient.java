@@ -22,4 +22,6 @@ public interface TradingClient
     void sendConnectionConfiguration(final ConnectionConfig config) throws IOException;
     void sendContract(final ContractInfo contractInfo) throws IOException;
     void sendRequestResponse(final RequestResponse requestResponse) throws IOException;
+    void sendTransmissionConfirmed(TransmissionConfirmedResponse response) throws IOException;
+    void sendFile(String absolutPath) throws IOException;
 }

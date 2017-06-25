@@ -59,14 +59,19 @@
             </LinearLayout>
         </RelativeLayout>
 
-        <fragment
-            android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractListFragment"
-            android:id="@+id/purchase_list_fragment"
-            android:layout_weight="1"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="16dp"
-            tools:layout="@layout/fragment_purchasecontract_list" />
+            android:layout_height="match_parent">
+
+            <fragment
+                android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractListFragment"
+                android:id="@+id/purchase_list_fragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="16dp"
+                tools:layout="@layout/fragment_purchasecontract_list" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

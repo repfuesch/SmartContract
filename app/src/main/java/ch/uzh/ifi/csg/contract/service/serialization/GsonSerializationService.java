@@ -13,6 +13,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
@@ -78,7 +79,7 @@ public class GsonSerializationService implements SerializationService
         @Override
         public Map<String, String> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
         {
-            Type mapType = new TypeToken<HashMap<String, String>>(){}.getType();
+            Type mapType = new TypeToken<LinkedHashMap<String, String>>(){}.getType();
             Map<String, String> stringMap = context.deserialize(json, mapType);
             return stringMap;
         }

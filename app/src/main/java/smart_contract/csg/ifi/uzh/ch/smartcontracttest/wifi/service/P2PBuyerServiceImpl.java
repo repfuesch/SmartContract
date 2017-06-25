@@ -31,7 +31,7 @@ public class P2PBuyerServiceImpl implements P2PBuyerService, P2PConnectionListen
     }
 
     @Override
-    public void connect(WifiBuyerCallback callback) {
+    public void requestConnection(WifiBuyerCallback callback) {
         this.callback = callback;
         connectionManager.startListening(this);
     }
@@ -54,7 +54,7 @@ public class P2PBuyerServiceImpl implements P2PBuyerService, P2PConnectionListen
     }
 
     @Override
-    public void onPeersChanged(List<WifiP2pDevice> deviceList) {
+    public void onPeersChanged(List<String> deviceList) {
     }
 
     @Override

@@ -14,6 +14,10 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import java.io.File;
+
+import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
@@ -50,7 +54,7 @@ public class ContractImportDialog extends DialogFragment implements WifiBuyerCal
 
         // Get the layout inflater
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View contentView = inflater.inflate(R.layout.fragment_p2p_exchange_dialog, null);
+        View contentView = inflater.inflate(R.layout.fragment_p2p_import_dialog, null);
         contentView.setBackgroundColor(Color.TRANSPARENT);
         verifyProfileView = (LinearLayout) contentView.findViewById(R.id.select_profile_details_view);
         importDialogContent = (LinearLayout) contentView.findViewById(R.id.dialog_content);
@@ -79,10 +83,12 @@ public class ContractImportDialog extends DialogFragment implements WifiBuyerCal
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(DialogInterface dialogInterface) {
+                setCancelable(false);
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE)
                         .setEnabled(false);
 
-                contextProvider.getP2PBuyerService().connect(ContractImportDialog.this);
+                contextProvider.getP2PBuyerService().requestConnection(ContractImportDialog.this);
+                importDialogInfo.setText("Waiting for connection request");
                 BusyIndicator.show(importDialogContent);
             }
         });
@@ -133,11 +139,18 @@ public class ContractImportDialog extends DialogFragment implements WifiBuyerCal
 
     @Override
     public void onUserProfileReceived(final UserProfile data) {
+        userProfile = data;
+        if(userProfile.getProfileImagePath() != null)
+        {
+            //copy the profile image into the correct path
+            File newFile = ImageHelper.saveImageFile(userProfile.getProfileImagePath(), contextProvider.getSettingProvider().getProfileImageDirectory());
+            userProfile.setProfileImagePath(newFile.getAbsolutePath());
+        }
+
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 importDialogInfo.setText("User profile received");
-                userProfile = data;
             }
         });
     }
@@ -145,23 +158,24 @@ public class ContractImportDialog extends DialogFragment implements WifiBuyerCal
     @Override
     public void onContractInfoReceived(final ContractInfo info) {
 
+        for(String imgSig : info.getImages().keySet())
+        {
+            //copy the images into the correct application path
+            File newFile = ImageHelper.saveImageFile(info.getImages().get(imgSig), contextProvider.getSettingProvider().getProfileImageDirectory());
+            info.getImages().remove(imgSig);
+            info.getImages().put(imgSig, newFile.getAbsolutePath());
+        }
+
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 importDialogInfo.setText("Contract info received");
                 contractInfo = new ContractInfo(info.getContractType(), info.getContractAddress(), userProfile, info.getImages());
 
-                //After transmission of contract data, we enable the ''OK' button and inform the listener
-                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        if(importListener != null)
-                            importListener.onContractDataReceived(contractInfo);
-                    }
-                });
+                if(importListener != null)
+                    importListener.onContractDataReceived(contractInfo);
 
-                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
-                BusyIndicator.hide(importDialogContent);
+                dismiss();
             }
         });
     }

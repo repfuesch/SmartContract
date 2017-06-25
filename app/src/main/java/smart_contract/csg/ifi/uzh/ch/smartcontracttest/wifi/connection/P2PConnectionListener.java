@@ -11,7 +11,7 @@ import java.util.List;
 public interface P2PConnectionListener {
 
     void onConnectionLost();
-    void onPeersChanged(List<WifiP2pDevice> deviceList);
+    void onPeersChanged(List<String> deviceList);
     void onConnectionEstablished(ConnectionInfo connectionInfo);
     void onConnectionError(String message);
 }

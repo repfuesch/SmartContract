@@ -42,13 +42,25 @@ public final class ImageHelper {
         File file = null;
         try {
             file = createImageFile(imageDir);
-            // make a new bitmap from your file
-            //Bitmap bitmap = BitmapFactory.decodeFile(file.getName());
 
             outStream = new FileOutputStream(file);
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, outStream);
             outStream.flush();
             outStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return file;
+    }
+
+    public static File saveImageFile(String filepath, String imageDir)
+    {
+        File file = null;
+        try {
+            file = createImageFile(imageDir);
+            FileManager.copyFile(new File(filepath), file);
+
         } catch (IOException e) {
             e.printStackTrace();
         }

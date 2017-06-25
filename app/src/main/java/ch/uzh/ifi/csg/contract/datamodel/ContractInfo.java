@@ -2,6 +2,7 @@ package ch.uzh.ifi.csg.contract.datamodel;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import ch.uzh.ifi.csg.contract.contract.ContractState;
@@ -24,7 +25,7 @@ public class ContractInfo implements Serializable
     public ContractInfo(ContractType contractType, String contractAddress) {
         this.contractAddress = contractAddress;
         this.contractType = contractType;
-        this.images = new HashMap<>();
+        this.images = new LinkedHashMap<>();
     }
 
     public ContractInfo(ContractType contractType, String contractAddress, UserProfile userProfile, Map<String, String> imageMap) {

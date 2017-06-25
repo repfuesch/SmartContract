@@ -91,10 +91,23 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
     }
 
     @Override
-    public void connect(WifiP2pDevice device)
+    public void connect(String deviceName)
     {
         WifiP2pConfig config = new WifiP2pConfig();
-        config.deviceAddress = device.deviceAddress;
+        WifiP2pDevice selectedDevice = null;
+        for(WifiP2pDevice device : deviceList)
+        {
+            if(device.deviceName.equals(deviceName))
+            {
+                selectedDevice = device;
+                break;
+            }
+        }
+
+        if(selectedDevice == null)
+            return;
+
+        config.deviceAddress = selectedDevice.deviceAddress;
         p2pManager.connect(p2pChannel, config, new WifiP2pManager.ActionListener() {
 
             @Override
@@ -201,15 +214,19 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
         if(isConnected)
             return;
 
+        List<String> deviceNames = new ArrayList<>();
+        deviceList.clear();
         Iterator<WifiP2pDevice> deviceIterator = wifiP2pDeviceList.getDeviceList().iterator();
         while(deviceIterator.hasNext())
         {
-            deviceList.add(deviceIterator.next());
+            WifiP2pDevice device = deviceIterator.next();
+            deviceNames.add(device.deviceName);
+            deviceList.add(device);
         }
 
-        if(connectionListener != null)
+        if(connectionListener != null && !isConnected)
         {
-            connectionListener.onPeersChanged(deviceList);
+            connectionListener.onPeersChanged(deviceNames);
         }
     }
 
@@ -283,7 +300,7 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
                         continue;
                     }
                     catch(SocketException e) {
-                        // Could not connect.
+                        // Could not requestConnection.
                         return i;
                     } catch (IOException e) {
                         continue;
