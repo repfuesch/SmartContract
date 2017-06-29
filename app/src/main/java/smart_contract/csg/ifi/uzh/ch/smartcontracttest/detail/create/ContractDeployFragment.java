@@ -5,10 +5,12 @@ import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.ContextMenu;
@@ -44,9 +46,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.Applicati
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.common.Web3Util;
-import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
-import ezvcard.Ezvcard;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
@@ -60,6 +60,8 @@ import static android.app.Activity.RESULT_OK;
  */
 public abstract class ContractDeployFragment extends Fragment implements TextWatcher, RadioGroup.OnCheckedChangeListener, View.OnClickListener {
 
+    public static final String TAG = "TAG.Deploy";
+
     private EditText priceField;
     private EditText titleField;
     private EditText descriptionField;
@@ -69,11 +71,12 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
     private ImageView qrImageView;
     private Spinner currencySpinner;
     private Currency selectedCurrency;
+
     private ImageButton addImageButton;
     private LinearLayout imageContainer;
-
-    private Map<ProportionalImageView, Uri> images;
+    private Map<ProportionalImageView, Bitmap> images;
     private ProportionalImageView selectedImage;
+    private Uri photoUri;
 
     private boolean needsVerification;
     private boolean isValid;
@@ -83,6 +86,40 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
 
     public ContractDeployFragment() {
         // Required empty public constructor
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        images = new LinkedHashMap<>();
+        // Tell the framework to try to keep this fragment around
+        // during a configuration change.
+        setRetainInstance(true);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        if(images == null)
+            return;
+
+        if(images.size() > 0)
+        {
+            List<Bitmap> bitmaps = new ArrayList<>(images.values());
+            for(ProportionalImageView imageView : images.keySet())
+            {
+                unregisterForContextMenu(imageView);
+                imageContainer.removeView(imageView);
+            }
+
+            images.clear();
+
+            for(Bitmap bmp : bitmaps)
+                addImage(bmp);
+        }
+
     }
 
     @Override
@@ -143,7 +180,6 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         registerForContextMenu(addImageButton);
 
         imageContainer = (LinearLayout) view.findViewById(R.id.image_container);
-        images = new LinkedHashMap<>();
 
         return view;
     }
@@ -197,18 +233,11 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
 
         final Map<String, File> imageSignatures = new HashMap<>();
 
-        for(Uri uri : images.values())
+        for(Bitmap bmp : images.values())
         {
-            try{
-                Bitmap bmp = ImageHelper.getCorrectlyOrientedImage(getActivity(), uri, 800);
-                File imgFile = ImageHelper.saveBitmap(bmp, contextProvider.getSettingProvider().getProfileImageDirectory());
-                String hashSig = ImageHelper.getHash(bmp);
-                imageSignatures.put(hashSig, imgFile);
-            }catch(IOException ex)
-            {
-                messageHandler.showErrorMessage("Could not save image: " + ex.getMessage());
-                return;
-            }
+            File imgFile = ImageHelper.saveBitmap(bmp, contextProvider.getSettingProvider().getProfileImageDirectory());
+            String hashSig = ImageHelper.getHash(bmp);
+            imageSignatures.put(hashSig, imgFile);
         }
 
         SimplePromise<ITradeContract> promise = deployContract(priceWei, title, desc, needsVerification, imageSignatures)
@@ -378,29 +407,60 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         {
             case ImageHelper.PICK_IMAGE_REQUEST_CODE:
                 if (resultCode == RESULT_OK) {
-                    addImage(intent.getData());
+                    Bitmap bmp = getBitmap(intent.getData());
+                    if(bmp != null)
+                        addImage(bmp);
                 }
                 break;
             case ImageHelper.IMAGE_CAPTURE_REQUEST_CODE:
                 if(resultCode == RESULT_OK) {
-                    addImage(intent.getData());
+                    Bitmap bmp = getBitmap(intent.getData());
+                    if(bmp != null)
+                        addImage(bmp);
                 }
         }
 
         super.onActivityResult(requestCode, resultCode, intent);
     }
 
-    private void addImage(Uri uri)
+    public static String getRealPathFromUri(Context context, Uri contentUri) {
+        Cursor cursor = null;
+        try {
+            String[] proj = { MediaStore.Images.Media.DATA };
+            cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
+
+    private Bitmap getBitmap(Uri uri)
+    {
+        try{
+            Bitmap bmp = ImageHelper.getCorrectlyOrientedImage(getActivity(), uri, 800);
+            return bmp;
+        }catch(IOException ex)
+        {
+            messageHandler.showErrorMessage("Could not save image: " + ex.getMessage());
+            return null;
+        }
+    }
+
+    private void addImage(Bitmap bmp)
     {
         final ProportionalImageView imageView = new ProportionalImageView(getActivity());
         int heightPx = (int)ImageHelper.convertDpToPixel(new Float(48.0), this.getActivity());
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(heightPx, heightPx);
         layoutParams.setMargins(8,8,8,8);
         imageView.setLayoutParams(layoutParams);
-        final Uri imgUri = uri;
-        imageView.setImageURI(imgUri);
+
+        imageView.setImageBitmap(bmp);
         imageContainer.addView(imageView);
-        images.put(imageView, imgUri);
+        images.put(imageView, bmp);
 
         registerForContextMenu(imageView);
         imageView.setOnClickListener(new View.OnClickListener() {
@@ -422,12 +482,12 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
 
     private void showImageDialog(ProportionalImageView imageView)
     {
-        ArrayList<Uri> uris = new ArrayList<>(images.values());
-        int startIndex = uris.indexOf(images.get(imageView));
+        ArrayList<Bitmap> bitmaps = new ArrayList<>(images.values());
+        int startIndex = bitmaps.indexOf(images.get(imageView));
 
         DialogFragment imageDialog = new ImageDialogFragment();
         Bundle imageArgs = new Bundle();
-        imageArgs.putSerializable(ImageDialogFragment.MESSAGE_IMAGE_URIS, new ArrayList<>(images.values()));
+        imageArgs.putSerializable(ImageDialogFragment.MESSAGE_IMAGE_BMPS, new ArrayList<>(images.values()));
         imageArgs.putInt(ImageDialogFragment.MESSAGE_IMAGE_INDEX, startIndex);
         imageDialog.setArguments(imageArgs);
         imageDialog.show(getFragmentManager(), "ImageDialog");

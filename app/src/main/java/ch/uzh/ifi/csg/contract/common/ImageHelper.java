@@ -1,6 +1,7 @@
 package ch.uzh.ifi.csg.contract.common;
 
 import android.app.Fragment;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -79,7 +80,7 @@ public final class ImageHelper {
         String imageFileName = "JPEG_" + timeStamp + "_";
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
-                ".png",         /* suffix */
+                ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
 
@@ -195,7 +196,11 @@ public final class ImageHelper {
     {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(fragment.getActivity().getPackageManager()) != null) {
-            Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
+            /*
+            Uri photoUri = fragment.getActivity().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    new ContentValues());
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+            */
             //start camera intent
             fragment.startActivityForResult(takePictureIntent, IMAGE_CAPTURE_REQUEST_CODE);
         }

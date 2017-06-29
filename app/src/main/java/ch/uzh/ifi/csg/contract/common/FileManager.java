@@ -73,8 +73,8 @@ public class FileManager
 
     public static File createTemporaryFile(String part, String ext) throws IOException
     {
-        File tempDir= Environment.getExternalStorageDirectory();
-        tempDir=new File(tempDir.getAbsolutePath()+"/.temp/");
+        File tempDir= Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        tempDir=new File(tempDir.getAbsolutePath());
         if(!tempDir.exists())
         {
             tempDir.mkdirs();
@@ -83,15 +83,9 @@ public class FileManager
         return File.createTempFile(part, ext, tempDir);
     }
 
-    public static boolean copyFile(File inputFile, File outputFile) throws IOException
+    public static void copyFile(File inputFile, File outputFile) throws IOException
     {
-        String content = readFile(inputFile);
-        if(content == null)
-            return false;
-
-        if(writeFile(content, outputFile))
-            return true;
-
-        return false;
+        InputStream is = new FileInputStream(inputFile);
+        copyInputStreamToFile(is, outputFile);
     }
 }

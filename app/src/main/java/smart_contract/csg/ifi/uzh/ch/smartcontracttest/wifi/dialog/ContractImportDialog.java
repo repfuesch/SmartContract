@@ -16,7 +16,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.io.File;
+import java.util.concurrent.Callable;
 
+import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
@@ -119,15 +121,21 @@ public class ContractImportDialog extends DialogFragment implements WifiBuyerCal
                         String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
                         UserProfile localProfile = contextProvider.getServiceProvider().getAccountService().getAccountProfile(selectedAccount);
 
-                        UserProfile profile = new UserProfile();
+                        final UserProfile profile = new UserProfile();
                         profile.setVCard(localProfile.getVCard());
 
                         if(profileImageCheckbox.isChecked())
                         {
-                            //todo:add image path to profile
+                            profile.setProfileImagePath(localProfile.getProfileImagePath());
                         }
 
-                        listener.onUserProfileReceived(profile);
+                        Async.run(new Callable<Void>() {
+                            @Override
+                            public Void call() throws Exception {
+                                listener.onUserProfileReceived(profile);
+                                return null;
+                            }
+                        });
 
                         BusyIndicator.show(importDialogContent);
                     }

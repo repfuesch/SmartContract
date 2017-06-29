@@ -34,6 +34,9 @@ public class BusyIndicator {
 
     public static void show(final LinearLayout layout)
     {
+        if(layout == null)
+            return;
+
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

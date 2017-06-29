@@ -1,5 +1,6 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create;
 
+import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
@@ -25,6 +26,14 @@ public class ContractCreateActivity extends ActivityBase  {
         getSupportActionBar().setTitle(R.string.title_contract_create);
 
         FragmentManager fragmentManager = getFragmentManager();
+        Fragment deploy = fragmentManager.findFragmentByTag(ContractDeployFragment.TAG);
+        if(deploy != null)
+        {
+            deployFragment = (ContractDeployFragment) deploy;
+            initTabHost();
+            return;
+        }
+
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         ContractType type = (ContractType) getIntent().getSerializableExtra(CONTRACT_TYPE_EXTRA);
@@ -40,8 +49,7 @@ public class ContractCreateActivity extends ActivityBase  {
                 throw new IllegalArgumentException("Contract to deploy must be specified!");
         }
 
-        fragmentTransaction.add(android.R.id.tabcontent, deployFragment, "DeployFragment");
-        fragmentTransaction.addToBackStack("DeployFragment");
+        fragmentTransaction.add(android.R.id.tabcontent, deployFragment, ContractDeployFragment.TAG);
         fragmentTransaction.commit();
         fragmentManager.executePendingTransactions();
 
@@ -64,7 +72,7 @@ public class ContractCreateActivity extends ActivityBase  {
 
         //Tab 1
         TabHost.TabSpec spec = tabHost.newTabSpec("General");
-        spec.setContent(getFragmentManager().findFragmentByTag("DeployFragment").getId());
+        spec.setContent(getFragmentManager().findFragmentByTag(ContractDeployFragment.TAG).getId());
         spec.setIndicator("", getResources().getDrawable(R.drawable.ic_tab_general_info));
         tabHost.addTab(spec);
     }

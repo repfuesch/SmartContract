@@ -68,6 +68,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
     public ProfileFragment() {
         // Required empty public constructor
+        this.profile = new UserProfile();
+        mode = ProfileMode.Edit;
     }
 
     @Override
@@ -117,10 +119,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         });
 
         layout = (LinearLayout) view.findViewById(R.id.layout_profile_fragment);
-
-        this.profile = new UserProfile();
-        mode = ProfileMode.Edit;
-
         return view;
     }
 
@@ -320,6 +318,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                         Bitmap bmp = ImageHelper.getCorrectlyOrientedImage(getActivity(), uri, 1280);
                         File imgFile = ImageHelper.saveBitmap(bmp, contextProvider.getSettingProvider().getProfileImageDirectory());
                         profile.setProfileImagePath(imgFile.getAbsolutePath());
+                        String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
+                        contextProvider.getServiceProvider().getAccountService().saveAccountProfile(selectedAccount, profile);
                         profileImage.setImageURI(Uri.fromFile(imgFile));
                     }
                     catch (Exception e) {
@@ -335,6 +335,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                         Bitmap bmp = ImageHelper.getCorrectlyOrientedImage(getActivity(), data.getData(), 1280);
                         File imgFile = ImageHelper.saveBitmap(bmp, contextProvider.getSettingProvider().getProfileImageDirectory());
                         profile.setProfileImagePath(imgFile.getAbsolutePath());
+                        String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
+                        contextProvider.getServiceProvider().getAccountService().saveAccountProfile(selectedAccount, profile);
                         profileImage.setImageURI(Uri.fromFile(imgFile));
                     }
                     catch (Exception e)

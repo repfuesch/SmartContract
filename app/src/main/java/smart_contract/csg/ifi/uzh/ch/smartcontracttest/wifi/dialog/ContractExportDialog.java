@@ -21,7 +21,9 @@ import android.widget.TextView;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
+import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
@@ -45,7 +47,7 @@ public class ContractExportDialog extends DialogFragment implements WifiSellerCa
     private ContractExportListener exportListener;
     private ApplicationContextProvider contextProvider;
 
-    private UserProfile userProfile;
+    private UserProfile buyerProfile;
     private ContractInfo contractInfo;
     private boolean useIdentification;
 
@@ -173,15 +175,21 @@ public class ContractExportDialog extends DialogFragment implements WifiSellerCa
                         String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
                         UserProfile localProfile = contextProvider.getServiceProvider().getAccountService().getAccountProfile(selectedAccount);
 
-                        UserProfile profile = new UserProfile();
+                        final UserProfile profile = new UserProfile();
                         profile.setVCard(localProfile.getVCard());
 
                         if(profileImageCheckbox.isChecked())
                         {
-                            //todo:add image path to profile
+                            profile.setProfileImagePath(localProfile.getProfileImagePath());
                         }
 
-                        listener.onUserProfileReceived(profile);
+                        Async.run(new Callable<Void>() {
+                            @Override
+                            public Void call() throws Exception {
+                                listener.onUserProfileReceived(profile);
+                                return null;
+                            }
+                        });
 
                         BusyIndicator.show(exportDialogContent);
                         exportDialogInfo.setText("Sending profile data");
@@ -236,12 +244,12 @@ public class ContractExportDialog extends DialogFragment implements WifiSellerCa
     @Override
     public void onUserProfileReceived(final UserProfile data) {
 
-        userProfile = data;
-        if(userProfile.getProfileImagePath() != null)
+        buyerProfile = data;
+        if(buyerProfile.getProfileImagePath() != null)
         {
             //copy the profile image into the correct path
-            File newFile = ImageHelper.saveImageFile(userProfile.getProfileImagePath(), contextProvider.getSettingProvider().getProfileImageDirectory());
-            userProfile.setProfileImagePath(newFile.getAbsolutePath());
+            File newFile = ImageHelper.saveImageFile(buyerProfile.getProfileImagePath(), contextProvider.getSettingProvider().getProfileImageDirectory());
+            buyerProfile.setProfileImagePath(newFile.getAbsolutePath());
         }
 
         getActivity().runOnUiThread(new Runnable() {
@@ -283,7 +291,15 @@ public class ContractExportDialog extends DialogFragment implements WifiSellerCa
                     @Override
                     public void onClick(View view) {
                         okButton.setEnabled(false);
-                        contextProvider.getP2PSellerService().connect(selectedDevice);
+
+                        Async.run(new Callable<Void>() {
+                            @Override
+                            public Void call() throws Exception {
+                                contextProvider.getP2PSellerService().connect(selectedDevice);
+                                return null;
+                            }
+                        });
+
                         deviceListSpinner.setVisibility(View.GONE);
                         BusyIndicator.show(exportDialogContent);
                         exportDialogInfo.setText("Connecting to peer");
@@ -307,7 +323,7 @@ public class ContractExportDialog extends DialogFragment implements WifiSellerCa
                 //After transmission of contract data, we enable the ''OK' button and inform the listener
                 if(exportListener != null)
                 {
-                    exportListener.onContractDataExchanged(userProfile);
+                    exportListener.onContractDataExchanged(buyerProfile);
                 }
 
                 dismiss();

@@ -114,7 +114,7 @@ public class BuyerPeer implements TradingPeer, UserProfileListener {
                                     String jsonString = convertStreamToString(inputStream);
                                     sellerProfile = serializationService.deserialize(jsonString, new TypeToken<UserProfile>(){}.getType());
                                     if(sellerProfile.getProfileImagePath() != null)
-                                        return;
+                                        break;
                                 }else{
                                     //We receive the profile image of the seller
                                     File tempFile = FileManager.createTemporaryFile("image", "jpg");
@@ -122,8 +122,8 @@ public class BuyerPeer implements TradingPeer, UserProfileListener {
                                     sellerProfile.setProfileImagePath(tempFile.getAbsolutePath());
                                 }
 
-                                callback.onUserProfileReceived(sellerProfile);
                                 state = BuyerPeerState.ExpectContractInfo;
+                                callback.onUserProfileReceived(sellerProfile);
                                 break;
                             case ExpectContractInfo:
 
@@ -206,6 +206,10 @@ public class BuyerPeer implements TradingPeer, UserProfileListener {
             @Override
             public Void call() throws Exception {
                 client.sendProfile(profile);
+
+                if(profile.getProfileImagePath() != null)
+                    client.sendFile(profile.getProfileImagePath());
+
                 return null;
             }
         }).fail(new FailCallback() {

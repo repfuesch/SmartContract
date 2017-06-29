@@ -11,12 +11,14 @@ import android.widget.LinearLayout;
 import org.jdeferred.Promise;
 import org.web3j.tx.Contract;
 
+import java.io.File;
 import java.util.List;
 
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
+import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
@@ -225,6 +227,11 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
                                 if(resolved != null)
                                 {
                                     resolved.setUserProfile(contractInfo.getUserProfile());
+                                    for(String imgSig : contractInfo.getImages().keySet())
+                                    {
+                                        //copy the images into the correct application path
+                                        resolved.addImage(imgSig, contractInfo.getImages().get(imgSig));
+                                    }
                                     getServiceProvider().getContractService().saveContract(resolved, getSettingProvider().getSelectedAccount());
                                 }
                             }

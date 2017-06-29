@@ -39,20 +39,21 @@
 
                 </TabWidget>
 
-                <FrameLayout
-                    android:id="@android:id/tabcontent"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-                <fragment
-                    android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment"
-                    android:id="@+id/fragment_contact_info"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_marginTop="16dp"
-                    tools:layout="@layout/fragment_profile_vcard"/>
+                    android:orientation="vertical"
+                    android:id="@+id/tabcontent_wrapper">
 
-                </FrameLayout>
+                    <FrameLayout
+                        android:id="@android:id/tabcontent"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"/>
+
+                </LinearLayout>
+
+
+
             </LinearLayout>
         </TabHost>
     </LinearLayout>

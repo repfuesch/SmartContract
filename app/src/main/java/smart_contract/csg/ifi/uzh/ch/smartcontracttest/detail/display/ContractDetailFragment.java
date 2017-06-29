@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -53,7 +54,7 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
     private LinearLayout imageContainer;
 
     private ProportionalImageView qrImageView;
-    private Map<ProportionalImageView, Uri> images;
+    private Map<ProportionalImageView, Bitmap> images;
 
     private Spinner currencySpinner;
     private boolean isVerified;
@@ -69,8 +70,6 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
     }
 
     @Override
@@ -267,7 +266,7 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
 
     protected abstract void selectedCurrencyChanged();
 
-    private void addImage(String filename)
+    private void addImage(String filepath)
     {
         try {
             final ProportionalImageView imageView = new ProportionalImageView(getActivity());
@@ -275,10 +274,10 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
             LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(heightPx, heightPx);
             layoutParams.setMargins(8,8,8,8);
             imageView.setLayoutParams(layoutParams);
-            final Uri imgUri = Uri.fromFile(new File(filename));
-            imageView.setImageURI(imgUri);
+            Bitmap bmp = BitmapFactory.decodeFile(filepath);
+            imageView.setImageBitmap(bmp);
             imageContainer.addView(imageView);
-            images.put(imageView, imgUri);
+            images.put(imageView, bmp);
 
             imageView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -295,12 +294,12 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
 
     private void showImageDialog(ProportionalImageView imageView)
     {
-        ArrayList<Uri> uris = new ArrayList<>(images.values());
+        ArrayList<Bitmap> uris = new ArrayList<>(images.values());
         int startIndex = uris.indexOf(images.get(imageView));
 
         DialogFragment imageDialog = new ImageDialogFragment();
         Bundle imageArgs = new Bundle();
-        imageArgs.putSerializable(ImageDialogFragment.MESSAGE_IMAGE_URIS, new ArrayList<>(images.values()));
+        imageArgs.putSerializable(ImageDialogFragment.MESSAGE_IMAGE_BMPS, new ArrayList<>(images.values()));
         imageArgs.putInt(ImageDialogFragment.MESSAGE_IMAGE_INDEX, startIndex);
         imageDialog.setArguments(imageArgs);
         imageDialog.show(getFragmentManager(), "ImageDialog");

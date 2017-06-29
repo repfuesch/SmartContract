@@ -2,6 +2,7 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer;
 
 import com.google.gson.reflect.TypeToken;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -12,6 +13,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
+import ch.uzh.ifi.csg.contract.common.FileManager;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
@@ -31,6 +33,7 @@ public class SellerPeer implements TradingPeer, UserProfileListener, ContractInf
     private OnTradingPeerStoppedHandler stoppedHandler;
     private TradingClient client;
     private Integer port;
+    private UserProfile buyerProfile;
 
     private ScheduledFuture task;
 
@@ -76,7 +79,7 @@ public class SellerPeer implements TradingPeer, UserProfileListener, ContractInf
 
                     }else{
                         //wait such that other peer can detect the free local port
-                        Thread.sleep(1000);
+                        Thread.sleep(3000);
                         serverSocket = new ServerSocket(port);
                         state = WifiServerState.ExpectConnectionRequest;
                     }
@@ -107,9 +110,21 @@ public class SellerPeer implements TradingPeer, UserProfileListener, ContractInf
                                 }
                                 break;
                             case ExpectUserProfile:
-                                String jsonString = convertStreamToString(inputStream);
-                                UserProfile userProfile = serializationService.deserialize(jsonString, new TypeToken<UserProfile>(){}.getType());
-                                callback.onUserProfileReceived(userProfile);
+
+                                if(buyerProfile == null) {
+                                    //We are the first time in this state
+                                    String jsonString = convertStreamToString(inputStream);
+                                    buyerProfile = serializationService.deserialize(jsonString, new TypeToken<UserProfile>(){}.getType());
+                                    if(buyerProfile.getProfileImagePath() != null)
+                                        break;
+                                }else{
+                                    //We receive the profile image of the seller
+                                    File tempFile = FileManager.createTemporaryFile("image", "jpg");
+                                    FileManager.copyInputStreamToFile(inputStream, tempFile);
+                                    buyerProfile.setProfileImagePath(tempFile.getAbsolutePath());
+                                }
+
+                                callback.onUserProfileReceived(buyerProfile);
                                 callback.onUserProfileRequested(SellerPeer.this);
                                 break;
                             case ExpectTransmissionConfirmed:

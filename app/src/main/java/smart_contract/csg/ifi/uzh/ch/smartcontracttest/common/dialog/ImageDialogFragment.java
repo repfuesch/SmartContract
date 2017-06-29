@@ -11,7 +11,6 @@ import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Toast;
 
 import net.glxn.qrgen.android.QRCode;
 
@@ -27,7 +26,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.Proportio
 
 public class ImageDialogFragment extends DialogFragment implements View.OnTouchListener {
     public static final String MESSAGE_IMAGE_SOURCE = "ch.uzh.ifi.csg.smart_contract.image.src";
-    public static final String MESSAGE_IMAGE_URIS = "ch.uzh.ifi.csg.smart_contract.image.uris";
+    public static final String MESSAGE_IMAGE_BMPS = "ch.uzh.ifi.csg.smart_contract.image.uris";
     public static final String MESSAGE_IMAGE_INDEX = "ch.uzh.ifi.csg.smart_contract.image.index";
     public static final String MESSAGE_DISPLAY_QRCODE = "ch.uzh.ifi.csg.smart_contract.image.qrcode";
 
@@ -37,7 +36,7 @@ public class ImageDialogFragment extends DialogFragment implements View.OnTouchL
     private ProportionalImageView imageView;
     private String imgSrc;
     private boolean displayQrCode;
-    private List<Uri> imgUris;
+    private List<Bitmap> bitmaps;
     private int imgIndex;
 
     public ImageDialogFragment()
@@ -50,7 +49,7 @@ public class ImageDialogFragment extends DialogFragment implements View.OnTouchL
 
         imgSrc = args.getString(MESSAGE_IMAGE_SOURCE);
         displayQrCode = args.getBoolean(MESSAGE_DISPLAY_QRCODE);
-        imgUris = (List<Uri>) args.getSerializable(MESSAGE_IMAGE_URIS);
+        bitmaps = (List<Bitmap>) args.getSerializable(MESSAGE_IMAGE_BMPS);
         imgIndex = args.getInt(MESSAGE_IMAGE_INDEX);
     }
 
@@ -75,7 +74,7 @@ public class ImageDialogFragment extends DialogFragment implements View.OnTouchL
         }else if(imgSrc != null){
             imageView.setImageURI(Uri.fromFile(new File(imgSrc)));
         }else{
-            imageView.setImageURI(imgUris.get(imgIndex));
+            imageView.setImageBitmap(bitmaps.get(imgIndex));
         }
 
 
@@ -105,13 +104,13 @@ public class ImageDialogFragment extends DialogFragment implements View.OnTouchL
                 if (Math.abs(deltaX) > MIN_DISTANCE && x2 > x1)
                 {
                     //select previous picture
-                    imageView.setImageURI(imgUris.get(Math.abs(imgIndex--) % (imgUris.size())));
+                    imageView.setImageBitmap(bitmaps.get(Math.abs(imgIndex--) % (bitmaps.size())));
 
                 }
                 else if (Math.abs(deltaX) > MIN_DISTANCE && x1 > x2)
                 {
                     //select next picture
-                    imageView.setImageURI(imgUris.get(Math.abs(imgIndex++) % (imgUris.size())));
+                    imageView.setImageBitmap(bitmaps.get(Math.abs(imgIndex++) % (bitmaps.size())));
                 }
                 break;
         }
