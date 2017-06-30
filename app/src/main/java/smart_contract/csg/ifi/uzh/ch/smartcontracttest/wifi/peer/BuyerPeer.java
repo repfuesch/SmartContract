@@ -1,7 +1,5 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer;
 
-import android.content.pm.ConfigurationInfo;
-
 import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
@@ -10,13 +8,14 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import ch.uzh.ifi.csg.contract.async.Async;
-import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
+import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.common.FileManager;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
@@ -39,7 +38,8 @@ public class BuyerPeer implements TradingPeer, UserProfileListener {
     private ContractInfo contractInfo;
     private UserProfile sellerProfile;
 
-    private ScheduledFuture task;
+    private ScheduledFuture mainTask;
+    private Thread sendProfileTask;
 
     public BuyerPeer(SerializationService serializationService, WifiBuyerCallback callback, TradingClient client, OnTradingPeerStoppedHandler stoppedHandler, Integer port)
     {
@@ -54,7 +54,7 @@ public class BuyerPeer implements TradingPeer, UserProfileListener {
 
     public void start()
     {
-        task = Async.getExecutorService().schedule(new Runnable() {
+        mainTask = Async.getExecutorService().schedule(new Runnable() {
             @Override
             public void run() {
                 /**
@@ -74,24 +74,28 @@ public class BuyerPeer implements TradingPeer, UserProfileListener {
 
                     }else{
                         //wait such that other peer can detect the free local port
-                        Thread.sleep(1000);
+                        Thread.sleep(3000);
                         serverSocket = new ServerSocket(port);
                         state = BuyerPeerState.ExpectConnectionRequest;
                     }
 
                     serverSocket.setReuseAddress(true);
 
+                    Socket clientSocket = null;
                     while(running)
                     {
-                        Socket socketClient = serverSocket.accept();
-                        InputStream inputStream = socketClient.getInputStream();
+                        if(clientSocket != null && !clientSocket.isClosed())
+                            clientSocket.close();
+
+                        clientSocket = serverSocket.accept();
+                        InputStream inputStream = clientSocket.getInputStream();
 
                         switch(state)
                         {
                             case ExpectConnectionRequest:
                                 String connRequestString = convertStreamToString(inputStream);
                                 ConnectionRequest request = serializationService.deserialize(connRequestString, new TypeToken<ConnectionRequest>(){}.getType());
-                                InetAddress peerAddress = socketClient.getInetAddress();
+                                InetAddress peerAddress = clientSocket.getInetAddress();
                                 client.setHost(peerAddress.getHostAddress());
                                 client.setPort(request.getListeningPort());
                                 state = BuyerPeerState.ExpectConnectionConfig;
@@ -114,15 +118,19 @@ public class BuyerPeer implements TradingPeer, UserProfileListener {
                                     String jsonString = convertStreamToString(inputStream);
                                     sellerProfile = serializationService.deserialize(jsonString, new TypeToken<UserProfile>(){}.getType());
                                     if(sellerProfile.getProfileImagePath() != null)
+                                    {
+                                        state = BuyerPeerState.ExpectContractInfo;
                                         break;
+                                    }
+
                                 }else{
                                     //We receive the profile image of the seller
+                                    state = BuyerPeerState.ExpectContractInfo;
                                     File tempFile = FileManager.createTemporaryFile("image", "jpg");
                                     FileManager.copyInputStreamToFile(inputStream, tempFile);
                                     sellerProfile.setProfileImagePath(tempFile.getAbsolutePath());
                                 }
 
-                                state = BuyerPeerState.ExpectContractInfo;
                                 callback.onUserProfileReceived(sellerProfile);
                                 break;
                             case ExpectContractInfo:
@@ -188,8 +196,11 @@ public class BuyerPeer implements TradingPeer, UserProfileListener {
 
     public void stop()
     {
-        if(!task.isDone())
-            task.cancel(true);
+        if(!mainTask.isDone())
+            mainTask.cancel(true);
+
+        if(sendProfileTask != null)
+            sendProfileTask.interrupt();
 
         stoppedHandler.OnTradingPeerStopped();
     }
@@ -202,14 +213,27 @@ public class BuyerPeer implements TradingPeer, UserProfileListener {
     @Override
     public void onUserProfileReceived(final UserProfile profile) {
 
-        Async.run(new Callable<Void>() {
+        sendProfileTask = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try{
+                    client.sendProfile(profile);
+                    System.out.print("afagfadgdsag");
+                }catch(IOException ex)
+                {
+                    //todo:handle error
+                    stop();
+                }
+            }
+        });
+
+        sendProfileTask.start();
+
+        /*
+        SimplePromise<Void> promise = Async.run(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
                 client.sendProfile(profile);
-
-                if(profile.getProfileImagePath() != null)
-                    client.sendFile(profile.getProfileImagePath());
-
                 return null;
             }
         }).fail(new FailCallback() {
@@ -219,6 +243,7 @@ public class BuyerPeer implements TradingPeer, UserProfileListener {
                 stop();
             }
         });
+        */
     }
 
     private enum BuyerPeerState

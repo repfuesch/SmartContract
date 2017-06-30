@@ -43,6 +43,10 @@ public class FileManager
                 out.write(buf,0,len);
             }
         }
+        catch(IOException ex)
+        {
+            throw ex;
+        }
         finally {
             // Ensure that the InputStreams are closed even if there's an exception.
             if ( out != null ) {

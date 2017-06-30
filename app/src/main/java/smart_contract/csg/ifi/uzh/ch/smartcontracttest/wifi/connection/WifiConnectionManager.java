@@ -162,7 +162,7 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
                         }
                     });
                 }
-            }, 0, 1000, TimeUnit.MILLISECONDS);
+            }, 0, 300, TimeUnit.MILLISECONDS);
         }
     }
 

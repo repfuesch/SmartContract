@@ -8,11 +8,9 @@ import java.io.InputStream;
 
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import ch.uzh.ifi.csg.contract.async.Async;
-import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.common.FileManager;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
@@ -35,7 +33,9 @@ public class SellerPeer implements TradingPeer, UserProfileListener, ContractInf
     private Integer port;
     private UserProfile buyerProfile;
 
-    private ScheduledFuture task;
+    private ScheduledFuture mainTask;
+    private Thread sendProfileTask;
+    private Thread sendContractTask;
 
     public SellerPeer(SerializationService serializationService, WifiSellerCallback callback, TradingClient client, OnTradingPeerStoppedHandler stoppedHandler, boolean useIdentification, Integer port)
     {
@@ -49,7 +49,7 @@ public class SellerPeer implements TradingPeer, UserProfileListener, ContractInf
 
     public void start()
     {
-        task = Async.getExecutorService().schedule(new Runnable() {
+        mainTask = Async.getExecutorService().schedule(new Runnable() {
             @Override
             public void run() {
                 /**
@@ -79,16 +79,20 @@ public class SellerPeer implements TradingPeer, UserProfileListener, ContractInf
 
                     }else{
                         //wait such that other peer can detect the free local port
+                        state = WifiServerState.ExpectConnectionRequest;
                         Thread.sleep(3000);
                         serverSocket = new ServerSocket(port);
-                        state = WifiServerState.ExpectConnectionRequest;
                     }
 
                     serverSocket.setReuseAddress(true);
+                    Socket clientSocket = null;
 
                     while(running)
                     {
-                        Socket clientSocket = serverSocket.accept();
+                        if(clientSocket != null && !clientSocket.isClosed())
+                            clientSocket.close();
+
+                        clientSocket = serverSocket.accept();
                         InputStream inputStream = clientSocket.getInputStream();
 
                         switch(state)
@@ -110,7 +114,6 @@ public class SellerPeer implements TradingPeer, UserProfileListener, ContractInf
                                 }
                                 break;
                             case ExpectUserProfile:
-
                                 if(buyerProfile == null) {
                                     //We are the first time in this state
                                     String jsonString = convertStreamToString(inputStream);
@@ -155,14 +158,38 @@ public class SellerPeer implements TradingPeer, UserProfileListener, ContractInf
 
     public void stop()
     {
-        if(!task.isDone())
-            task.cancel(true);
+        if(!mainTask.isDone())
+            mainTask.cancel(true);
+
+        if(sendProfileTask != null)
+            sendProfileTask.interrupt();
+
+        if(sendContractTask != null)
+            sendContractTask.interrupt();
 
         stoppedHandler.OnTradingPeerStopped();
     }
 
     @Override
     public void onContractInfoReceived(final ContractInfo contractInfo) {
+
+        sendContractTask = new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                try{
+                    state = WifiServerState.ExpectTransmissionConfirmed;
+                    client.sendContract(contractInfo);
+                }catch(IOException ex)
+                {
+                    stop();
+                }
+            }
+        });
+
+        sendContractTask.start();
+
+        /*
         Async.run(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
@@ -182,19 +209,33 @@ public class SellerPeer implements TradingPeer, UserProfileListener, ContractInf
                     public void onFail(Throwable result) {
                         stop();
                     }
-                });
+                });*/
     }
 
     @Override
     public void onUserProfileReceived(final UserProfile profile) {
+
+        sendProfileTask = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try{
+                    client.sendProfile(profile);
+                    callback.onContractInfoRequested(SellerPeer.this);
+                }catch(IOException ex)
+                {
+                    //todo:handle error
+                    stop();
+                }
+            }
+        });
+
+        sendProfileTask.start();
+
+        /*
         Async.run(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
                 client.sendProfile(profile);
-
-                if(profile.getProfileImagePath() != null)
-                    client.sendFile(profile.getProfileImagePath());
-
                 callback.onContractInfoRequested(SellerPeer.this);
                 return null;
             }
@@ -203,7 +244,7 @@ public class SellerPeer implements TradingPeer, UserProfileListener, ContractInf
             public void onFail(Throwable result) {
                 stop();
             }
-        });
+        });*/
     }
 
     private enum WifiServerState

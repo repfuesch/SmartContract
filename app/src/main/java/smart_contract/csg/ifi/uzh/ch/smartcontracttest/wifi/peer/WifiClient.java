@@ -8,9 +8,11 @@ import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
@@ -144,7 +146,7 @@ public class WifiClient implements TradingClient
          */
         try {
             socket.bind(null);
-            socket.connect((new InetSocketAddress(host, port)));
+            socket.connect((new InetSocketAddress(host, port)), 500);
 
             /**
              * Create a byte stream from a JPEG file and pipe it to the output stream
@@ -157,7 +159,8 @@ public class WifiClient implements TradingClient
 
             outputStream.close();
             inputStream.close();
-        }catch(ConnectException e)
+        }
+        catch(ConnectException |SocketTimeoutException e)
         {
             System.out.println("Connect failed, waiting and trying again");
             try

@@ -1,5 +1,6 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider;
 
+import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.service.account.AccountService;
 import ch.uzh.ifi.csg.contract.service.connection.EthConnectionService;
 import ch.uzh.ifi.csg.contract.service.contract.ContractService;
@@ -74,14 +75,14 @@ public class EthServiceProvider implements ServiceProvider
                     settingsProvider.getTransactionAttempts(),
                     settingsProvider.getTransactionSleepDuration());
 
-            /*
+
             //todo: remove the following lines
             //delete all contracts for account
-            for(IPurchaseContract contract : contractService.loadContracts(settingsProvider.getSelectedAccount()).get())
+            for(ITradeContract contract : contractService.loadContracts(settingsProvider.getSelectedAccount()).get())
             {
                 contractService.removeContract(contract, settingsProvider.getSelectedAccount());
             }
-            */
+
         }
 
         //connectionService.startPolling();

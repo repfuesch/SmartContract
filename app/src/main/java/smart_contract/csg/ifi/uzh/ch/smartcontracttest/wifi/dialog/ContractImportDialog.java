@@ -129,13 +129,7 @@ public class ContractImportDialog extends DialogFragment implements WifiBuyerCal
                             profile.setProfileImagePath(localProfile.getProfileImagePath());
                         }
 
-                        Async.run(new Callable<Void>() {
-                            @Override
-                            public Void call() throws Exception {
-                                listener.onUserProfileReceived(profile);
-                                return null;
-                            }
-                        });
+                        listener.onUserProfileReceived(profile);
 
                         BusyIndicator.show(importDialogContent);
                     }

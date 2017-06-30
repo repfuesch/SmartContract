@@ -260,7 +260,10 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
         if(buyerProfile != null)
         {
             tabHost.setCurrentTabByTag("Profile");
+            contract.setUserProfile(buyerProfile);
+            getServiceProvider().getContractService().saveContract(contract, getSettingProvider().getSelectedAccount());
             profileFragment.setProfileInformation(buyerProfile);
+            profileFragment.setMode(ProfileFragment.ProfileMode.ReadOnly);
         }
     }
 
