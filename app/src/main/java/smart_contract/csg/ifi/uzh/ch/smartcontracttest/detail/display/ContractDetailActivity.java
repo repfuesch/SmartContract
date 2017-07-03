@@ -2,11 +2,9 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.util.AttributeSet;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TabHost;
@@ -25,9 +23,9 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.dialog.ContractExportDialog;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.dialog.P2pExportDialog;
 
-public class ContractDetailActivity extends ActivityBase implements IContractObserver, ProfileFragment.OnProfileVerifiedListener, ContractExportDialog.ContractExportListener {
+public class ContractDetailActivity extends ActivityBase implements IContractObserver, ProfileFragment.OnProfileVerifiedListener, P2pExportDialog.P2pExportListener {
 
     public final static String EXTRA_CONTRACT_ADDRESS = "ch.uzh.ifi.csg.smart_contract.address";
     public final static String EXTRA_CONTRACT_TYPE = "ch.uzh.ifi.csg.smart_contract.type";
@@ -247,10 +245,10 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
 
     public void onExportContractClick(View view)
     {
-        DialogFragment exportFragment = new ContractExportDialog();
+        DialogFragment exportFragment = new P2pExportDialog();
         Bundle args = new Bundle();
-        args.putBoolean(ContractExportDialog.MESSAGE_IDENTIFICATION_USED, detailFragment.isVerifyIdentity());
-        args.putSerializable(ContractExportDialog.MESSAGE_CONTRACT_DATA, new ContractInfo(contract.getContractType(), contract.getContractAddress(), new UserProfile(), contract.getImages()));
+        args.putBoolean(P2pExportDialog.MESSAGE_IDENTIFICATION_USED, detailFragment.isVerifyIdentity());
+        args.putSerializable(P2pExportDialog.MESSAGE_CONTRACT_DATA, new ContractInfo(contract.getContractType(), contract.getContractAddress(), new UserProfile(), contract.getImages()));
         exportFragment.setArguments(args);
         exportFragment.show(getSupportFragmentManager(), "importDialogFragment");
     }

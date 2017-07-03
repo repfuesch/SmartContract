@@ -3,8 +3,6 @@ package ch.uzh.ifi.csg.contract.web3j.protocol;
 import org.web3j.protocol.Web3jService;
 import org.web3j.protocol.parity.Parity;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import ch.uzh.ifi.csg.contract.async.Async;
@@ -14,12 +12,13 @@ import ch.uzh.ifi.csg.contract.async.Async;
  */
 
 public class ParityClientFactory {
-
+/*
     public static Parity build(Web3jService web3jService) {
-        return build(web3jService, 15000, Async.getExecutorService());
+        return build(web3jService, 15000, Async.getScheduledExecutorService());
     }
 
+    /*
     public static Parity build(Web3jService web3jService, long pollingInterval, ScheduledExecutorService executorService) {
         return new ParityClientImpl(web3jService, pollingInterval, executorService);
-    }
+    }*/
 }

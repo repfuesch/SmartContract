@@ -1,24 +1,19 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview;
 
-import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.DialogFragment;
 import android.os.Bundle;
-import android.util.AttributeSet;
 import android.view.View;
 import android.widget.LinearLayout;
 
 import org.jdeferred.Promise;
-import org.web3j.tx.Contract;
 
-import java.io.File;
 import java.util.List;
 
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
-import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
@@ -29,11 +24,9 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create.ContractCreateActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display.ContractDetailActivity;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.dialog.ContractImportDialog;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.dialog.P2pImportDialog;
 
-import static ch.uzh.ifi.csg.contract.contract.ContractType.*;
-
-public class ContractOverviewActivity extends ActivityBase implements AddContractDialogFragment.AddContractDialogListener, ContractImportDialog.ContractImportListener
+public class ContractOverviewActivity extends ActivityBase implements AddContractDialogFragment.AddContractDialogListener, P2pImportDialog.P2pImportListener
 {
     private static final int SCAN_CONTRACT_ADDRESS_REQUEST = 1;
 
@@ -68,7 +61,7 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
 
     public void onImportFromDeviceButtonClick(View view)
     {
-        DialogFragment importFragment = new ContractImportDialog();
+        DialogFragment importFragment = new P2pImportDialog();
         importFragment.show(getSupportFragmentManager(), "importDialogFragment");
     }
 

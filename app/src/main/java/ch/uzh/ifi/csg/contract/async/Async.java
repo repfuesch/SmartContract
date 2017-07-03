@@ -1,21 +1,17 @@
 package ch.uzh.ifi.csg.contract.async;
 
-import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
-
 import org.jdeferred.DeferredManager;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DefaultDeferredManager;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
@@ -29,10 +25,11 @@ public class Async {
 
     private static DeferredManager deferredManager;
     private static Map<UUID, SimplePromise> promiseMap;
-    private static ScheduledExecutorService executorService;
+    private static ScheduledExecutorService scheduledExecutorService;
 
     static {
-        executorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 4);
+        scheduledExecutorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 4);
+        ExecutorService executorService =  Executors.newCachedThreadPool();
         deferredManager = new DefaultDeferredManager(executorService);
         promiseMap = new HashMap<>();
     }
@@ -70,9 +67,9 @@ public class Async {
         return !promiseMap.isEmpty();
     }
 
-    public static ScheduledExecutorService getExecutorService()
+    public static ScheduledExecutorService getScheduledExecutorService()
     {
-        return executorService;
+        return scheduledExecutorService;
     }
 }
 

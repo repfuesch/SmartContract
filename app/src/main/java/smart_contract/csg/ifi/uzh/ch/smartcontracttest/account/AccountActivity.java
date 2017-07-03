@@ -4,14 +4,8 @@ import android.app.DialogFragment;
 import android.os.Bundle;
 import android.view.View;
 
-import ch.uzh.ifi.csg.contract.contract.ContractType;
-import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
-import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.WifiBuyerCallback;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.WifiResponse;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.WifiSellerCallback;
 
 public class AccountActivity extends ActivityBase implements AccountCreateDialogFragment.AccountCreateListener{
 

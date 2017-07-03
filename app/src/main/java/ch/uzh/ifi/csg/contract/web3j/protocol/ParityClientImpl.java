@@ -84,6 +84,7 @@ import rx.Observable;
  * JSON-RPC 2.0 factory implementation for Parity.
  * This code is copied from JsonRpc2_0Web3j
  */
+/*
 public class ParityClientImpl implements Parity {
 
     protected static final long ID = 1;
@@ -941,3 +942,4 @@ public class ParityClientImpl implements Parity {
                 PersonalRejectRequest.class);
     }
 }
+*/

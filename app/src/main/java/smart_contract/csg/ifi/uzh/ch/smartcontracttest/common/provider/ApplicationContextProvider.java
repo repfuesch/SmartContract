@@ -1,9 +1,8 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider;
 
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManager;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.WifiManager;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.service.P2PBuyerService;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.service.P2PSellerService;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PBuyerService;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PSellerService;
 
 /**
  * Created by flo on 27.04.17.

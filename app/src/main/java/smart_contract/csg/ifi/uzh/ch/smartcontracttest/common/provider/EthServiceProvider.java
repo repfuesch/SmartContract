@@ -78,12 +78,12 @@ public class EthServiceProvider implements ServiceProvider
 
             //todo: remove the following lines
             //delete all contracts for account
-            /*
+
             for(ITradeContract contract : contractService.loadContracts(settingsProvider.getSelectedAccount()).get())
             {
                 contractService.removeContract(contract, settingsProvider.getSelectedAccount());
             }
-*/
+
         }
 
         //connectionService.startPolling();

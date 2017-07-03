@@ -23,6 +23,7 @@ import org.web3j.protocol.exceptions.TransactionTimeoutException;
 import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import ch.uzh.ifi.csg.contract.async.Async;
+import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.common.HexUtil;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
@@ -129,8 +131,7 @@ public abstract class TradeContract extends Contract implements ITradeContract
                 });
     }
 
-    protected TransactionReceipt executeTransaction(Function function, BigInteger value) throws InterruptedException,
-            ExecutionException, TransactionTimeoutException {
+    protected TransactionReceipt executeTransaction(Function function, BigInteger value) throws InterruptedException, ExecutionException, TransactionTimeoutException, IOException {
         return executeTransaction(FunctionEncoder.encode(function), value);
     }
 
@@ -147,9 +148,15 @@ public abstract class TradeContract extends Contract implements ITradeContract
     protected void unregisterContractEvents()
     {
         try{
-            for(Subscription subscription : subscriptions)
+            for(final Subscription subscription : subscriptions)
             {
-                subscription.unsubscribe();
+                Async.run(new Callable<Void>() {
+                    @Override
+                    public Void call() throws Exception {
+                        subscription.unsubscribe();
+                        return null;
+                    }
+                });
             }
         }catch(FilterException ex)
         {
@@ -162,17 +169,26 @@ public abstract class TradeContract extends Contract implements ITradeContract
     protected void registerEvent(final Event event)
     {
         String encodedEventSignature = EventEncoder.encode(event);
-        EthFilter filter = new EthFilter(DefaultBlockParameterName.EARLIEST, DefaultBlockParameterName.LATEST, getContractAddress()).addSingleTopic(encodedEventSignature);
+        final EthFilter filter = new EthFilter(DefaultBlockParameterName.EARLIEST, DefaultBlockParameterName.LATEST, getContractAddress()).addSingleTopic(encodedEventSignature);
 
-        Subscription subscription = web3j.ethLogObservable(filter).subscribe(
-                new Action1<Log>() {
-                    @Override
-                    public void call(Log log) {
-                        notifyObservers(event.getName(), null);
-                    }
-                });
+        Async.toPromise(new Callable<Subscription>() {
 
-        subscriptions.add(subscription);
+            @Override
+            public Subscription call() throws Exception {
+                return web3j.ethLogObservable(filter).subscribe(
+                        new Action1<Log>() {
+                            @Override
+                            public void call(Log log) {
+                                notifyObservers(event.getName(), null);
+                            }
+                        });
+            }
+        }).done(new DoneCallback<Subscription>() {
+            @Override
+            public void onDone(Subscription result) {
+                subscriptions.add(result);
+            }
+        });
     }
 
     private void notifyObservers(String event, Object value) {

@@ -37,9 +37,8 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthSettin
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsActivity;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.WifiManager;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.service.P2PBuyerService;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.service.P2PSellerService;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PBuyerService;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PSellerService;
 
 /**
  * Base class for all Activities
