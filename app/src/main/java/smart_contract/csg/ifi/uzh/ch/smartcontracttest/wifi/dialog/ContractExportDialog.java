@@ -327,6 +327,10 @@ public class ContractExportDialog extends DialogFragment implements WifiSellerCa
 
     @Override
     public void onWifiResponse(final WifiResponse response) {
+
+        if(getActivity() == null)
+            return;
+
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {

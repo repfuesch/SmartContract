@@ -164,7 +164,6 @@ public class ContractImportDialog extends DialogFragment implements WifiBuyerCal
         {
             //copy the images into the correct application path
             File newFile = ImageHelper.saveImageFile(info.getImages().get(imgSig), contextProvider.getSettingProvider().getProfileImageDirectory());
-            info.getImages().remove(imgSig);
             info.getImages().put(imgSig, newFile.getAbsolutePath());
         }
 
@@ -184,6 +183,9 @@ public class ContractImportDialog extends DialogFragment implements WifiBuyerCal
 
     @Override
     public void onWifiResponse(final WifiResponse response) {
+
+        if(getActivity() == null)
+            return;
 
         getActivity().runOnUiThread(new Runnable() {
             @Override

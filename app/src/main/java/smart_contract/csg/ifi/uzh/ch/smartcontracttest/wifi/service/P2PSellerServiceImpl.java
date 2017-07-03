@@ -6,6 +6,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.connection.Connectio
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.connection.P2PConnectionListener;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.connection.P2PConnectionManager;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.SellerPeer;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.SellerPeerImpl;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.TradingClient;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.TradingPeer;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.WifiClient;
@@ -53,25 +54,24 @@ public class P2PSellerServiceImpl implements P2PSellerService, P2PConnectionList
 
         if(connectionInfo.isGroupOwner())
         {
-            TradingClient client = new WifiClient(new GsonSerializationService());
-            startSellerPeer(connectionInfo.getGroupOwnerPort(), client);
+            //TradingClient client = new WifiClient(new GsonSerializationService());
+            startSellerPeer(connectionInfo.getGroupOwnerPort(), null);
 
         }else{
-
-            TradingClient client = new WifiClient(connectionInfo.getGroupOwnerAddress(), connectionInfo.getGroupOwnerPort(), new GsonSerializationService());
-            startSellerPeer(null, client);
+            //TradingClient client = new WifiClient(connectionInfo.getGroupOwnerAddress(), connectionInfo.getGroupOwnerPort(), new GsonSerializationService());
+            startSellerPeer(connectionInfo.getGroupOwnerPort(), connectionInfo.getGroupOwnerAddress());
         }
     }
 
-    private void startSellerPeer(Integer port, TradingClient client)
+    private void startSellerPeer(Integer port, String hostname)
     {
-        sellerPeer = new SellerPeer(
+        sellerPeer = new SellerPeerImpl(
                 new GsonSerializationService(),
                 callback,
-                client,
                 this,
-                useIdentification,
-                port);
+                port,
+                hostname,
+                useIdentification);
 
         sellerPeer.start();
     }

@@ -9,6 +9,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.connection.Connectio
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.connection.P2PConnectionListener;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.connection.P2PConnectionManager;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.BuyerPeer;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.BuyerPeerImpl;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.TradingClient;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.TradingPeer;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.wifi.peer.WifiBuyerCallback;
@@ -50,7 +51,8 @@ public class P2PBuyerServiceImpl implements P2PBuyerService, P2PConnectionListen
 
     @Override
     public void onConnectionLost() {
-        callback.onWifiResponse(new WifiResponse(false, null, "Connection to other Peer lost"));
+        if(callback != null)
+            callback.onWifiResponse(new WifiResponse(false, null, "Connection to other Peer lost"));
     }
 
     @Override
@@ -63,6 +65,9 @@ public class P2PBuyerServiceImpl implements P2PBuyerService, P2PConnectionListen
         if(callback == null)
             return;
 
+        if(buyerPeer != null)
+            return;
+
         startPeer(connectionInfo);
     }
 
@@ -70,24 +75,24 @@ public class P2PBuyerServiceImpl implements P2PBuyerService, P2PConnectionListen
     {
         if(connectionInfo.isGroupOwner())
         {
-            TradingClient client = new WifiClient(new GsonSerializationService());
-            startBuyerPeer(connectionInfo.getGroupOwnerPort(), client);
+            //TradingClient client = new WifiClient(new GsonSerializationService());
+            startBuyerPeer(connectionInfo.getGroupOwnerPort(), null);
 
         }else{
 
-            TradingClient client = new WifiClient(connectionInfo.getGroupOwnerAddress(), connectionInfo.getGroupOwnerPort(), new GsonSerializationService());
-            startBuyerPeer(null, client);
+           // TradingClient client = new WifiClient(connectionInfo.getGroupOwnerAddress(), connectionInfo.getGroupOwnerPort(), new GsonSerializationService());
+            startBuyerPeer(connectionInfo.getGroupOwnerPort(), connectionInfo.getGroupOwnerAddress());
         }
     }
 
-    private void startBuyerPeer(Integer port, TradingClient client)
+    private void startBuyerPeer(Integer port, String hostname)
     {
-        buyerPeer = new BuyerPeer(
+        buyerPeer = new BuyerPeerImpl(
                 new GsonSerializationService(),
                 callback,
-                client,
                 this,
-                port);
+                port,
+                hostname);
 
         buyerPeer.start();
     }

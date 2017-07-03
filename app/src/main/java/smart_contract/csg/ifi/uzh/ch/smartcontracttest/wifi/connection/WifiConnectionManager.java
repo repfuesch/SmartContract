@@ -8,9 +8,12 @@ import android.net.NetworkInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.Socket;
@@ -86,8 +89,6 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
     public void stopListening() {
         if(peerDiscoveryTask != null && !peerDiscoveryTask.isCancelled())
             peerDiscoveryTask.cancel(true);
-
-        connectionListener = null;
     }
 
     @Override
@@ -113,6 +114,7 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
             @Override
             public void onSuccess() {
                 //success logic
+                System.out.println();
             }
 
             @Override
@@ -126,6 +128,30 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
 
     public void disconnect()
     {
+        if (p2pManager != null && p2pChannel != null) {
+            p2pManager.requestGroupInfo(p2pChannel, new WifiP2pManager.GroupInfoListener() {
+                @Override
+                public void onGroupInfoAvailable(WifiP2pGroup group) {
+                    if (group != null && p2pManager != null && p2pChannel != null
+                            && group.isGroupOwner()) {
+                        p2pManager.removeGroup(p2pChannel, new WifiP2pManager.ActionListener() {
+
+                            @Override
+                            public void onSuccess() {
+                                Log.d("P2P", "removeGroup onSuccess -");
+                            }
+
+                            @Override
+                            public void onFailure(int reason) {
+                                Log.d("P2P", "removeGroup onFailure -" + reason);
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        /*
         if(isConnected)
         {
             deletePersistentGroups();
@@ -140,7 +166,7 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
                     System.out.println("fail");
                 }
             });
-        }
+        }*/
     }
 
     private void startPeerDiscovery()
@@ -162,7 +188,7 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
                         }
                     });
                 }
-            }, 0, 300, TimeUnit.MILLISECONDS);
+            }, 0, 1000, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -194,6 +220,9 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
                 // We are connected with the other device, request connection
                 // info to find group owner IP
                 isConnected = true;
+                if(peerDiscoveryTask != null && !peerDiscoveryTask.isCancelled())
+                    peerDiscoveryTask.cancel(true);
+
                 p2pManager.requestConnectionInfo(p2pChannel, this);
             }else{
                 //handle disconnection of peer
