@@ -1,11 +1,15 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display;
 
+import android.app.DialogFragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 
 import org.jdeferred.Promise;
 
@@ -27,6 +31,7 @@ import ch.uzh.ifi.csg.contract.contract.TimeUnit;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialogFragment;
 
 /**
  * Created by flo on 05.06.17.
@@ -42,11 +47,13 @@ public class RentContractDetailFragment extends ContractDetailFragment
     private EditText rentFeeField;
     private EditText currentFeeField;
     private EditText depositField;
+    private Spinner timeUnitSpinner;
+    private TimeUnit selectedTimeUnit;
 
     private IRentContract contract;
     private BigInteger deposit;
     private BigInteger fee;
-    private TimeUnit timeUnit;
+
     private BigInteger currentFee;
 
     @Override
@@ -63,6 +70,21 @@ public class RentContractDetailFragment extends ContractDetailFragment
         abortButton = (Button) view.findViewById(R.id.abort_button);
         returnButton = (Button) view.findViewById(R.id.return_button);
         reclaimButton = (Button) view.findViewById(R.id.reclaim_button);
+        timeUnitSpinner = (Spinner) view.findViewById(R.id.contract_time_unit_spinner);
+        timeUnitSpinner.setAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, TimeUnit.values()));
+        timeUnitSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                selectedTimeUnit = TimeUnit.values()[i];
+                updateCurrencyFields();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                selectedTimeUnit = TimeUnit.Days;
+                updateCurrencyFields();
+            }
+        });
 
         rentButton.setOnClickListener(this);
         abortButton.setOnClickListener(this);
@@ -100,7 +122,6 @@ public class RentContractDetailFragment extends ContractDetailFragment
                         final String buyer = contract.getBuyer();
                         fee = contract.getPrice();
                         deposit = contract.getDeposit();
-                        timeUnit = contract.getTimeUnit();
 
                         updateCurrencyFields();
 
@@ -128,7 +149,7 @@ public class RentContractDetailFragment extends ContractDetailFragment
                                     abortButton.setEnabled(false);
                                 }
 
-                                if(state.equals(ContractState.Locked) && seller.equals(selectedAccount))
+                                if((state.equals(ContractState.Locked) || state.equals(ContractState.AwaitPayment)) && seller.equals(selectedAccount))
                                 {
                                     reclaimButton.setEnabled(true);
                                 }else{
@@ -176,15 +197,24 @@ public class RentContractDetailFragment extends ContractDetailFragment
 
                 Float exchangeRate = currencyMap.get(selectedCurrency);
                 final Float depositCurrency = depositEther.floatValue() * exchangeRate;
-                final Float feeCurrency = feeEther.floatValue() * exchangeRate;
-                final Float totalFeeCurrency = totalFeeEther.floatValue() * exchangeRate;
+                Float feeCurrency = feeEther.floatValue() * exchangeRate;
+                Float totalFeeCurrency = totalFeeEther.floatValue() * exchangeRate;
+                if(selectedTimeUnit == TimeUnit.Days)
+                {
+                    feeCurrency = feeCurrency * (3600 * 24);
+                }else{
+                    feeCurrency = feeCurrency * 3600;
+                }
+
+                final Float finalTotalFeeCurrency = totalFeeCurrency;
+                final Float finalFeeCurrency = feeCurrency;
 
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        rentFeeField.setText(feeCurrency.toString() + " / " + timeUnit.toString());
+                        rentFeeField.setText(finalFeeCurrency.toString());
                         depositField.setText(depositCurrency.toString());
-                        currentFeeField.setText(totalFeeCurrency.toString());
+                        currentFeeField.setText(finalTotalFeeCurrency.toString());
                     }
                 });
 
@@ -193,8 +223,67 @@ public class RentContractDetailFragment extends ContractDetailFragment
         }).fail(new FailCallback() {
             @Override
             public void onFail(Throwable result) {
-                messageHandler.handleError(result);
+                //todo:log
+                result.printStackTrace();
+                //messageHandler.handleError(result);
             }
         });
+    }
+
+    @Override
+    public void onClick(View view)
+    {
+        super.onClick(view);
+
+        switch(view.getId())
+        {
+            case R.id.rent_button:
+                BigInteger value = deposit;
+                if(!ensureBalance(value))
+                    return;
+
+                BusyIndicator.show(bodyView);
+                SimplePromise buyPromise = contract.rentItem().always(new AlwaysCallback<String>() {
+                    @Override
+                    public void onAlways(Promise.State state, String resolved, Throwable rejected) {
+                        BusyIndicator.hide(bodyView);
+
+                    }
+                });
+                contextProvider.getTransactionManager().toTransaction(buyPromise, contract.getContractAddress());
+                break;
+            case R.id.abort_button:
+                BusyIndicator.show(bodyView);
+                SimplePromise abortPromise = contract.abort().always(new AlwaysCallback<String>() {
+                    @Override
+                    public void onAlways(Promise.State state, String resolved, Throwable rejected) {
+                        BusyIndicator.hide(bodyView);
+                    }
+                });
+                contextProvider.getTransactionManager().toTransaction(abortPromise, contract.getContractAddress());
+                break;
+            case R.id.return_button:
+                BusyIndicator.show(bodyView);
+                SimplePromise returnPromise = contract.returnItem().always(new AlwaysCallback<String>() {
+                    @Override
+                    public void onAlways(Promise.State state, String resolved, Throwable rejected) {
+                        BusyIndicator.hide(bodyView);
+                    }
+                });
+                contextProvider.getTransactionManager().toTransaction(returnPromise, contract.getContractAddress());
+                break;
+            case R.id.reclaim_button:
+                BusyIndicator.show(bodyView);
+                SimplePromise reclaimPromise = contract.reclaimItem().always(new AlwaysCallback<String>() {
+                    @Override
+                    public void onAlways(Promise.State state, String resolved, Throwable rejected) {
+                        BusyIndicator.hide(bodyView);
+                    }
+                });
+                contextProvider.getTransactionManager().toTransaction(reclaimPromise, contract.getContractAddress());
+                break;
+            default:
+                break;
+        }
     }
 }

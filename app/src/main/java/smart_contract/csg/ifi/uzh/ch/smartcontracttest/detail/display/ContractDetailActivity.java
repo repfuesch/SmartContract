@@ -1,17 +1,22 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display;
 
+import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.media.Image;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TabHost;
 
 import org.jdeferred.Promise;
 
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
+import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
+import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
@@ -25,7 +30,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.dialog.P2pExportDialog;
 
-public class ContractDetailActivity extends ActivityBase implements IContractObserver, ProfileFragment.OnProfileVerifiedListener, P2pExportDialog.P2pExportListener {
+public class ContractDetailActivity extends ActivityBase implements IContractObserver, P2pExportDialog.P2pExportListener {
 
     public final static String EXTRA_CONTRACT_ADDRESS = "ch.uzh.ifi.csg.smart_contract.address";
     public final static String EXTRA_CONTRACT_TYPE = "ch.uzh.ifi.csg.smart_contract.type";
@@ -35,25 +40,25 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
     private ContractDetailFragment detailFragment;
     private ProfileFragment profileFragment;
     private ITradeContract contract;
+    private String contractAddress;
+    private ContractType contractType;
 
     private TabHost tabHost;
     private TabHost.TabSpec profileViewSpec;
     private LinearLayout tabContentWrapper;
+    private ImageButton exportButton;
+    private ImageButton scanProfileButton;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        getSupportActionBar().setTitle(R.string.title_contract_detail);
-
-        tabContentWrapper = (LinearLayout)findViewById(R.id.tabcontent_wrapper);
-
-        Intent intent = getIntent();
-        String contractAddress = intent.getStringExtra(EXTRA_CONTRACT_ADDRESS);
-        ContractType contractType = (ContractType) intent.getSerializableExtra(EXTRA_CONTRACT_TYPE);
+    protected void onStart() {
+        super.onStart();
 
         FragmentManager fm = getFragmentManager();
-        FragmentTransaction ft = fm.beginTransaction();
 
+        if(fm.findFragmentByTag("Details") != null)
+            return;
+
+        //select correct details fragment for contract type
         profileFragment = new ProfileFragment();
         switch(contractType)
         {
@@ -67,13 +72,32 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
                 throw new IllegalArgumentException("No Fragment implementation for contract type '" + contractType.toString() + "' exists!");
         }
 
-        ft.add(android.R.id.tabcontent, profileFragment, "Profile");
-        ft.add(android.R.id.tabcontent, detailFragment, "Details");
-        ft.commit();
+        //add fragments
+        fm.beginTransaction()
+                .add(android.R.id.tabcontent, profileFragment, "Profile")
+                .add(android.R.id.tabcontent, detailFragment, "Details")
+                .commit();
+
         fm.executePendingTransactions();
 
-        initTabHost();
-        LoadContract(contractAddress, contractType);
+        fm.findFragmentByTag("Profile");
+        fm.findFragmentByTag("Details");
+
+        init(contractAddress, contractType);
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getSupportActionBar().setTitle(R.string.title_contract_detail);
+
+        tabContentWrapper = (LinearLayout)findViewById(R.id.tabcontent_wrapper);
+        exportButton = (ImageButton)findViewById(R.id.action_export_contract);
+        scanProfileButton = (ImageButton)findViewById(R.id.action_scan_profile);
+
+        Intent intent = getIntent();
+        contractAddress = intent.getStringExtra(EXTRA_CONTRACT_ADDRESS);
+        contractType = (ContractType) intent.getSerializableExtra(EXTRA_CONTRACT_TYPE);
     }
 
     @Override
@@ -83,7 +107,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
         contract.removeObserver(this);
     }
 
-    private void LoadContract(String contractAddress, ContractType type)
+    private void init(String contractAddress, ContractType type)
     {
         getServiceProvider().getContractService().loadContract(type, contractAddress, getSettingProvider().getSelectedAccount())
                 .always(new AlwaysCallback<ITradeContract>() {
@@ -101,30 +125,60 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
                             public void run() {
                                 contract = resolved;
                                 contract.addObserver(ContractDetailActivity.this);
-                                attachContract();
+                                initTabHost();
                             }
                         });
                     }
                 });
     }
 
-    private void attachContract()
+
+    private void initProfileFragment()
     {
         if(contract == null)
             return;
 
-        this.detailFragment.init(contract);
-
-        if(this.detailFragment.needsIdentityVerification() && contract.getUserProfile().getVCard() != null)
+        if(this.detailFragment.needsIdentityVerification())
         {
-            profileFragment.setProfileInformation(contract.getUserProfile());
-            if(!contract.getUserProfile().isVerified())
+            if(contract.getUserProfile().getVCard() != null)
             {
-                profileFragment.setMode(ProfileFragment.ProfileMode.Verify);
-            }else{
+                profileFragment.setProfileInformation(contract.getUserProfile());
                 profileFragment.setMode(ProfileFragment.ProfileMode.ReadOnly);
             }
         }
+    }
+
+    private void initDetailFragment()
+    {
+        if(contract == null)
+            return;
+
+        detailFragment.init(contract)
+                .done(new DoneCallback<Void>() {
+                    @Override
+                    public void onDone(Void result) {
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if(detailFragment.getSeller().equals(getSettingProvider().getSelectedAccount()) && detailFragment.getState().equals(ContractState.Created))
+                                {
+                                    exportButton.setVisibility(View.VISIBLE);
+                                }else{
+                                    exportButton.setVisibility(View.GONE);
+                                }
+
+                                if(detailFragment.needsIdentityVerification() && contract.getUserProfile().getVCard() == null)
+                                {
+                                    scanProfileButton.setVisibility(View.VISIBLE);
+                                    showMessage("You must first scan the user profile of your contract partner to interact with the contract!");
+                                }else{
+                                    scanProfileButton.setVisibility(View.GONE);
+                                }
+                            }
+                        });
+                    }
+                });
     }
 
     private void initTabHost()
@@ -138,16 +192,11 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
             @Override
             public void onTabChanged(String tabId) {
 
-                BusyIndicator.show(tabContentWrapper);
-
                 FragmentManager fm = getFragmentManager();
                 FragmentTransaction ft = fm.beginTransaction();
 
-                if(profileFragment!=null)
-                    ft.detach(profileFragment);
-
-                if(detailFragment!=null)
-                    ft.detach(detailFragment);
+                ft.detach(profileFragment);
+                ft.detach(detailFragment);
 
                 if(tabId.equalsIgnoreCase("Profile")){
                     ft.attach(profileFragment);
@@ -157,13 +206,15 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
 
                 ft.commit();
                 fm.executePendingTransactions();
-                BusyIndicator.hide(tabContentWrapper);
 
-                attachContract();
+                if(tabId.equalsIgnoreCase("Profile")){
+                    initProfileFragment();
+                }else{
+                    initDetailFragment();
+                }
             }
         };
 
-        /** Setting tabchangelistener for the tab */
         tabHost.setOnTabChangedListener(tabChangeListener);
 
         //set detail tab
@@ -178,8 +229,12 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
         profileViewSpec.setIndicator("", getResources().getDrawable(R.drawable.ic_tab_contact_info));
         tabHost.addTab(profileViewSpec);
 
-        tabHost.setCurrentTabByTag("Profile");
-        tabHost.setCurrentTabByTag("Details");
+        //hack to get details Tab loaded at the beginning
+        tabHost.setCurrentTab(1);
+        tabHost.setCurrentTab(0);
+
+        if(!detailFragment.needsIdentityVerification() || contract.getUserProfile().getVCard() == null)
+            removeProfileTab();
     }
 
     private void removeProfileTab()
@@ -215,7 +270,15 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
                 UserProfile profile = new UserProfile();
                 profile.setVCard(Ezvcard.parse(vCardString).first());
                 profileFragment.setProfileInformation(profile);
+
+                tabHost.addTab(profileViewSpec);
                 tabHost.setCurrentTabByTag("Profile");
+                scanProfileButton.setVisibility(View.GONE);
+                contract.setUserProfile(profile);
+                profileFragment.setMode(ProfileFragment.ProfileMode.ReadOnly);
+                getServiceProvider().getContractService().saveContract(contract, getSettingProvider().getSelectedAccount());
+                detailFragment.identityVerified();
+
                 break;
         }
         super.onActivityResult(requestCode, resultCode, intent);
@@ -232,22 +295,11 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
         detailFragment.init(contract);
     }
 
-    @Override
-    public void onProfileVerified(UserProfile profile)
-    {
-        detailFragment.verifyIdentity();
-        tabHost.setCurrentTabByTag("Details");
-        contract.setUserProfile(profile);
-        profileFragment.setMode(ProfileFragment.ProfileMode.ReadOnly);
-        getServiceProvider().getContractService().saveContract(contract, getSettingProvider().getSelectedAccount());
-        detailFragment.identityVerified();
-    }
-
     public void onExportContractClick(View view)
     {
         DialogFragment exportFragment = new P2pExportDialog();
         Bundle args = new Bundle();
-        args.putBoolean(P2pExportDialog.MESSAGE_IDENTIFICATION_USED, detailFragment.isVerifyIdentity());
+        args.putBoolean(P2pExportDialog.MESSAGE_IDENTIFICATION_USED, detailFragment.needsIdentityVerification());
         args.putSerializable(P2pExportDialog.MESSAGE_CONTRACT_DATA, new ContractInfo(contract.getContractType(), contract.getContractAddress(), new UserProfile(), contract.getImages()));
         exportFragment.setArguments(args);
         exportFragment.show(getSupportFragmentManager(), "importDialogFragment");
@@ -257,11 +309,13 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
     public void onContractDataExchanged(UserProfile buyerProfile) {
         if(buyerProfile != null)
         {
+            tabHost.addTab(profileViewSpec);
             tabHost.setCurrentTabByTag("Profile");
             contract.setUserProfile(buyerProfile);
             getServiceProvider().getContractService().saveContract(contract, getSettingProvider().getSelectedAccount());
             profileFragment.setProfileInformation(buyerProfile);
             profileFragment.setMode(ProfileFragment.ProfileMode.ReadOnly);
+            detailFragment.identityVerified();
         }
     }
 

@@ -24,6 +24,7 @@
                 <EditText
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:inputType="text"
                     android:hint="@string/hint_title"
                     android:id="@+id/contract_title" />
 
@@ -64,7 +65,9 @@
                 <EditText
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:inputType="text"
                     android:id="@+id/contract_description"
+                    android:nextFocusDown="@+id/contract_title"
                     android:hint="@string/hint_description"
                     android:layout_marginBottom="10dp" />
 
@@ -122,9 +125,23 @@
             </LinearLayout>
 
 
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
+                android:orientation="vertical"
                 android:layout_height="wrap_content">
+
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_alignParentTop="true"
+                    android:layout_height="wrap_content">
+
+                    <EditText
+                        android:enabled="false"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/hint_identity_management"/>
+
+                </android.support.design.widget.TextInputLayout>
 
                 <RadioGroup
                     android:layout_width="match_parent"
@@ -156,7 +173,7 @@
                     android:layout_alignParentRight="true"
                     android:src="@drawable/ic_action_scan_qr_code"/>
 
-            </RelativeLayout>
+            </LinearLayout>
             </LinearLayout>
         </ScrollView>
 

@@ -32,6 +32,7 @@ import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
+import ch.uzh.ifi.csg.contract.contract.TradeContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
@@ -49,8 +50,6 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
 
     //private LinearLayout progressView;
     private LinearLayout contractInteractionView;
-    private LinearLayout verifyIdentityView;
-    private LinearLayout exportContractView;
     private LinearLayout imageContainer;
 
     private ProportionalImageView qrImageView;
@@ -66,6 +65,9 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
     protected ApplicationContextProvider contextProvider;
 
     protected boolean verifyIdentity;
+    private String seller;
+    private ContractState state;
+    private ITradeContract contract;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -89,10 +91,7 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
         contractInteractionView = (LinearLayout) view.findViewById(R.id.contract_interactions);
 
         qrImageView = (ProportionalImageView) view.findViewById(R.id.contract_qr_image);
-        verifyIdentityView = (LinearLayout) view.findViewById(R.id.section_verify_identity);
         qrImageView.setOnClickListener(this);
-
-        exportContractView = (LinearLayout) view.findViewById(R.id.section_export);
 
         currencySpinner = (Spinner) view.findViewById(R.id.contract_currency);
         currencyList = new ArrayList<>();
@@ -142,10 +141,6 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
         attachContext(activity);
     }
 
-    public boolean isVerifyIdentity() {
-        return verifyIdentity;
-    }
-
     protected abstract ITradeContract getContract();
 
     protected abstract int getLayoutId();
@@ -174,22 +169,12 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
     @Override
     public void onClick(View view)
     {
-        //Prevent that user interacts with the contract when connection lost
-        if(view.getParent().equals(contractInteractionView))
-        {
-            if(!contextProvider.getServiceProvider().getConnectionService().hasConnection())
-            {
-                messageHandler.showErrorMessage("Cannot interact with the contract when connection is lost!");
-                return;
-            }
-        }
-
         switch(view.getId())
         {
             case R.id.contract_qr_image:
                 DialogFragment imageDialog = new ImageDialogFragment();
                 Bundle args = new Bundle();
-                args.putString(ImageDialogFragment.MESSAGE_IMAGE_SOURCE, getContract().getContractAddress());
+                args.putString(ImageDialogFragment.MESSAGE_IMAGE_SOURCE, contract.getContractAddress() + "," + contract.getContractType());
                 args.putBoolean(ImageDialogFragment.MESSAGE_DISPLAY_QRCODE, true);
                 imageDialog.setArguments(args);
                 imageDialog.show(getFragmentManager(), "QrImageDialog");
@@ -203,11 +188,14 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
         return verifyIdentity;
     }
 
-    public void verifyIdentity()
+    public String getSeller(){ return seller; }
+
+    public ContractState getState(){return state; }
+
+    public void identityVerified()
     {
         isVerified = true;
         contractInteractionView.setVisibility(View.VISIBLE);
-        verifyIdentityView.setVisibility(View.GONE);
     }
 
     public SimplePromise<Void> init(final ITradeContract contract)
@@ -216,8 +204,10 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
             @Override
             public Void call() throws Exception {
 
+                ContractDetailFragment.this.contract = contract;
                 verifyIdentity = contract.getVerifyIdentity();
-                final ContractState state = contract.getState();
+                state = contract.getState();
+                seller = contract.getSeller();
                 final String description = contract.getDescription();
                 final String title = contract.getTitle();
                 final List<String> imageSignatures = contract.getImageSignatures();
@@ -229,12 +219,6 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
                         if(verifyIdentity && contract.getUserProfile().getVCard() == null)
                         {
                             contractInteractionView.setVisibility(View.GONE);
-                            verifyIdentityView.setVisibility(View.VISIBLE);
-                        }
-
-                        if(contract.getUserProfile().getVCard() != null)
-                        {
-                            exportContractView.setVisibility(View.GONE);
                         }
 
                         //create a bitmap image containing the qr code of the address and type of the contract
@@ -303,13 +287,6 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
         imageArgs.putInt(ImageDialogFragment.MESSAGE_IMAGE_INDEX, startIndex);
         imageDialog.setArguments(imageArgs);
         imageDialog.show(getFragmentManager(), "ImageDialog");
-    }
-
-    public void identityVerified()
-    {
-        contractInteractionView.setVisibility(View.VISIBLE);
-        verifyIdentityView.setVisibility(View.GONE);
-        //init();
     }
 
     @Override

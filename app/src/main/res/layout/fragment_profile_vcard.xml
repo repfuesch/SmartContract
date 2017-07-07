@@ -218,15 +218,6 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="verify"
-            android:visibility="gone"
-            android:background="@drawable/button_selector"
-            android:gravity="center"
-            android:id="@+id/action_verify_identity" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:text="edit"
             android:visibility="gone"
             android:background="@drawable/button_selector"

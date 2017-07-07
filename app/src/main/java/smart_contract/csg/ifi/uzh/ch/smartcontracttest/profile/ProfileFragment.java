@@ -55,14 +55,12 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     private EditText regionField;
     private EditText emailField;
     private EditText phoneField;
-    private Button verifyButton;
     private Button editButton;
     private Button saveButton;
     private ImageView qrImageView;
     private ImageView profileImage;
 
     private ProfileMode mode;
-    private OnProfileVerifiedListener verifiedListener;
     private MessageHandler messageHandler;
     private ApplicationContextProvider contextProvider;
 
@@ -96,13 +94,11 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         phoneField = (EditText) view.findViewById(R.id.field_profile_phone);
         phoneField.addTextChangedListener(new RequiredTextFieldValidator(phoneField));
 
-        verifyButton = (Button) view.findViewById(R.id.action_verify_identity);
         editButton = (Button) view.findViewById(R.id.action_edit_identity);
         saveButton = (Button) view.findViewById(R.id.action_save_identity);
         qrImageView = (ImageView) view.findViewById(R.id.profile_qr_image);
         profileImage = (ImageView) view.findViewById(R.id.profile_image);
 
-        verifyButton.setOnClickListener(this);
         editButton.setOnClickListener(this);
         saveButton.setOnClickListener(this);
         qrImageView.setOnClickListener(this);
@@ -136,11 +132,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
     private void attachContext(Context context)
     {
-        if(context instanceof OnProfileVerifiedListener)
-        {
-            verifiedListener = (OnProfileVerifiedListener) context;
-        }
-
         if(context instanceof MessageHandler)
         {
             messageHandler = (MessageHandler) context;
@@ -223,24 +214,15 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     {
         this.mode = mode;
 
-        if(mode == ProfileMode.Verify)
-        {
-            changeLayoutRecursive(layout, ProfileMode.Verify);
-            verifyButton.setVisibility(View.VISIBLE);
-            saveButton.setVisibility(View.GONE);
-            editButton.setVisibility(View.GONE);
-        }else if(mode == ProfileMode.Edit){
+        if(mode == ProfileMode.Edit){
             changeLayoutRecursive(layout, ProfileMode.Edit);
-            verifyButton.setVisibility(View.GONE);
             saveButton.setVisibility(View.VISIBLE);
             editButton.setVisibility(View.GONE);
         }else
         {
             changeLayoutRecursive(layout, ProfileMode.ReadOnly);
-            verifyButton.setVisibility(View.GONE);
             saveButton.setVisibility(View.GONE);
             editButton.setVisibility(View.GONE);
-            profileImage.setOnLongClickListener(null);
         }
     }
 
@@ -352,13 +334,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
         switch(view.getId())
         {
-            case R.id.action_verify_identity:
-                if(verifiedListener != null && validateProfile())
-                {
-                    profile.setVerified(true);
-                    verifiedListener.onProfileVerified(profile);
-                }
-                break;
             case R.id.action_save_identity:
                 if(validateProfile())
                 {
@@ -394,15 +369,9 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    public static interface OnProfileVerifiedListener
-    {
-        void onProfileVerified(UserProfile profile);
-    }
-
     public static enum ProfileMode
     {
         Edit,
-        Verify,
         ReadOnly,
     }
 }

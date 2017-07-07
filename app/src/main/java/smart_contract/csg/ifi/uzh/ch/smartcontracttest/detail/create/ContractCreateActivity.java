@@ -27,14 +27,13 @@ public class ContractCreateActivity extends ActivityBase  {
 
         FragmentManager fragmentManager = getFragmentManager();
         Fragment deploy = fragmentManager.findFragmentByTag(ContractDeployFragment.TAG);
+
         if(deploy != null)
         {
             deployFragment = (ContractDeployFragment) deploy;
-            initTabHost();
+            addFragment(fragmentManager, deployFragment);
             return;
         }
-
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         ContractType type = (ContractType) getIntent().getSerializableExtra(CONTRACT_TYPE_EXTRA);
         switch(type)
@@ -49,11 +48,9 @@ public class ContractCreateActivity extends ActivityBase  {
                 throw new IllegalArgumentException("Contract to deploy must be specified!");
         }
 
-        fragmentTransaction.add(android.R.id.tabcontent, deployFragment, ContractDeployFragment.TAG);
-        fragmentTransaction.commit();
-        fragmentManager.executePendingTransactions();
+        addFragment(fragmentManager, deployFragment);
 
-        initTabHost();
+        //initTabHost();
     }
 
     @Override
@@ -63,6 +60,14 @@ public class ContractCreateActivity extends ActivityBase  {
 
     @Override
     protected void onSettingsChanged() {
+    }
+
+    private void addFragment(FragmentManager fragmentManager, Fragment fragment)
+    {
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.add(R.id.content, deployFragment, ContractDeployFragment.TAG);
+        fragmentTransaction.commit();
+        fragmentManager.executePendingTransactions();
     }
 
     private void initTabHost()

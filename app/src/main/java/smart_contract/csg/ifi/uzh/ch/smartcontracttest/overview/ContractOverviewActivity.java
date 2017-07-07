@@ -94,7 +94,7 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
                     @Override
                     public void onDone(Boolean result) {
                         final ContractType type = (ContractType) intent.getSerializableExtra(QrScanningActivity.MESSAGE_CONTRACT_TYPE);
-
+                        getServiceProvider().getContractService().saveContract(contractAddress, type, getSettingProvider().getSelectedAccount());
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {

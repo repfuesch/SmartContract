@@ -55,6 +55,7 @@
     <string name="hint_title">Title</string>
     <string name="hint_currency">Currency</string>
     <string name="hint_price">Price</string>
+    <string name="hint_rent">Rent</string>
     <string name="hint_fee">Fee</string>
     <string name="hint_current_fee">Current fee</string>
     <string name="hint_paid_fee">Paid fee</string>
@@ -79,6 +80,7 @@
     <string name="hint_website">Website</string>
     <string name="hint_person_title">Title</string>
     <string name="hint_pictures">Pictures</string>
+    <string name="hint_identity_management">Identity Management</string>
     <string name="option_verify">Verify identity</string>
     <string name="option_anonymous">Anonymous contract</string>
 </resources>

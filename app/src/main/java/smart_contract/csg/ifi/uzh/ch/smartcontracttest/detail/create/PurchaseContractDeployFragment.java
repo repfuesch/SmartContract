@@ -31,11 +31,12 @@ public class PurchaseContractDeployFragment extends ContractDeployFragment
             priceWei = priceWei.add(BigInteger.ONE);
         }
 
-        if(!ensureBalance(priceWei))
+        BigInteger priceWithDeposit = priceWei.multiply(BigInteger.valueOf(2));
+        if(!ensureBalance(priceWithDeposit))
             return null;
 
         return  contextProvider.getServiceProvider().getContractService().deployPurchaseContract(
-                priceWei,
+                priceWithDeposit,
                 title,
                 description,
                 new ArrayList(imageSignatures.keySet()),

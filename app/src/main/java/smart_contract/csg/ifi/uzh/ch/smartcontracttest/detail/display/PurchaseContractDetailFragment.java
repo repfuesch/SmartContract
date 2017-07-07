@@ -116,7 +116,6 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
                     @Override
                     public void onAlways(Promise.State state, String resolved, Throwable rejected) {
                         BusyIndicator.hide(bodyView);
-
                     }
                 });
                 contextProvider.getTransactionManager().toTransaction(abortPromise, contract.getContractAddress());
@@ -212,7 +211,8 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
                 .fail(new FailCallback() {
                     @Override
                     public void onFail(Throwable result) {
-                        messageHandler.handleError(result);
+                        //todo:log
+                        //messageHandler.handleError(result);
                     }
                 });
     }

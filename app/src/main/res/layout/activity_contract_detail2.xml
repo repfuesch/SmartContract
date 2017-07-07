@@ -12,7 +12,42 @@
     <include
         layout="@layout/toolbar" />
 
-    <include layout="@layout/fragment_account_balance"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <include layout="@layout/fragment_account_balance"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_margin="8dp"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:onClick="onExportContractClick"
+                android:background="?android:attr/colorBackground"
+                android:layout_marginRight="8dp"
+                android:id="@+id/action_export_contract"
+                android:src="@drawable/ic_action_wifi"/>
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:onClick="onScanQrImageClick"
+                android:id="@+id/action_scan_profile"
+                android:background="?android:attr/colorBackground"
+                android:layout_marginRight="8dp"
+                android:src="@drawable/ic_action_scan_qr_code"/>
+
+        </LinearLayout>
+    </RelativeLayout>
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"

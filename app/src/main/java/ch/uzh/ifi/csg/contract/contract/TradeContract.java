@@ -147,20 +147,15 @@ public abstract class TradeContract extends Contract implements ITradeContract
 
     protected void unregisterContractEvents()
     {
-        try{
-            for(final Subscription subscription : subscriptions)
-            {
-                Async.run(new Callable<Void>() {
-                    @Override
-                    public Void call() throws Exception {
-                        subscription.unsubscribe();
-                        return null;
-                    }
-                });
-            }
-        }catch(FilterException ex)
+        for(final Subscription subscription : subscriptions)
         {
-            //todo:handle exception properly!
+            Async.run(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    subscription.unsubscribe();
+                    return null;
+                }
+            });
         }
 
         subscriptions.clear();

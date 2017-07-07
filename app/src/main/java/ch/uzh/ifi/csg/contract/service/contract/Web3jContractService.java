@@ -28,6 +28,7 @@ import ch.uzh.ifi.csg.contract.contract.RentContract;
 import ch.uzh.ifi.csg.contract.contract.TimeUnit;
 import ch.uzh.ifi.csg.contract.contract.TradeContract;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
+import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 
 /**
  * Web3j implementation of the ContractService.
@@ -216,9 +217,22 @@ public class Web3jContractService implements ContractService
                 account);
     }
 
+    /**
+     * Persists a contract for an account with the provided ContractManager.
+     *
+     * @param contractAddress
+     * @param contractType
+     * @param account
+     */
+    @Override
+    public void saveContract(String contractAddress, ContractType contractType,  String account) {
+        contractManager.saveContract(
+                new ContractInfo(contractType,  contractAddress),
+                account);
+    }
 
     /**
-     * Removes a contract from a persisted storage. This method does not delete a contract from the
+     * Removes a contract from a persistent storage. This method does not delete a contract from the
      * blockchain.
      *
      * @param contract
@@ -227,6 +241,19 @@ public class Web3jContractService implements ContractService
     @Override
     public void removeContract(ITradeContract contract, String account) {
         contractManager.deleteContract(contract.getContractAddress(), account);
+    }
+
+
+    /**
+     * Removes a contract from a persistent storage. This method does not delete a contract from the
+     * blockchain.
+     *
+     * @param contractAddress
+     * @param account
+     */
+    @Override
+    public void removeContract(String contractAddress, String account) {
+        contractManager.deleteContract(contractAddress, account);
     }
 
     /**

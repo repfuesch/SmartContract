@@ -27,88 +27,121 @@
                     android:orientation="horizontal"
                     android:layout_height="wrap_content">
 
-                    <android.support.design.widget.TextInputLayout
+                    <TextView
                         android:layout_width="0dp"
                         android:layout_weight="1"
                         android:layout_height="wrap_content"
-                        android:textColorHint="#ff6d00"
-                        app:hintTextAppearance="@style/HintTextBig">
+                        android:layout_gravity="center_vertical"
+                        android:text="@string/hint_title"
+                        style="@style/InputLabel"/>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="3"
+                        android:layout_height="wrap_content">
 
                         <EditText
                             android:id="@+id/general_title"
-                            android:layout_width="match_parent"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
-                            android:hint="@string/hint_title"
                             android:enabled="false"
-                            android:text="testText"
                             android:textColor="@color/white"
                             android:textAppearance="?attr/textAppearanceListItem"/>
 
-                    </android.support.design.widget.TextInputLayout>
+                        <smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView
+                            android:layout_width="32dp"
+                            android:layout_margin="16dp"
+                            android:layout_height="32dp"
+                            android:layout_gravity="center"
+                            android:layout_alignParentRight="true"
+                            android:src="@drawable/ic_eth_logo_big"
+                            android:id="@+id/contract_qr_image"/>
 
-                    <smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView
-                        android:layout_width="32dp"
-                        android:layout_margin="16dp"
-                        android:layout_height="32dp"
-                        android:layout_gravity="center"
-                        android:layout_alignParentRight="true"
-                        android:src="@drawable/ic_eth_logo_big"
-                        android:id="@+id/contract_qr_image"/>
-
+                    </LinearLayout>
                 </LinearLayout>
-
-
-                <android.support.design.widget.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColorHint="#ff6d00"
-                    app:hintTextAppearance="@style/HintTextBig">
-
-                    <EditText
-                        android:id="@+id/general_state"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:hint="@string/hint_state"
-                        android:enabled="false"
-                        android:text="testText"
-                        android:textColor="@color/white"
-                        android:textAppearance="?attr/textAppearanceListItem"/>
-
-                </android.support.design.widget.TextInputLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                <android.support.design.widget.TextInputLayout
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:textColorHint="#ff6d00"
-                    app:hintTextAppearance="@style/HintTextBig">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="@string/hint_state"
+                        style="@style/InputLabel"/>
+
+                    <EditText
+                        android:id="@+id/general_state"
+                        android:layout_width="0dp"
+                        android:layout_weight="3"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:textColor="@color/white"
+                        android:enabled="false"
+                        android:textAppearance="?attr/textAppearanceListItem"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="@string/hint_price"
+                        style="@style/InputLabel"/>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="3"
+                        android:layout_height="wrap_content">
 
                         <EditText
                             android:id="@+id/general_price"
-                            android:layout_width="match_parent"
+                            android:layout_width="0dp"
                             android:layout_weight="1"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
-                            android:hint="@string/hint_price"
-                            android:text="testText"
                             android:enabled="false"
                             android:textColor="@color/white"
                             android:textAppearance="?attr/textAppearanceListItem"/>
 
-                </android.support.design.widget.TextInputLayout>
+                        <Spinner
+                            android:layout_width="0dp"
+                            android:id="@+id/contract_currency"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1.5"
+                            android:layout_gravity="center_vertical"/>
 
-                <Spinner
-                    android:layout_width="0dp"
-                    android:id="@+id/contract_currency"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_gravity="center_vertical"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="@string/hint_address"
+                        style="@style/InputLabel"/>
+
+                    <EditText
+                        android:id="@+id/general_address"
+                        android:layout_width="0dp"
+                        android:layout_weight="3"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:textColor="@color/white"
+                        android:enabled="false"
+                        android:textSize="10dp"
+                        android:textAppearance="?attr/textAppearanceListItem"/>
 
                 </LinearLayout>
 
@@ -125,82 +158,10 @@
                         android:gravity="center_vertical"
                         android:hint="@string/hint_description"
                         android:enabled="false"
-                        android:text="testText"
                         android:textColor="@color/white"
                         android:textAppearance="?attr/textAppearanceListItem"/>
 
                 </android.support.design.widget.TextInputLayout>
-
-                <android.support.design.widget.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColorHint="#ff6d00"
-                    app:hintTextAppearance="@style/HintTextBig">
-
-                    <EditText
-                        android:id="@+id/general_address"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:hint="@string/hint_address"
-                        android:enabled="false"
-                        android:textSize="10dp"
-                        android:text="testText"
-                        android:textColor="@color/white"
-                        android:textAppearance="?attr/textAppearanceListItem"/>
-
-                </android.support.design.widget.TextInputLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:visibility="gone"
-                    android:id="@+id/section_verify_identity"
-                    android:layout_marginTop="8dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="#ff6d00"
-                        android:textSize="16dp"
-                        android:text="Verify Identity "/>
-
-                    <ImageView
-                        android:layout_marginTop="16dp"
-                        android:id="@+id/activity_qr_scanning"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentRight="true"
-                        android:onClick="onScanQrImageClick"
-                        android:src="@drawable/ic_action_scan_qr_code"/>
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:visibility="visible"
-                    android:id="@+id/section_export"
-                    android:layout_marginTop="8dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="#ff6d00"
-                        android:textSize="16dp"
-                        android:text="Export"/>
-
-                    <ImageView
-                        android:layout_marginTop="16dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentRight="true"
-                        android:onClick="onExportContractClick"
-                        android:src="@drawable/ic_action_wifi"/>
-
-                </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"

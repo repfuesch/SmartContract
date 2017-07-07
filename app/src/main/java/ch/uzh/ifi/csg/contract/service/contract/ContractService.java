@@ -38,6 +38,8 @@ public interface ContractService {
     SimplePromise<ITradeContract> loadContract(ContractType contractType, String contractAddress, String account);
     void saveContract(ITradeContract contract, String account);
     void removeContract(ITradeContract contract, String account);
+    void saveContract(String contractAddress, ContractType contractType,  String account);
+    void removeContract(String contractAddress, String account);
     SimplePromise<List<ITradeContract>> loadContracts(String account);
     SimplePromise<Boolean> isContract(String address);
 

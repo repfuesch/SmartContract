@@ -37,6 +37,9 @@ public class BusyIndicator {
         if(layout == null)
             return;
 
+        if(activeIndicators.contains(layout))
+            return;
+
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -44,6 +47,7 @@ public class BusyIndicator {
                 for(int i=0;i<layout.getChildCount(); ++i)
                 {
                     View child = layout.getChildAt(i);
+
                     if(child.getVisibility() == View.VISIBLE)
                     {
                         child.setTag(VISIBLE_TAG, true);
@@ -82,6 +86,8 @@ public class BusyIndicator {
                     View child = layout.getChildAt(i);
                     if(child.getTag(VISIBLE_TAG) != null && child.getTag(VISIBLE_TAG).equals(true))
                         child.setVisibility(View.VISIBLE);
+
+                    child.setTag(VISIBLE_TAG, null);
                 }
 
                 activeIndicators.remove(layout);

@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -68,9 +69,10 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
     private Button deployButton;
     private Button cancelButton;
     private RadioGroup deployOptionsGroup;
-    private ImageView qrImageView;
+
     private Spinner currencySpinner;
     private Currency selectedCurrency;
+    protected List<Currency> currencies;
 
     private ImageButton addImageButton;
     private LinearLayout imageContainer;
@@ -93,6 +95,8 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         super.onCreate(savedInstanceState);
 
         images = new LinkedHashMap<>();
+        currencies = Arrays.asList(Currency.values());
+
         // Tell the framework to try to keep this fragment around
         // during a configuration change.
         setRetainInstance(true);
@@ -133,6 +137,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         priceField = (EditText) view.findViewById(R.id.contract_price);
         priceField.addTextChangedListener(new RequiredTextFieldValidator(priceField));
         titleField = (EditText) view.findViewById(R.id.contract_title);
+
         titleField.addTextChangedListener(new RequiredTextFieldValidator(titleField));
         descriptionField = (EditText) view.findViewById(R.id.contract_description);
         descriptionField.addTextChangedListener(new RequiredTextFieldValidator(descriptionField));
@@ -143,10 +148,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
 
         cancelButton = (Button) view.findViewById(R.id.action_cancel_deploy);
         cancelButton.setOnClickListener(this);
-
         deployOptionsGroup = (RadioGroup) view.findViewById(R.id.contract_options_radio_group);
-        qrImageView = (ImageView) view.findViewById(R.id.action_scan_profile);
-        qrImageView.setOnClickListener(this);
 
         deployOptionsGroup.setOnCheckedChangeListener(this);
         priceField.addTextChangedListener(this);
@@ -154,24 +156,19 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         descriptionField.addTextChangedListener(this);
 
         currencySpinner = (Spinner) view.findViewById(R.id.contract_currency);
-
-        final List<String> currencyList = new ArrayList<>();
-        currencyList.add(Currency.EUR.toString());
-        currencyList.add(Currency.USD.toString());
-        ArrayAdapter<String> itemsAdapter =
-                new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, currencyList);
+        ArrayAdapter<Currency> itemsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, currencies);
 
         currencySpinner.setAdapter(itemsAdapter);
         currencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                selectedCurrency = Currency.valueOf(currencyList.get(i));
+                setSelectedCurrency(currencies.get(i));
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
                 currencySpinner.setSelection(0);
-                selectedCurrency = Currency.valueOf(currencyList.get(0));
+                setSelectedCurrency(currencies.get(0));
         }});
         itemsAdapter.notifyDataSetChanged();
 
@@ -185,6 +182,11 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
     }
 
     protected abstract int getLayoutId();
+
+    protected void setSelectedCurrency(Currency currency)
+    {
+        selectedCurrency = currency;
+    }
 
     protected Boolean ensureBalance(final BigInteger value)
     {
@@ -303,26 +305,34 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
     @Override
     public void afterTextChanged(Editable editable) {
 
-        if(titleField.getError() != null || priceField.getError() != null || descriptionField.getError() != null)
+        if(verifyFields())
         {
-            isValid = false;
-        }else{
             isValid = true;
             deployButton.setEnabled(true);
+        }else{
+            isValid = false;
+            deployButton.setEnabled(false);
         }
+    }
+
+    protected boolean verifyFields()
+    {
+        if(titleField.getError() != null || priceField.getError() != null || descriptionField.getError() != null)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     @Override
     public void onCheckedChanged(RadioGroup radioGroup, int i) {
 
-        switch(i)
+        if(i == R.id.option_verification)
         {
-            case R.id.option_verification:
-                needsVerification = true;
-                break;
-            default:
-                qrImageView.setVisibility(View.GONE);
-                needsVerification = false;
+            needsVerification = true;
+        }else{
+            needsVerification = false;
         }
     }
 
@@ -341,13 +351,6 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
             case R.id.action_cancel_deploy:
                 Intent intent = new Intent(getActivity(), ContractOverviewActivity.class);
                 startActivity(intent);
-                break;
-            case R.id.action_scan_profile:
-                Intent scanIntent = new Intent(getActivity(), QrScanningActivity.class);
-                scanIntent.setAction(QrScanningActivity.ACTION_SCAN_CONTRACT);
-                startActivityForResult(
-                        scanIntent,
-                        ContractCreateActivity.SCAN_CONTRACT_INFO_REQUEST);
                 break;
             case R.id.action_add_image:
                 getActivity().openContextMenu(addImageButton);
@@ -421,21 +424,6 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         }
 
         super.onActivityResult(requestCode, resultCode, intent);
-    }
-
-    public static String getRealPathFromUri(Context context, Uri contentUri) {
-        Cursor cursor = null;
-        try {
-            String[] proj = { MediaStore.Images.Media.DATA };
-            cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
-            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            cursor.moveToFirst();
-            return cursor.getString(column_index);
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
     }
 
     private Bitmap getBitmap(Uri uri)

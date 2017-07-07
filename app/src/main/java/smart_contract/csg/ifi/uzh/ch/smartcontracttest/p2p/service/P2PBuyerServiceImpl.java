@@ -29,6 +29,7 @@ public class P2PBuyerServiceImpl implements P2PBuyerService, P2PConnectionListen
     public void requestConnection(P2pBuyerCallback callback) {
         this.callback = callback;
         connectionManager.startListening(this);
+        callback.onP2pInfoMessage("Waiting for connection request");
     }
 
     @Override

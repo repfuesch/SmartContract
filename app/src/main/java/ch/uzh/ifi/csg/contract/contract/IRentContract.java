@@ -17,5 +17,4 @@ public interface IRentContract extends ITradeContract {
 
     //accessors for remote fields
     BigInteger getRentingFee() throws Exception;
-    TimeUnit getTimeUnit() throws Exception;
 }
