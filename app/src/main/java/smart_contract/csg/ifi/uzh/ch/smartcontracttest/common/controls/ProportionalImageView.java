@@ -7,6 +7,8 @@ import android.widget.ImageView;
 
 public class ProportionalImageView extends ImageView {
 
+    private ScaleDimension scale = ScaleDimension.Width;
+
     public ProportionalImageView(Context context) {
         super(context);
     }
@@ -19,14 +21,31 @@ public class ProportionalImageView extends ImageView {
         super(context, attrs, defStyle);
     }
 
+    public void setScale(ScaleDimension dimension)
+    {
+        scale = dimension;
+    }
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         Drawable d = getDrawable();
         if (d != null) {
-            int w = MeasureSpec.getSize(widthMeasureSpec);
-            int h = w * d.getIntrinsicHeight() / d.getIntrinsicWidth();
-            setMeasuredDimension(w, h);
+            if(scale == ScaleDimension.Height)
+            {
+                int h = MeasureSpec.getSize(heightMeasureSpec);
+                int w = h * d.getIntrinsicWidth() / d.getIntrinsicHeight();
+                setMeasuredDimension(w, h);
+            }else{
+                int w = MeasureSpec.getSize(widthMeasureSpec);
+                int h = w * d.getIntrinsicHeight() / d.getIntrinsicWidth();
+                setMeasuredDimension(w, h);
+            }
         }
         else super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+
+    public enum ScaleDimension{
+        Width,
+        Height
     }
 }

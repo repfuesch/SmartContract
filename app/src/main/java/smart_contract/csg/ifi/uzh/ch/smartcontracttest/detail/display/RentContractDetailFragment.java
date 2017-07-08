@@ -184,39 +184,50 @@ public class RentContractDetailFragment extends ContractDetailFragment
 
     private void updateCurrencyFields()
     {
+        BusyIndicator.show(bodyView);
         Async.run(new Callable<Void>() {
 
             @Override
             public Void call() throws Exception
             {
-                Map<Currency, Float> currencyMap = contextProvider.getServiceProvider().getExchangeService().getEthExchangeRates();
-                BigDecimal depositEther = Web3Util.toEther(deposit);
+                final BigDecimal depositEther = Web3Util.toEther(deposit);
                 final BigDecimal feeEther = Web3Util.toEther(fee);
                 BigInteger totalFee = contract.getRentingFee();
-                BigDecimal totalFeeEther = Web3Util.toEther(totalFee);
+                final BigDecimal totalFeeEther = Web3Util.toEther(totalFee);
 
-                Float exchangeRate = currencyMap.get(selectedCurrency);
-                final Float depositCurrency = depositEther.floatValue() * exchangeRate;
-                Float feeCurrency = feeEther.floatValue() * exchangeRate;
-                Float totalFeeCurrency = totalFeeEther.floatValue() * exchangeRate;
-                if(selectedTimeUnit == TimeUnit.Days)
-                {
-                    feeCurrency = feeCurrency * (3600 * 24);
-                }else{
-                    feeCurrency = feeCurrency * 3600;
-                }
+                contextProvider.getServiceProvider().getExchangeService().getExchangeRate(selectedCurrency)
+                        .done(new DoneCallback<BigDecimal>() {
+                            @Override
+                            public void onDone(BigDecimal exchangeRate) {
+                                final BigDecimal depositCurrency = depositEther.multiply(exchangeRate);
+                                BigDecimal feeCurrency = feeEther.multiply(exchangeRate);
+                                BigDecimal totalFeeCurrency = totalFeeEther.multiply(exchangeRate);
+                                if(selectedTimeUnit == TimeUnit.Days)
+                                {
+                                    feeCurrency = feeCurrency.multiply(BigDecimal.valueOf(3600 * 24));
+                                }else{
+                                    feeCurrency = feeCurrency.multiply(BigDecimal.valueOf(3600));
+                                }
 
-                final Float finalTotalFeeCurrency = totalFeeCurrency;
-                final Float finalFeeCurrency = feeCurrency;
+                                final BigDecimal finalTotalFeeCurrency = totalFeeCurrency;
+                                final BigDecimal finalFeeCurrency = feeCurrency;
 
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        rentFeeField.setText(finalFeeCurrency.toString());
-                        depositField.setText(depositCurrency.toString());
-                        currentFeeField.setText(finalTotalFeeCurrency.toString());
-                    }
-                });
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        rentFeeField.setText(finalFeeCurrency.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString());
+                                        depositField.setText(depositCurrency.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString());
+                                        currentFeeField.setText(finalTotalFeeCurrency.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString());
+                                    }
+                                });
+                            }
+                        })
+                        .always(new AlwaysCallback<BigDecimal>() {
+                            @Override
+                            public void onAlways(Promise.State state, BigDecimal resolved, Throwable rejected) {
+                                BusyIndicator.hide(bodyView);
+                            }
+                        });
 
                 return null;
             }

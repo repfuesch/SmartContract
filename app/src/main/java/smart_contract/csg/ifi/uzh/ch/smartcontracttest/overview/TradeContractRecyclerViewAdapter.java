@@ -10,14 +10,24 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.jdeferred.Promise;
+
 import ch.uzh.ifi.csg.contract.async.Async;
+import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
+import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.common.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
+import ch.uzh.ifi.csg.contract.contract.ContractType;
+import ch.uzh.ifi.csg.contract.contract.IRentContract;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.event.IContractObserver;
+import ch.uzh.ifi.csg.contract.service.exchange.Currency;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display.ContractDetailActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.util.ArrayList;
@@ -29,18 +39,20 @@ public class TradeContractRecyclerViewAdapter
 
     private final List<ITradeContract> contracts;
     private final List<ViewHolder> boundViewHolders;
+    private ApplicationContextProvider contextProvider;
 
-    public TradeContractRecyclerViewAdapter(List<ITradeContract> contracts)
+    public TradeContractRecyclerViewAdapter(List<ITradeContract> contracts, ApplicationContextProvider contextProvider)
     {
         this.contracts = contracts;
         this.boundViewHolders = new ArrayList<>();
+        this.contextProvider = contextProvider;
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.fragment_purchasecontract, parent, false);
-        return new ViewHolder(view);
+        return new ViewHolder(view, contextProvider);
     }
 
     @Override
@@ -83,19 +95,24 @@ public class TradeContractRecyclerViewAdapter
         private final TextView titleView;
         private final TextView stateView;
         private final TextView priceView;
+        private final TextView contractTypeView;
         private final CardView cardView;
 
         private Handler handler;
         private ITradeContract contract;
 
-        public ViewHolder(View view) {
+        private final ApplicationContextProvider contextProvider;
+
+        public ViewHolder(View view, ApplicationContextProvider contextProvider) {
             super(view);
+            this.contextProvider = contextProvider;
 
             this.handler = new Handler(Looper.getMainLooper());
 
             titleView = (TextView) view.findViewById(R.id.list_detail_title);
             stateView = (TextView) view.findViewById(R.id.list_detail_state);
             priceView = (TextView) view.findViewById(R.id.list_detail_price);
+            contractTypeView = (TextView) view.findViewById(R.id.list_detail_contract_type);
             cardView = (CardView) view.findViewById(R.id.card_view);
             cardView.setOnClickListener(this);
         }
@@ -141,6 +158,7 @@ public class TradeContractRecyclerViewAdapter
 
         private void updateViewFromState()
         {
+            BusyIndicator.show(cardView);
             Async.run(new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
@@ -148,17 +166,43 @@ public class TradeContractRecyclerViewAdapter
                     final ContractState state = contract.getState();
                     final BigInteger price = contract.getPrice();
                     final String title = contract.getTitle();
+                    final ContractType type = contract.getContractType();
 
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            titleView.setText(title);
-                            stateView.setText(state.toString());
-                            priceView.setText(Web3Util.toEther(price).round(MathContext.DECIMAL32).toString() + " ETH");
-                        }
-                    });
+                    BigDecimal amountEther;
+                    final String contractType;
+                    if(type == ContractType.Purchase)
+                    {
+                        amountEther = Web3Util.toEther(price);
+                        contractType = "Purchase Contract";
+                    }else{
+                        IRentContract rentContract = (IRentContract)contract;
+                        amountEther = Web3Util.toEther(rentContract.getRentingFee());
+                        contractType = "Rent Contract";
+                    }
+
+                    contextProvider.getServiceProvider().getExchangeService().convertToCurrency(amountEther, Currency.USD)
+                            .done(new DoneCallback<BigDecimal>() {
+                                @Override
+                                public void onDone(final BigDecimal result) {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            BigDecimal rounded = result.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+                                            priceView.setText(rounded.toString());
+                                            titleView.setText(title);
+                                            stateView.setText(state.toString());
+                                            contractTypeView.setText(contractType);
+                                        }
+                                    });
+                                }
+                            });
 
                     return null;
+                }
+            }).always(new AlwaysCallback<Void>() {
+                @Override
+                public void onAlways(Promise.State state, Void resolved, Throwable rejected) {
+                    BusyIndicator.hide(cardView);
                 }
             });
         }

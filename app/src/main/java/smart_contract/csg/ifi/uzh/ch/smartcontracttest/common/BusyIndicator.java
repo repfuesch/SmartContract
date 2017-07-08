@@ -10,6 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,17 +29,24 @@ public class BusyIndicator {
     private static Handler handler;
 
     static{
-        activeIndicators = new ArrayList<>();
+        activeIndicators = Collections.synchronizedList(new ArrayList<ViewGroup>());
         handler = new Handler(Looper.getMainLooper());
     }
 
-    public static void show(final LinearLayout layout)
+    public static void show(final ViewGroup layout)
     {
         if(layout == null)
             return;
 
-        if(activeIndicators.contains(layout))
-            return;
+        synchronized (activeIndicators) {
+
+            if (activeIndicators.contains(layout)) {
+                activeIndicators.add(layout);
+                return;
+            }else{
+                activeIndicators.add(layout);
+            }
+        }
 
         runOnUiThread(new Runnable() {
             @Override
@@ -58,26 +66,33 @@ public class BusyIndicator {
                     child.setVisibility(View.GONE);
                 }
 
-                layout.setGravity(Gravity.CENTER);
+                //layout.setGravity(Gravity.CENTER);
                 ProgressBar progressBar = new ProgressBar(layout.getContext());
                 LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(150, 150);
+                layoutParams.setMargins((layout.getWidth() / 2), (layout.getHeight() / 2), 0, 0);
                 progressBar.setLayoutParams(layoutParams);
                 progressBar.setTag("progressbar");
                 layout.addView(progressBar);
-
-                activeIndicators.add(layout);
             }
         });
     }
 
-    public static void hide(final LinearLayout layout)
+    public static void hide(final ViewGroup layout)
     {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
 
-                if(!activeIndicators.contains(layout))
-                    return;
+                synchronized (activeIndicators)
+                {
+                    if(!activeIndicators.contains(layout))
+                        return;
+
+                    activeIndicators.remove(layout);
+
+                    if(activeIndicators.contains(layout))
+                        return;
+                }
 
                 layout.removeView(layout.findViewWithTag("progressbar"));
 
@@ -90,7 +105,6 @@ public class BusyIndicator {
                     child.setTag(VISIBLE_TAG, null);
                 }
 
-                activeIndicators.remove(layout);
             }
         });
     }

@@ -3,11 +3,9 @@ package ch.uzh.ifi.csg.contract.service;
 import java.math.BigInteger;
 
 import ch.uzh.ifi.csg.contract.service.account.AccountService;
-import ch.uzh.ifi.csg.contract.service.account.CredentialProvider;
-import ch.uzh.ifi.csg.contract.service.account.WalletAccountService;
 import ch.uzh.ifi.csg.contract.service.connection.EthConnectionService;
 import ch.uzh.ifi.csg.contract.service.contract.ContractService;
-import ch.uzh.ifi.csg.contract.service.exchange.EthExchangeService;
+import ch.uzh.ifi.csg.contract.service.exchange.EthConvertService;
 
 /**
  * Created by flo on 16.03.17.
@@ -41,7 +39,7 @@ public interface EthServiceFactory
             int transactionAttempts,
             int transactionSleepDuration);
 
-    EthExchangeService createHttpExchangeService();
+    EthConvertService createHttpExchangeService();
 
     EthConnectionService createConnectionService(String host, int port, int pollingInterval);
 }

@@ -14,7 +14,11 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
+
+import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
+import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
+import ch.uzh.ifi.csg.contract.common.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.contract.TimeUnit;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
@@ -74,12 +78,12 @@ public class RentContractDeployFragment extends ContractDeployFragment
     @Override
     protected SimplePromise<ITradeContract> deployContract(BigInteger priceWei, String title, String description, boolean needsVerification, final Map<String, File> imageSignatures)
     {
-        float deposit = Float.parseFloat(depositField.getText().toString());
-
-        BigInteger depositWei = convertToWei(deposit);
-        if(depositWei == null)
+        BigDecimal deposit = new BigDecimal(depositField.getText().toString());
+        BigDecimal depositEther = contextProvider.getServiceProvider().getExchangeService().convertToEther(deposit, selectedCurrency).get();
+        if(depositEther == null)
             return null;
 
+        BigInteger depositWei = Web3Util.toWei(depositEther);
         if(!ensureBalance(depositWei))
             return null;
 

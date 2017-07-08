@@ -24,8 +24,8 @@ import ch.uzh.ifi.csg.contract.service.contract.FileManager;
 import ch.uzh.ifi.csg.contract.service.contract.ContractService;
 import ch.uzh.ifi.csg.contract.service.contract.Web3jContractService;
 import ch.uzh.ifi.csg.contract.service.exchange.CryptoCompareDeserializer;
-import ch.uzh.ifi.csg.contract.service.exchange.EthExchangeService;
-import ch.uzh.ifi.csg.contract.service.exchange.JsonHttpExchangeService;
+import ch.uzh.ifi.csg.contract.service.exchange.EthConvertService;
+import ch.uzh.ifi.csg.contract.service.exchange.JsonHttpConvertService;
 import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
 import cz.msebera.android.httpclient.impl.client.HttpClients;
 import cz.msebera.android.httpclient.params.HttpConnectionParams;
@@ -108,11 +108,11 @@ public class ServiceFactoryImpl implements EthServiceFactory
     }
 
     @Override
-    public EthExchangeService createHttpExchangeService()
+    public EthConvertService createHttpExchangeService()
     {
         String url = "https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=BTC,USD,EUR";
         CloseableHttpClient client = HttpClients.custom().setConnectionManagerShared(true).build();
-        return new JsonHttpExchangeService(client, url, new CryptoCompareDeserializer());
+        return new JsonHttpConvertService(client, url, new CryptoCompareDeserializer());
     }
 
     @Override

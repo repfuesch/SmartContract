@@ -95,7 +95,7 @@ public class ContractListFragment extends Fragment
             purchaseList.setLayoutManager(new GridLayoutManager(context, mColumnCount));
         }
 
-        adapter = new TradeContractRecyclerViewAdapter(contracts);
+        adapter = new TradeContractRecyclerViewAdapter(contracts, contextProvider);
         purchaseList.setAdapter(adapter);
 
         return view;

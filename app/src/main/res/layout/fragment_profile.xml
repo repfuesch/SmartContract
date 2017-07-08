@@ -13,25 +13,32 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp">
 
-        <smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView
-            android:layout_width="48dp"
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
             android:layout_margin="16dp"
-            android:layout_height="48dp"
-            android:layout_gravity="center"
-            android:layout_alignParentLeft="true"
-            android:id="@+id/profile_qr_image"/>
+            android:layout_alignParentLeft="true">
+
+            <smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:layout_alignParentLeft="true"
+                android:id="@+id/profile_qr_image"/>
+
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:layout_margin="16dp"
             android:layout_alignParentRight="true">
 
             <smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView
                 android:layout_width="48dp"
-                android:layout_margin="16dp"
                 android:layout_height="48dp"
-                android:layout_gravity="center"
                 android:src="@drawable/ic_action_add"
                 android:id="@+id/profile_image"/>
 

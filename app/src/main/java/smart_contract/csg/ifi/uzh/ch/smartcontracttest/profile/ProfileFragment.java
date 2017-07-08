@@ -73,7 +73,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        View view =  inflater.inflate(R.layout.fragment_profile_vcard, container, false);
+        View view =  inflater.inflate(R.layout.fragment_profile, container, false);
 
         firstNameField = (EditText) view.findViewById(R.id.field_profile_first_name);
         firstNameField.addTextChangedListener(new RequiredTextFieldValidator(firstNameField));

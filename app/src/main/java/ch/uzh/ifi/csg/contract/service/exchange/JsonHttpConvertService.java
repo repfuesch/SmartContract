@@ -8,6 +8,7 @@ import com.google.gson.reflect.TypeToken;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +19,6 @@ import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import cz.msebera.android.httpclient.Header;
 import cz.msebera.android.httpclient.HttpResponse;
-import cz.msebera.android.httpclient.client.ClientProtocolException;
 import cz.msebera.android.httpclient.client.ResponseHandler;
 import cz.msebera.android.httpclient.client.methods.HttpGet;
 import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
@@ -28,18 +28,18 @@ import cz.msebera.android.httpclient.message.BasicHeader;
  * Created by flo on 07.04.17.
  */
 
-public class JsonHttpExchangeService implements EthExchangeService
+public class JsonHttpConvertService implements EthConvertService
 {
     private final CloseableHttpClient httpClient;
     private final Gson gson;
     private final String url;
 
-    public JsonHttpExchangeService(CloseableHttpClient httpClient, String url, JsonDeserializer<Map<Currency, Float>> deserializer)
+    public JsonHttpConvertService(CloseableHttpClient httpClient, String url, JsonDeserializer<Map<Currency, BigDecimal>> deserializer)
     {
         this.url = url;
         this.httpClient = httpClient;
         this.gson = new GsonBuilder()
-                .registerTypeAdapter(new TypeToken<HashMap<Currency, Float>>(){}.getType(), deserializer)
+                .registerTypeAdapter(new TypeToken<HashMap<Currency, BigDecimal>>(){}.getType(), deserializer)
                 .create();
     }
 
@@ -49,30 +49,17 @@ public class JsonHttpExchangeService implements EthExchangeService
         return headers.toArray(new Header[0]);
     }
 
-    @Override
-    public SimplePromise<Map<Currency, Float>> getEthExchangeRatesAsync() {
-
-        return Async.toPromise(new Callable<Map<Currency, Float>>() {
-            @Override
-            public Map<Currency, Float> call() throws Exception
-            {
-                return getEthExchangeRates();
-            }
-        });
-    }
-
-    @Override
-    public Map<Currency, Float> getEthExchangeRates() throws Exception
+    private Map<Currency, BigDecimal> getEthExchangeRates() throws Exception
     {
         HttpGet request = new HttpGet(url);
         request.setHeaders(buildHeaders());
 
         try {
-            return httpClient.execute(request, new ResponseHandler<Map<Currency, Float>>() {
+            return httpClient.execute(request, new ResponseHandler<Map<Currency, BigDecimal>>() {
                 @Override
-                public Map<Currency, Float> handleResponse(HttpResponse response) throws IOException {
+                public Map<Currency, BigDecimal> handleResponse(HttpResponse response) throws IOException {
                     String responseData = readResponse(response);
-                    Map<Currency, Float> result = gson.fromJson(responseData, new TypeToken<HashMap<Currency, Float>>(){}.getType());
+                    Map<Currency, BigDecimal> result = gson.fromJson(responseData, new TypeToken<HashMap<Currency, BigDecimal>>(){}.getType());
                     return result;
                 }
             });
@@ -91,5 +78,38 @@ public class JsonHttpExchangeService implements EthExchangeService
             jsonString += reader.readLine();
         }
         return jsonString;
+    }
+
+    @Override
+    public SimplePromise<BigDecimal> getExchangeRate(final Currency exchangeCurrency) {
+        return Async.toPromise(new Callable<BigDecimal>() {
+            @Override
+            public BigDecimal call() throws Exception {
+                Map<Currency, BigDecimal> exchangeMap = getEthExchangeRates();
+                return exchangeMap.get(exchangeCurrency);
+            }
+        });
+    }
+
+    @Override
+    public SimplePromise<BigDecimal> convertToCurrency(final BigDecimal amountEther, final Currency exchangeCurrency) {
+        return Async.toPromise(new Callable<BigDecimal>() {
+            @Override
+            public BigDecimal call() throws Exception {
+                Map<Currency, BigDecimal> exchangeMap = getEthExchangeRates();
+                return amountEther.multiply(exchangeMap.get(exchangeCurrency));
+            }
+        });
+    }
+
+    @Override
+    public SimplePromise<BigDecimal> convertToEther(final BigDecimal amountCurrency, final Currency exchangeCurrency) {
+        return Async.toPromise(new Callable<BigDecimal>() {
+            @Override
+            public BigDecimal call() throws Exception {
+                Map<Currency, BigDecimal> exchangeMap = getEthExchangeRates();
+                return amountCurrency.divide(exchangeMap.get(exchangeCurrency));
+            }
+        });
     }
 }

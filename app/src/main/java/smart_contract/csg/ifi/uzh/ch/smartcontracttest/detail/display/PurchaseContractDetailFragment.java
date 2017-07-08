@@ -193,17 +193,14 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
     @Override
     protected void selectedCurrencyChanged()
     {
-        contextProvider.getServiceProvider().getExchangeService().getEthExchangeRatesAsync()
-                .done(new DoneCallback<Map<Currency, Float>>() {
+        contextProvider.getServiceProvider().getExchangeService().convertToCurrency(Web3Util.toEther(price), selectedCurrency)
+                .done(new DoneCallback<BigDecimal>() {
                     @Override
-                    public void onDone(Map<Currency, Float> currencyMap) {
-                        BigDecimal amountEther = Web3Util.toEther(price);
-                        final Float amountCurrency = amountEther.floatValue() * currencyMap.get(selectedCurrency);
-
+                    public void onDone(final BigDecimal result) {
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                priceView.setText(amountCurrency.toString());
+                                priceView.setText(result.toString());
                             }
                         });
                     }
@@ -212,7 +209,6 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
                     @Override
                     public void onFail(Throwable result) {
                         //todo:log
-                        //messageHandler.handleError(result);
                     }
                 });
     }

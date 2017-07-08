@@ -39,6 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView;
@@ -71,7 +72,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
     private RadioGroup deployOptionsGroup;
 
     private Spinner currencySpinner;
-    private Currency selectedCurrency;
+    protected Currency selectedCurrency;
     protected List<Currency> currencies;
 
     private ImageButton addImageButton;
@@ -208,28 +209,8 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         return true;
     }
 
-    protected BigInteger convertToWei(float value)
-    {
-        Map<Currency, Float> currencyMap;
-        currencyMap = contextProvider.getServiceProvider().getExchangeService().getEthExchangeRatesAsync().get();
-        if(currencyMap == null)
-        {
-            messageHandler.showErrorMessage("Cannot reach exchange service. Please try again later!");
-            return null;
-        }
-
-        Float exchangeRate = currencyMap.get(selectedCurrency);
-        float priceEther = value / exchangeRate;
-        return Web3Util.toWei(BigDecimal.valueOf(priceEther));
-    }
-
     public void deploy()
     {
-        final float price = Float.parseFloat(priceField.getText().toString());
-        BigInteger priceWei = convertToWei(price);
-        if(priceWei == null)
-            return;
-
         final String title = titleField.getText().toString();
         final String desc = descriptionField.getText().toString();
 
@@ -242,22 +223,37 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
             imageSignatures.put(hashSig, imgFile);
         }
 
-        SimplePromise<ITradeContract> promise = deployContract(priceWei, title, desc, needsVerification, imageSignatures)
-                .done(new DoneCallback<ITradeContract>() {
+        final BigDecimal price = new BigDecimal(priceField.getText().toString());
+        contextProvider.getServiceProvider().getExchangeService().convertToEther(price, selectedCurrency)
+                .then(new DoneCallback<BigDecimal>() {
                     @Override
-                    public void onDone(ITradeContract result) {
-                        //add image paths to contract after creation
-                        for(String sig : imageSignatures.keySet())
-                        {
-                            result.getImages().put(sig, imageSignatures.get(sig).getAbsolutePath());
-                        }
+                    public void onDone(BigDecimal result)
+                    {
+                        BigInteger priceWei = Web3Util.toWei(result);
+                        SimplePromise<ITradeContract> promise = deployContract(priceWei, title, desc, needsVerification, imageSignatures)
+                                .done(new DoneCallback<ITradeContract>() {
+                                    @Override
+                                    public void onDone(ITradeContract result) {
+                                        //add image paths to contract after creation
+                                        for(String sig : imageSignatures.keySet())
+                                        {
+                                            result.getImages().put(sig, imageSignatures.get(sig).getAbsolutePath());
+                                        }
 
-                        //persist contract on the file system
-                        contextProvider.getServiceProvider().getContractService().saveContract(result, contextProvider.getSettingProvider().getSelectedAccount());
+                                        //persist contract on the file system
+                                        contextProvider.getServiceProvider().getContractService().saveContract(result, contextProvider.getSettingProvider().getSelectedAccount());
+                                    }
+                                });
+
+                        contextProvider.getTransactionManager().toTransaction(promise);
+                    }
+                }).fail(new FailCallback() {
+                    @Override
+                    public void onFail(Throwable result) {
+                        //todo:log
+                        messageHandler.showErrorMessage("Cannot reach exchange service. Please try again later");
                     }
                 });
-
-        contextProvider.getTransactionManager().toTransaction(promise);
 
         Intent intent = new Intent(getActivity(), ContractOverviewActivity.class);
         startActivity(intent);
@@ -441,7 +437,8 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
     private void addImage(Bitmap bmp)
     {
         final ProportionalImageView imageView = new ProportionalImageView(getActivity());
-        int heightPx = (int)ImageHelper.convertDpToPixel(new Float(48.0), this.getActivity());
+        imageView.setScale(ProportionalImageView.ScaleDimension.Height);
+        int heightPx = (int)ImageHelper.convertDpToPixel(new Float(64.0), this.getActivity());
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(heightPx, heightPx);
         layoutParams.setMargins(8,8,8,8);
         imageView.setLayoutParams(layoutParams);

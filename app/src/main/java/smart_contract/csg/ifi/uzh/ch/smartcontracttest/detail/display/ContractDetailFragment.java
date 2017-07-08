@@ -254,7 +254,8 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
     {
         try {
             final ProportionalImageView imageView = new ProportionalImageView(getActivity());
-            int heightPx = (int)ImageHelper.convertDpToPixel(new Float(48.0), this.getActivity());
+            imageView.setScale(ProportionalImageView.ScaleDimension.Height);
+            int heightPx = (int)ImageHelper.convertDpToPixel(new Float(64.0), this.getActivity());
             LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(heightPx, heightPx);
             layoutParams.setMargins(8,8,8,8);
             imageView.setLayoutParams(layoutParams);

@@ -1,12 +1,11 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider;
 
-import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.service.account.AccountService;
 import ch.uzh.ifi.csg.contract.service.connection.EthConnectionService;
 import ch.uzh.ifi.csg.contract.service.contract.ContractService;
 import ch.uzh.ifi.csg.contract.service.EthServiceFactory;
 import ch.uzh.ifi.csg.contract.service.ServiceFactoryImpl;
-import ch.uzh.ifi.csg.contract.service.exchange.EthExchangeService;
+import ch.uzh.ifi.csg.contract.service.exchange.EthConvertService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.AppContext;
 
 /**
@@ -26,7 +25,7 @@ public class EthServiceProvider implements ServiceProvider
     private final AppContext appContext;
     private ContractService contractService;
     private AccountService accountService;
-    private EthExchangeService exchangeService;
+    private EthConvertService exchangeService;
     private EthServiceFactory serviceFactory;
     private EthConnectionService connectionService;
 
@@ -38,7 +37,7 @@ public class EthServiceProvider implements ServiceProvider
     {
         return accountService;
     }
-    public EthExchangeService getExchangeService() {return exchangeService; }
+    public EthConvertService getExchangeService() {return exchangeService; }
     public EthConnectionService getConnectionService() {return connectionService; }
 
     private EthServiceProvider(AppContext context)
