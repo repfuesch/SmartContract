@@ -6,10 +6,12 @@ import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.widget.TabHost;
 
+import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment;
 
 public class ContractCreateActivity extends ActivityBase  {
@@ -49,8 +51,6 @@ public class ContractCreateActivity extends ActivityBase  {
         }
 
         addFragment(fragmentManager, deployFragment);
-
-        //initTabHost();
     }
 
     @Override
@@ -70,16 +70,16 @@ public class ContractCreateActivity extends ActivityBase  {
         fragmentManager.executePendingTransactions();
     }
 
-    private void initTabHost()
-    {
-        tabHost = (TabHost)findViewById(R.id.tabHost);
-        tabHost.setup();
+    @Override
+    protected void onPermissionGranted(String permission) {
+        super.onPermissionGranted(permission);
 
-        //Tab 1
-        TabHost.TabSpec spec = tabHost.newTabSpec("General");
-        spec.setContent(getFragmentManager().findFragmentByTag(ContractDeployFragment.TAG).getId());
-        spec.setIndicator("", getResources().getDrawable(R.drawable.ic_tab_general_info));
-        tabHost.addTab(spec);
+        if(permission.equals(PermissionProvider.READ_STORAGE))
+        {
+            ImageHelper.openFile(deployFragment);
+        }else if(permission.equals(PermissionProvider.CAMERA))
+        {
+            ImageHelper.makePicture(deployFragment);
+        }
     }
-
 }

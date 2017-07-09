@@ -5,12 +5,10 @@ import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.ContextMenu;
@@ -23,7 +21,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
@@ -44,14 +41,15 @@ import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialogFragment;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.common.Web3Util;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.validation.RequiredTextFieldValidator;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
 
@@ -85,7 +83,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
     private boolean isValid;
     private MessageHandler messageHandler;
 
-    protected ApplicationContextProvider contextProvider;
+    protected ApplicationContext appContext;
 
     public ContractDeployFragment() {
         // Required empty public constructor
@@ -191,10 +189,10 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
 
     protected Boolean ensureBalance(final BigInteger value)
     {
-        String account = contextProvider.getSettingProvider().getSelectedAccount();
+        String account = appContext.getSettingProvider().getSelectedAccount();
 
         //todo: find a way to handle exceptions here
-        BigInteger balance = contextProvider.getServiceProvider().getAccountService().getAccountBalance(account).get();
+        BigInteger balance = appContext.getServiceProvider().getAccountService().getAccountBalance(account).get();
         if(balance == null)
         {
             return false;
@@ -218,13 +216,13 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
 
         for(Bitmap bmp : images.values())
         {
-            File imgFile = ImageHelper.saveBitmap(bmp, contextProvider.getSettingProvider().getProfileImageDirectory());
+            File imgFile = ImageHelper.saveBitmap(bmp, appContext.getSettingProvider().getProfileImageDirectory());
             String hashSig = ImageHelper.getHash(bmp);
             imageSignatures.put(hashSig, imgFile);
         }
 
         final BigDecimal price = new BigDecimal(priceField.getText().toString());
-        contextProvider.getServiceProvider().getExchangeService().convertToEther(price, selectedCurrency)
+        appContext.getServiceProvider().getExchangeService().convertToEther(price, selectedCurrency)
                 .then(new DoneCallback<BigDecimal>() {
                     @Override
                     public void onDone(BigDecimal result)
@@ -241,11 +239,11 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
                                         }
 
                                         //persist contract on the file system
-                                        contextProvider.getServiceProvider().getContractService().saveContract(result, contextProvider.getSettingProvider().getSelectedAccount());
+                                        appContext.getServiceProvider().getContractService().saveContract(result, appContext.getSettingProvider().getSelectedAccount());
                                     }
                                 });
 
-                        contextProvider.getTransactionManager().toTransaction(promise);
+                        appContext.getTransactionManager().toTransaction(promise);
                     }
                 }).fail(new FailCallback() {
                     @Override
@@ -278,9 +276,9 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
 
         if(context instanceof ApplicationContextProvider)
         {
-            contextProvider = (ApplicationContextProvider) context;
+            appContext = ((ApplicationContextProvider) context).getAppContext();
         }else{
-            throw new RuntimeException("Context must implement ApplicationContextProvider!");
+            throw new RuntimeException("Context must implement ApplicationContext!");
         }
     }
 
@@ -337,7 +335,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         switch(view.getId())
         {
             case R.id.action_deploy_contract:
-                if(contextProvider.getServiceProvider().getConnectionService().hasConnection())
+                if(appContext.getServiceProvider().getConnectionService().hasConnection())
                 {
                     deploy();
                 }else{
@@ -373,20 +371,34 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
     @Override
     public boolean onContextItemSelected(MenuItem item)
     {
+        PermissionProvider permissionProvider = appContext.getPermissionProvider();
+
         if(item.getTitle().equals("from file")){
+
+            if(!permissionProvider.hasPermission(PermissionProvider.READ_STORAGE))
+            {
+                permissionProvider.requestPermission(PermissionProvider.READ_STORAGE);
+                return false;
+            }
+
             ImageHelper.openFile(this);
         }
-        else if(item.getTitle().equals("from camera")){
+        else if(item.getTitle().equals("from camera"))
+        {
+            if(!permissionProvider.hasPermission(PermissionProvider.CAMERA))
+            {
+                permissionProvider.requestPermission(PermissionProvider.CAMERA);
+                return false;
+            }
+
             ImageHelper.makePicture(this);
         }
         else if(item.getTitle().equals("delete"))
         {
             if(selectedImage == null)
-                return false;
+                return true;
 
             removeImage(selectedImage);
-        }else{
-            return false;
         }
 
         return true;
@@ -429,6 +441,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
             return bmp;
         }catch(IOException ex)
         {
+            //todo:log
             messageHandler.showErrorMessage("Could not save image: " + ex.getMessage());
             return null;
         }

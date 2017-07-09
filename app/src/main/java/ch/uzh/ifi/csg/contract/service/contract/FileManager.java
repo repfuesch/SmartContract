@@ -1,14 +1,5 @@
 package ch.uzh.ifi.csg.contract.service.contract;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
@@ -19,14 +10,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ch.uzh.ifi.csg.contract.common.FileUtil;
 import ch.uzh.ifi.csg.contract.datamodel.Account;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ch.uzh.ifi.csg.contract.service.account.AccountManager;
 import ch.uzh.ifi.csg.contract.service.serialization.GsonSerializationService;
 import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
-import ezvcard.Ezvcard;
-import ezvcard.VCard;
 
 /**
  * Class for loading, saving and deleting contract data for an account from a JSON file
@@ -49,7 +39,7 @@ public class FileManager implements ContractManager, AccountManager {
     private void load()
     {
         try{
-            String accountData = ch.uzh.ifi.csg.contract.common.FileManager.readFile(new File(accountDirectory));
+            String accountData = FileUtil.readFile(new File(accountDirectory));
             accountMap = Deserialize(accountData);
             if(accountMap == null)
                 accountMap = new HashMap<>();
@@ -93,7 +83,7 @@ public class FileManager implements ContractManager, AccountManager {
     {
         String data = serializationService.serialize(accountMap);
         try {
-            ch.uzh.ifi.csg.contract.common.FileManager.writeFile(data, new File(accountDirectory));
+            FileUtil.writeFile(data, new File(accountDirectory));
         } catch (IOException e) {
             //todo:log
             e.printStackTrace();
@@ -103,6 +93,15 @@ public class FileManager implements ContractManager, AccountManager {
     @Override
     public void deleteContract(String contractAddress, String account)
     {
+        ContractInfo toDelete = accountMap.get(account).getContracts().get(contractAddress);
+        for(String path : toDelete.getImages().values())
+        {
+            new File(path).delete();
+        }
+
+        if(toDelete.getUserProfile().getProfileImagePath() != null)
+            new File(toDelete.getUserProfile().getProfileImagePath()).delete();
+
         accountMap.get(account).getContracts().remove(contractAddress);
         save();
     }

@@ -39,7 +39,7 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
 
         getSupportActionBar().setTitle(R.string.title_contract_overview);
 
-        if(getSettingProvider().getSelectedAccount().isEmpty())
+        if(getAppContext().getSettingProvider().getSelectedAccount().isEmpty())
         {
             //navigate to account activity when no account selected
             Intent accountIntent = new Intent(this, AccountActivity.class);
@@ -47,7 +47,7 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
         }else{
             bodyView = (LinearLayout)findViewById(R.id.overview_body);
 
-            if(getServiceProvider().getConnectionService().hasConnection())
+            if(getAppContext().getServiceProvider().getConnectionService().hasConnection())
             {
                 loadContractList();
             }
@@ -94,7 +94,7 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
                     @Override
                     public void onDone(Boolean result) {
                         final ContractType type = (ContractType) intent.getSerializableExtra(QrScanningActivity.MESSAGE_CONTRACT_TYPE);
-                        getServiceProvider().getContractService().saveContract(contractAddress, type, getSettingProvider().getSelectedAccount());
+                        getAppContext().getServiceProvider().getContractService().saveContract(contractAddress, type, getAppContext().getSettingProvider().getSelectedAccount());
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -116,22 +116,12 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
     protected void onContractCreated(String contractAddress, ContractType type) {
         super.onContractCreated(contractAddress, type);
 
-        BusyIndicator.show(bodyView);
-        listFragment.loadContract(type, contractAddress)
-        .always(new AlwaysCallback<ITradeContract>() {
-            @Override
-            public void onAlways(Promise.State state, ITradeContract resolved, Throwable rejected) {
-                if(rejected != null)
-                    handleError(rejected);
-
-                BusyIndicator.hide(bodyView);
-            }
-        });
+        listFragment.loadContract(type, contractAddress);
     }
 
     private SimplePromise<Boolean> ensureContract(final String address)
     {
-        return getServiceProvider().getContractService().isContract(address)
+        return getAppContext().getServiceProvider().getContractService().isContract(address)
                 .fail(new FailCallback() {
                     @Override
                     public void onFail(Throwable result) {
@@ -143,17 +133,10 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
     @Override
     public void onAddContract(final String contractAddress, final ContractType type)
     {
-        BusyIndicator.show(bodyView);
         ensureContract(contractAddress).then(new DoneCallback<Boolean>() {
             @Override
             public void onDone(Boolean result) {
-                listFragment.loadContract(type, contractAddress)
-                        .always(new AlwaysCallback<ITradeContract>() {
-                            @Override
-                            public void onAlways(Promise.State state, ITradeContract resolved, Throwable rejected) {
-                                BusyIndicator.hide(bodyView);
-                            }
-                        });
+                listFragment.loadContract(type, contractAddress);
             }
         });
     }
@@ -190,24 +173,12 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
     private void loadContractList()
     {
         listFragment = (ContractListFragment) getFragmentManager().findFragmentById(R.id.purchase_list_fragment);
-
-        BusyIndicator.show(bodyView);
-        listFragment.loadContractsForAccount(getSettingProvider().getSelectedAccount())
-                .always(new AlwaysCallback<List<ITradeContract>>() {
-                    @Override
-                    public void onAlways(Promise.State state, List<ITradeContract> resolved, Throwable rejected) {
-                        if(rejected != null)
-                            handleError(rejected);
-
-                        BusyIndicator.hide(bodyView);
-                    }
-                });
+        listFragment.loadContractsForAccount(getAppContext().getSettingProvider().getSelectedAccount());
     }
 
     @Override
     public void onContractDataReceived(final ContractInfo contractInfo)
     {
-        BusyIndicator.show(bodyView);
         ensureContract(contractInfo.getContractAddress()).then(new DoneCallback<Boolean>() {
             @Override
             public void onDone(Boolean result) {
@@ -215,7 +186,7 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
                         .always(new AlwaysCallback<ITradeContract>() {
                             @Override
                             public void onAlways(Promise.State state, ITradeContract resolved, Throwable rejected) {
-                                BusyIndicator.hide(bodyView);
+
                                 //todo: make sure that Userprofile is not lost when contract cannot be loaded
                                 if(resolved != null)
                                 {
@@ -225,7 +196,7 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
                                         //copy the images into the correct application path
                                         resolved.addImage(imgSig, contractInfo.getImages().get(imgSig));
                                     }
-                                    getServiceProvider().getContractService().saveContract(resolved, getSettingProvider().getSelectedAccount());
+                                    getAppContext().getServiceProvider().getContractService().saveContract(resolved, getAppContext().getSettingProvider().getSelectedAccount());
                                 }
                             }
                         });

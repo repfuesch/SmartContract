@@ -5,7 +5,6 @@ import android.app.DialogFragment;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.support.design.widget.Snackbar;
@@ -20,7 +19,8 @@ import android.widget.TextView;
 
 import net.glxn.qrgen.android.QRCode;
 
-import java.io.File;
+import org.jdeferred.Promise;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -29,17 +29,19 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 import ch.uzh.ifi.csg.contract.async.Async;
+import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
-import ch.uzh.ifi.csg.contract.contract.TradeContract;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
 
 public abstract class ContractDetailFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemSelectedListener {
 
@@ -62,7 +64,7 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
     protected LinearLayout bodyView;
     protected Currency selectedCurrency;
     protected MessageHandler messageHandler;
-    protected ApplicationContextProvider contextProvider;
+    protected ApplicationContext appContext;
 
     protected boolean verifyIdentity;
     private String seller;
@@ -128,7 +130,7 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
 
         if(context instanceof ApplicationContextProvider)
         {
-            contextProvider = (ApplicationContextProvider) context;
+            appContext = ((ApplicationContextProvider) context).getAppContext();
         }else
         {
             throw new RuntimeException("Context must implement ApplicationContextProvider!");
@@ -148,10 +150,10 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
 
     protected boolean ensureBalance(BigInteger value)
     {
-        String account = contextProvider.getSettingProvider().getSelectedAccount();
+        String account = appContext.getSettingProvider().getSelectedAccount();
 
         //todo: don't use blocking wait here!
-        BigInteger balance = contextProvider.getServiceProvider().getAccountService().getAccountBalance(account).get();
+        BigInteger balance = appContext.getServiceProvider().getAccountService().getAccountBalance(account).get();
         if(balance == null)
         {
             return false;
@@ -200,6 +202,7 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
 
     public SimplePromise<Void> init(final ITradeContract contract)
     {
+        BusyIndicator.show(bodyView);
         return Async.run(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
@@ -244,6 +247,11 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
                 });
 
                 return null;
+            }
+        }).always(new AlwaysCallback<Void>() {
+            @Override
+            public void onAlways(Promise.State state, Void resolved, Throwable rejected) {
+                BusyIndicator.hide(bodyView);
             }
         });
     }

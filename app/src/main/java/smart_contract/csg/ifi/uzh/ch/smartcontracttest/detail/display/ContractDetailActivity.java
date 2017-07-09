@@ -109,7 +109,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
 
     private void init(String contractAddress, ContractType type)
     {
-        getServiceProvider().getContractService().loadContract(type, contractAddress, getSettingProvider().getSelectedAccount())
+        getAppContext().getServiceProvider().getContractService().loadContract(type, contractAddress, getAppContext().getSettingProvider().getSelectedAccount())
                 .always(new AlwaysCallback<ITradeContract>() {
                     @Override
                     public void onAlways(Promise.State state, final ITradeContract resolved, Throwable rejected) {
@@ -161,7 +161,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                if(detailFragment.getSeller().equals(getSettingProvider().getSelectedAccount()) && detailFragment.getState().equals(ContractState.Created))
+                                if(detailFragment.getSeller().equals(getAppContext().getSettingProvider().getSelectedAccount()) && detailFragment.getState().equals(ContractState.Created))
                                 {
                                     exportButton.setVisibility(View.VISIBLE);
                                 }else{
@@ -276,7 +276,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
                 scanProfileButton.setVisibility(View.GONE);
                 contract.setUserProfile(profile);
                 profileFragment.setMode(ProfileFragment.ProfileMode.ReadOnly);
-                getServiceProvider().getContractService().saveContract(contract, getSettingProvider().getSelectedAccount());
+                getAppContext().getServiceProvider().getContractService().saveContract(contract, getAppContext().getSettingProvider().getSelectedAccount());
                 detailFragment.identityVerified();
 
                 break;
@@ -312,7 +312,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
             tabHost.addTab(profileViewSpec);
             tabHost.setCurrentTabByTag("Profile");
             contract.setUserProfile(buyerProfile);
-            getServiceProvider().getContractService().saveContract(contract, getSettingProvider().getSelectedAccount());
+            getAppContext().getServiceProvider().getContractService().saveContract(contract, getAppContext().getSettingProvider().getSelectedAccount());
             profileFragment.setProfileInformation(buyerProfile);
             profileFragment.setMode(ProfileFragment.ProfileMode.ReadOnly);
             detailFragment.identityVerified();

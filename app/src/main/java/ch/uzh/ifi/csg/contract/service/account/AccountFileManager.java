@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import ch.uzh.ifi.csg.contract.common.FileManager;
+import ch.uzh.ifi.csg.contract.common.FileUtil;
 import ch.uzh.ifi.csg.contract.datamodel.Account;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ezvcard.Ezvcard;
@@ -47,7 +47,7 @@ public class AccountFileManager implements AccountManager {
     {
         String accountData = null;
         try {
-            accountData = FileManager.readFile(new File(accountDir));
+            accountData = FileUtil.readFile(new File(accountDir));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -80,7 +80,7 @@ public class AccountFileManager implements AccountManager {
     {
         String accountData = serialize(accounts);
         try {
-            FileManager.writeFile(accountData, new File(accountDir));
+            FileUtil.writeFile(accountData, new File(accountDir));
         } catch (IOException e) {
             e.printStackTrace();
         }

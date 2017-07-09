@@ -1,7 +1,6 @@
 package ch.uzh.ifi.csg.contract.common;
 
 import android.app.Fragment;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -10,10 +9,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
@@ -60,7 +57,7 @@ public final class ImageHelper {
         File file = null;
         try {
             file = createImageFile(imageDir);
-            FileManager.copyFile(new File(filepath), file);
+            FileUtil.copyFile(new File(filepath), file);
 
         } catch (IOException e) {
             e.printStackTrace();

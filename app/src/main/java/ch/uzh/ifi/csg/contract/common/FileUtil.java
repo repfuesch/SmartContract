@@ -1,6 +1,7 @@
 package ch.uzh.ifi.csg.contract.common;
 
 import android.os.Environment;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,7 +16,7 @@ import java.util.Date;
  * Created by flo on 16.03.17.
  */
 
-public class FileManager
+public class FileUtil
 {
     public static boolean writeFile(String data, File file) throws IOException {
         FileOutputStream outputStream;

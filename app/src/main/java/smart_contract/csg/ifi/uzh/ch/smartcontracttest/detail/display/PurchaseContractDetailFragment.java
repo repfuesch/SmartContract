@@ -11,7 +11,6 @@ import org.jdeferred.Promise;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
@@ -22,7 +21,6 @@ import ch.uzh.ifi.csg.contract.common.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
-import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
 
@@ -108,7 +106,7 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
 
                     }
                 });
-                contextProvider.getTransactionManager().toTransaction(buyPromise, contract.getContractAddress());
+                appContext.getTransactionManager().toTransaction(buyPromise, contract.getContractAddress());
                 break;
             case R.id.abort_button:
                 BusyIndicator.show(bodyView);
@@ -118,7 +116,7 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
                         BusyIndicator.hide(bodyView);
                     }
                 });
-                contextProvider.getTransactionManager().toTransaction(abortPromise, contract.getContractAddress());
+                appContext.getTransactionManager().toTransaction(abortPromise, contract.getContractAddress());
                 break;
             case R.id.confirm_button:
                 BusyIndicator.show(bodyView);
@@ -128,7 +126,7 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
                         BusyIndicator.hide(bodyView);
                     }
                 });
-                contextProvider.getTransactionManager().toTransaction(confirmPromise, contract.getContractAddress());
+                appContext.getTransactionManager().toTransaction(confirmPromise, contract.getContractAddress());
                 break;
             default:
                 break;
@@ -148,7 +146,7 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
                     @Override
                     public Void call() throws Exception {
                         final ContractState state = contract.getState();
-                        final String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
+                        final String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
                         final String seller = contract.getSeller();
                         final String buyer = contract.getBuyer();
                         price  = contract.getPrice();
@@ -193,7 +191,7 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
     @Override
     protected void selectedCurrencyChanged()
     {
-        contextProvider.getServiceProvider().getExchangeService().convertToCurrency(Web3Util.toEther(price), selectedCurrency)
+        appContext.getServiceProvider().getExchangeService().convertToCurrency(Web3Util.toEther(price), selectedCurrency)
                 .done(new DoneCallback<BigDecimal>() {
                     @Override
                     public void onDone(final BigDecimal result) {

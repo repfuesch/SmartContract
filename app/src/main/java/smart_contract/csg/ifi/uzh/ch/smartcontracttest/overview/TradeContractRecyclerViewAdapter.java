@@ -5,9 +5,11 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.jdeferred.Promise;
@@ -23,13 +25,12 @@ import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.event.IContractObserver;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display.ContractDetailActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -39,9 +40,10 @@ public class TradeContractRecyclerViewAdapter
 
     private final List<ITradeContract> contracts;
     private final List<ViewHolder> boundViewHolders;
-    private ApplicationContextProvider contextProvider;
+    private ITradeContract selectedContract;
+    private ApplicationContext contextProvider;
 
-    public TradeContractRecyclerViewAdapter(List<ITradeContract> contracts, ApplicationContextProvider contextProvider)
+    public TradeContractRecyclerViewAdapter(List<ITradeContract> contracts, ApplicationContext contextProvider)
     {
         this.contracts = contracts;
         this.boundViewHolders = new ArrayList<>();
@@ -63,14 +65,23 @@ public class TradeContractRecyclerViewAdapter
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position)
     {
-        ITradeContract contract = contracts.get(position);
+        final ITradeContract contract = contracts.get(position);
         holder.attachContract(contract);
+        holder.cardView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                selectedContract = contract;
+                return false;
+            }
+        });
+
         boundViewHolders.add(holder);
     }
 
     @Override
     public void onViewRecycled(ViewHolder holder) {
         super.onViewRecycled(holder);
+        holder.cardView.setOnLongClickListener(null);
         boundViewHolders.remove(holder);
     }
 
@@ -90,20 +101,25 @@ public class TradeContractRecyclerViewAdapter
             holder.detachContract();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, IContractObserver
-    {
+    public ITradeContract getSelectedContract() {
+        return selectedContract;
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, IContractObserver, View.OnCreateContextMenuListener {
         private final TextView titleView;
         private final TextView stateView;
         private final TextView priceView;
         private final TextView contractTypeView;
-        private final CardView cardView;
+        public final CardView cardView;
+        private final LinearLayout cardContent;
 
         private Handler handler;
         private ITradeContract contract;
+        private ContractState state;
 
-        private final ApplicationContextProvider contextProvider;
+        private final ApplicationContext contextProvider;
 
-        public ViewHolder(View view, ApplicationContextProvider contextProvider) {
+        public ViewHolder(View view, ApplicationContext contextProvider) {
             super(view);
             this.contextProvider = contextProvider;
 
@@ -113,8 +129,20 @@ public class TradeContractRecyclerViewAdapter
             stateView = (TextView) view.findViewById(R.id.list_detail_state);
             priceView = (TextView) view.findViewById(R.id.list_detail_price);
             contractTypeView = (TextView) view.findViewById(R.id.list_detail_contract_type);
+            cardContent = (LinearLayout) view.findViewById(R.id.card_content);
             cardView = (CardView) view.findViewById(R.id.card_view);
             cardView.setOnClickListener(this);
+            view.setOnCreateContextMenuListener(this);
+        }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
+        {
+            if(state == ContractState.Inactive)
+            {
+                menu.setHeaderTitle("Remove contract?");
+                menu.add(0, v.getId(), 0, "remove");
+            }
         }
 
         @Override
@@ -158,12 +186,12 @@ public class TradeContractRecyclerViewAdapter
 
         private void updateViewFromState()
         {
-            BusyIndicator.show(cardView);
+            BusyIndicator.show(cardContent);
             Async.run(new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
 
-                    final ContractState state = contract.getState();
+                    state = contract.getState();
                     final BigInteger price = contract.getPrice();
                     final String title = contract.getTitle();
                     final ContractType type = contract.getContractType();
@@ -202,7 +230,7 @@ public class TradeContractRecyclerViewAdapter
             }).always(new AlwaysCallback<Void>() {
                 @Override
                 public void onAlways(Promise.State state, Void resolved, Throwable rejected) {
-                    BusyIndicator.hide(cardView);
+                    BusyIndicator.hide(cardContent);
                 }
             });
         }
@@ -218,6 +246,7 @@ public class TradeContractRecyclerViewAdapter
                 }
             });
         }
+
     }
 
 }

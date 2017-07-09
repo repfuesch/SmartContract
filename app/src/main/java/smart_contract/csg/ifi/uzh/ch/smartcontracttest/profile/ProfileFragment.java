@@ -9,7 +9,6 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.support.design.widget.Snackbar;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -23,6 +22,7 @@ import android.widget.LinearLayout;
 import net.glxn.qrgen.android.QRCode;
 
 import java.io.File;
+import java.io.IOException;
 
 import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
@@ -33,6 +33,8 @@ import ezvcard.property.StructuredName;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.validation.RequiredTextFieldValidator;
 
@@ -62,7 +64,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
     private ProfileMode mode;
     private MessageHandler messageHandler;
-    private ApplicationContextProvider contextProvider;
+    private ApplicationContext appContext;
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -141,9 +143,9 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
         if(context instanceof ApplicationContextProvider)
         {
-            contextProvider = (ApplicationContextProvider) context;
+            appContext = ((ApplicationContextProvider) context).getAppContext();
         }else{
-            throw new RuntimeException("Context must implement MessageHandler!");
+            throw new RuntimeException("Context must implement ApplicationContextProvider!");
         }
     }
 
@@ -261,8 +263,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
     public void loadAccountProfileInformation()
     {
-        String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
-        UserProfile userProfile = contextProvider.getServiceProvider().getAccountService().getAccountProfile(selectedAccount);
+        String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
+        UserProfile userProfile = appContext.getServiceProvider().getAccountService().getAccountProfile(selectedAccount);
         if(userProfile.getVCard() != null)
             setProfileInformation(userProfile);
     }
@@ -278,14 +280,30 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public boolean onContextItemSelected(MenuItem item){
+
+        PermissionProvider permissionProvider = appContext.getPermissionProvider();
+
         if(item.getTitle().equals("from file")){
+
+            if(!permissionProvider.hasPermission(PermissionProvider.READ_STORAGE))
+            {
+                permissionProvider.requestPermission(PermissionProvider.READ_STORAGE);
+                return true;
+            }
+
             ImageHelper.openFile(this);
         }
-        else if(item.getTitle().equals("from camera")){
+        else if(item.getTitle().equals("from camera"))
+        {
+            if(!permissionProvider.hasPermission(PermissionProvider.CAMERA))
+            {
+                permissionProvider.requestPermission(PermissionProvider.CAMERA);
+                return true;
+            }
+
             ImageHelper.makePicture(this);
-        }else{
-            return false;
         }
+
         return true;
     }
 
@@ -295,37 +313,34 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         switch(requestCode) {
             case ImageHelper.PICK_IMAGE_REQUEST_CODE:
                 if (resultCode == RESULT_OK) {
-                    try {
-                        Uri uri = data.getData();
-                        Bitmap bmp = ImageHelper.getCorrectlyOrientedImage(getActivity(), uri, 1280);
-                        File imgFile = ImageHelper.saveBitmap(bmp, contextProvider.getSettingProvider().getProfileImageDirectory());
-                        profile.setProfileImagePath(imgFile.getAbsolutePath());
-                        String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
-                        contextProvider.getServiceProvider().getAccountService().saveAccountProfile(selectedAccount, profile);
-                        profileImage.setImageURI(Uri.fromFile(imgFile));
-                    }
-                    catch (Exception e) {
-                        messageHandler.showSnackBarMessage(e.getMessage(), Snackbar.LENGTH_LONG);
-                    }
+                    replaceImage(data.getData());
                 }
                 break;
             case ImageHelper.IMAGE_CAPTURE_REQUEST_CODE:
                 if(resultCode == RESULT_OK) {
-                    Bitmap bitmap;
-                    try
-                    {
-                        Bitmap bmp = ImageHelper.getCorrectlyOrientedImage(getActivity(), data.getData(), 1280);
-                        File imgFile = ImageHelper.saveBitmap(bmp, contextProvider.getSettingProvider().getProfileImageDirectory());
-                        profile.setProfileImagePath(imgFile.getAbsolutePath());
-                        String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
-                        contextProvider.getServiceProvider().getAccountService().saveAccountProfile(selectedAccount, profile);
-                        profileImage.setImageURI(Uri.fromFile(imgFile));
-                    }
-                    catch (Exception e)
-                    {
-                        messageHandler.showSnackBarMessage(e.getMessage(), Snackbar.LENGTH_LONG);
-                    }
+                    replaceImage(data.getData());
                 }
+        }
+    }
+
+    private void replaceImage(Uri uri)
+    {
+        try
+        {
+            if(profile.getProfileImagePath() != null)
+                new File(profile.getProfileImagePath()).delete();
+
+            Bitmap bmp = ImageHelper.getCorrectlyOrientedImage(getActivity(), uri, 1280);
+            File imgFile = ImageHelper.saveBitmap(bmp, appContext.getSettingProvider().getProfileImageDirectory());
+            profile.setProfileImagePath(imgFile.getAbsolutePath());
+            String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
+            appContext.getServiceProvider().getAccountService().saveAccountProfile(selectedAccount, profile);
+            profileImage.setImageURI(Uri.fromFile(imgFile));
+        }
+        catch (IOException e)
+        {
+            //todo:log
+            //messageHandler.showSnackBarMessage(e.getMessage(), Snackbar.LENGTH_LONG);
         }
     }
 
@@ -338,8 +353,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                 if(validateProfile())
                 {
                     this.profile = getProfileInformation();
-                    String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
-                    contextProvider.getServiceProvider().getAccountService().saveAccountProfile(selectedAccount, profile);
+                    String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
+                    appContext.getServiceProvider().getAccountService().saveAccountProfile(selectedAccount, profile);
                     messageHandler.showErrorMessage("Profile saved!");
                 }else{
                     messageHandler.showErrorMessage("Please fill out all required fields!");

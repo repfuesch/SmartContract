@@ -8,6 +8,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -18,8 +19,10 @@ import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
 
 import java.util.ArrayList;
@@ -36,15 +39,15 @@ public class ContractListFragment extends Fragment
     private static final String ARG_COLUMN_COUNT = "column-count";
 
     private RecyclerView purchaseList;
-    private LinearLayout progressView;
 
     private int mColumnCount = 1;
 
+    private LinearLayout contentView;
     private TradeContractRecyclerViewAdapter adapter;
     private List<ITradeContract> contracts;
 
     private MessageHandler errorHandler;
-    private ApplicationContextProvider contextProvider;
+    private ApplicationContext contextProvider;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -84,10 +87,9 @@ public class ContractListFragment extends Fragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_purchasecontract_list, container, false);
 
+        contentView = (LinearLayout) view.findViewById(R.id.contract_list_content);
         // Set the adapter
         purchaseList = (RecyclerView) view.findViewById(R.id.purchase_list);
-        progressView = (LinearLayout) view.findViewById(R.id.purchase_list_progress_view);
-
         Context context = view.getContext();
         if (mColumnCount <= 1) {
             purchaseList.setLayoutManager(new LinearLayoutManager(context));
@@ -97,6 +99,7 @@ public class ContractListFragment extends Fragment
 
         adapter = new TradeContractRecyclerViewAdapter(contracts, contextProvider);
         purchaseList.setAdapter(adapter);
+        registerForContextMenu(purchaseList);
 
         return view;
     }
@@ -117,7 +120,7 @@ public class ContractListFragment extends Fragment
         }
 
         if (context instanceof ApplicationContextProvider) {
-            contextProvider = (ApplicationContextProvider) context;
+            contextProvider = ((ApplicationContextProvider) context).getAppContext();
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement ApplicationContextProvider");
@@ -138,6 +141,7 @@ public class ContractListFragment extends Fragment
 
     public SimplePromise<List<ITradeContract>> loadContractsForAccount(String account)
     {
+        BusyIndicator.show(contentView);
         contracts.clear();
         return contextProvider.getServiceProvider().getContractService().loadContracts(account)
                 .always(new AlwaysCallback<List<ITradeContract>>() {
@@ -148,12 +152,14 @@ public class ContractListFragment extends Fragment
                             public void run() {
                                 if(rejected != null)
                                 {
-                                    errorHandler.handleError(rejected);
+                                    //todo:log
+                                    //errorHandler.handleError(rejected);
                                 }else{
                                     contracts.addAll(resolved);
                                 }
 
                                 adapter.notifyDataSetChanged();
+                                BusyIndicator.hide(contentView);
                             }
                         });
                     }
@@ -162,6 +168,7 @@ public class ContractListFragment extends Fragment
 
     public SimplePromise<ITradeContract> loadContract(ContractType type, String contractAddress)
     {
+        BusyIndicator.show(contentView);
         return contextProvider.getServiceProvider().getContractService().loadContract(type, contractAddress, contextProvider.getSettingProvider().getSelectedAccount())
                 .always(new AlwaysCallback<ITradeContract>() {
                     @Override
@@ -171,15 +178,35 @@ public class ContractListFragment extends Fragment
                             public void run() {
                                 if(rejected != null)
                                 {
-                                    errorHandler.handleError(rejected);
+                                    //todo:log
+                                    //errorHandler.handleError(rejected);
                                 }else{
                                     contracts.add(resolved);
                                     adapter.notifyItemInserted(contracts.size() - 1);
                                 }
+
+                                BusyIndicator.hide(contentView);
                             }
                         });
                     }
                 });
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+
+        ITradeContract selectedContract = adapter.getSelectedContract();
+        if(selectedContract == null)
+            return super.onContextItemSelected(item);
+
+        if(item.getTitle().equals("remove"))
+        {
+            String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
+            contextProvider.getServiceProvider().getContractService().removeContract(selectedContract, selectedAccount);
+            loadContractsForAccount(selectedAccount);
+        }
+
+        return super.onContextItemSelected(item);
     }
 
 }

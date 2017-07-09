@@ -21,7 +21,7 @@ import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import ch.uzh.ifi.csg.contract.p2p.peer.P2pCallback;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.UserProfileListener;
 
@@ -31,7 +31,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.UserProfileLi
 
 public abstract class P2pDialog extends DialogFragment implements P2pCallback {
 
-    protected ApplicationContextProvider contextProvider;
+    protected ApplicationContext contextProvider;
     protected UserProfile userProfile;
     protected AlertDialog dialog;
     protected LinearLayout dialogContent;
@@ -186,11 +186,11 @@ public abstract class P2pDialog extends DialogFragment implements P2pCallback {
 
     protected void attachContext(Context context)
     {
-        if(context instanceof ApplicationContextProvider)
+        if(context instanceof ApplicationContext)
         {
-            contextProvider = (ApplicationContextProvider)context;
+            contextProvider = (ApplicationContext)context;
         }else{
-            throw new RuntimeException(context.toString() + " must implement ApplicationContextProvider");
+            throw new RuntimeException(context.toString() + " must implement ApplicationContext");
         }
     }
 }

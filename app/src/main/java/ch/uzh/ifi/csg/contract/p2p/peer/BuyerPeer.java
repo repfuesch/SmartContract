@@ -8,7 +8,7 @@ import java.util.concurrent.Callable;
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
-import ch.uzh.ifi.csg.contract.common.FileManager;
+import ch.uzh.ifi.csg.contract.common.FileUtil;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
@@ -86,7 +86,7 @@ public class BuyerPeer extends PeerBase implements UserProfileListener {
                 for(String sig : contractInfo.getImages().keySet())
                 {
                     //We receive additional image files belonging to the contract and save them in a temporary file
-                    File tempFile = FileManager.createTemporaryFile("image", "jpg");
+                    File tempFile = FileUtil.createTemporaryFile("image", "jpg");
                     readFile(inputStream, tempFile);
                     contractInfo.getImages().put(sig, tempFile.getAbsolutePath());
                 }

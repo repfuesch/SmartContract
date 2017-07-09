@@ -12,11 +12,8 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Map;
 
-import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
-import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.common.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
@@ -79,7 +76,7 @@ public class RentContractDeployFragment extends ContractDeployFragment
     protected SimplePromise<ITradeContract> deployContract(BigInteger priceWei, String title, String description, boolean needsVerification, final Map<String, File> imageSignatures)
     {
         BigDecimal deposit = new BigDecimal(depositField.getText().toString());
-        BigDecimal depositEther = contextProvider.getServiceProvider().getExchangeService().convertToEther(deposit, selectedCurrency).get();
+        BigDecimal depositEther = appContext.getServiceProvider().getExchangeService().convertToEther(deposit, selectedCurrency).get();
         if(depositEther == null)
             return null;
 
@@ -95,7 +92,7 @@ public class RentContractDeployFragment extends ContractDeployFragment
             rentingFeePerSecond = priceWei.divide(BigInteger.valueOf(3600));
         }
 
-        return  contextProvider.getServiceProvider().getContractService().deployRentContract(
+        return  appContext.getServiceProvider().getContractService().deployRentContract(
                 rentingFeePerSecond,
                 depositWei,
                 selectedTimeUnit,

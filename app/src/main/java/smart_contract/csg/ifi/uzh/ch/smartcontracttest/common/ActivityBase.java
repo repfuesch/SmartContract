@@ -7,10 +7,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -25,9 +25,9 @@ import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.common.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.service.connection.EthConnectionService;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ServiceProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.SettingProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManager;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManagerImpl;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
@@ -37,8 +37,6 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthSettin
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsActivity;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PBuyerService;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PSellerService;
 
 /**
  * Base class for all Activities
@@ -46,22 +44,26 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PSellerServ
  * Created by flo on 13.03.17.
  *
  */
-public abstract class ActivityBase extends AppCompatActivity implements ApplicationContextProvider, MessageHandler, MessageDialogFragment.ExceptionConfirmedListener {
+public abstract class ActivityBase extends AppCompatActivity implements MessageHandler, MessageDialogFragment.ExceptionConfirmedListener, ApplicationContextProvider {
     private Toolbar toolbar;
     private LinearLayout accountBalanceView;
     private TextView accountBalanceField;
 
-    private AppContext appContext;
+    private ApplicationContext appContext;
     private Class callingActivityClass;
     private ContractBroadcastReceiver broadcastReceiver = null;
     private IntentFilter contractIntentFilter;
-    boolean broadcastReceiverRegistered = false;
+    private boolean broadcastReceiverRegistered = false;
+
+    private String requestedPermission;
+    private boolean permissionGranted;
+    private String permissionRationale;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        appContext = (AppContext) getApplication();
+        appContext = (ApplicationContext) getApplication();
         setContentView(getLayoutResourceId());
         broadcastReceiver = new ContractBroadcastReceiver();
 
@@ -77,39 +79,6 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
 
         if (getIntent().getSerializableExtra("from") != null)
             callingActivityClass = (Class) getIntent().getSerializableExtra("from");
-
-        checkPermissions();
-    }
-
-    private void checkPermissions() {
-        if (ContextCompat.checkSelfPermission(appContext,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    1);
-
-        }
-
-        if (ContextCompat.checkSelfPermission(appContext,
-                Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    1);
-
-        }
-
-        if (ContextCompat.checkSelfPermission(appContext,
-                Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.CAMERA},
-                    0x000000);
-        }
     }
 
     protected final LinearLayout getBalanceView() {
@@ -118,27 +87,7 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
 
     protected abstract int getLayoutResourceId();
 
-    public final ServiceProvider getServiceProvider() {
-        return appContext.getServiceProvider();
-    }
-
-    public final SettingProvider getSettingProvider() {
-        return appContext.getSettingProvider();
-    }
-
-    public final TransactionManager getTransactionManager() {
-        return appContext.getTransactionManager();
-    }
-
-    @Override
-    public P2PSellerService getP2PSellerService() {
-        return appContext.getP2PSellerService();
-    }
-
-    @Override
-    public P2PBuyerService getP2PBuyerService() {
-        return appContext.getP2PBuyerService();
-    }
+    public ApplicationContext getAppContext() { return appContext; }
 
     @Override
     public boolean onPrepareOptionsMenu(final Menu menu) {
@@ -198,6 +147,35 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        String permission = permissions[0];
+        requestedPermission = permission;
+        if(grantResults[0] == PackageManager.PERMISSION_GRANTED)
+        {
+            permissionGranted = true;
+            return;
+        }
+
+        permissionGranted = false;
+        if (permission.equals(PermissionProvider.CAMERA)) {
+            if(ActivityCompat.shouldShowRequestPermissionRationale(this, PermissionProvider.CAMERA)) {
+                permissionRationale = "Camera permission is needed for this feature";
+                return;
+            }
+        }
+
+        if (permission.equals(PermissionProvider.READ_STORAGE)) {
+            if(ActivityCompat.shouldShowRequestPermissionRationale(this, PermissionProvider.CAMERA)) {
+                permissionRationale = "The app needs to access the file system for this feature";
+                return;
+            }
+            return;
+        }
+    }
+
+    @Override
     public void handleError(Throwable exception) {
         Bundle bundle = new Bundle();
         bundle.putSerializable(MessageDialogFragment.EXCEPTION_MESSAGE, exception);
@@ -236,9 +214,8 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
         });
     }
 
-
     private void updateAccountBalance() {
-        String selectedAccount = getSettingProvider().getSelectedAccount();
+        String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
         if (!selectedAccount.isEmpty()) {
             appContext.getServiceProvider().getAccountService().getAccountBalance(selectedAccount)
                     .always(new AlwaysCallback<BigInteger>() {
@@ -305,6 +282,27 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
         }
 
         updateAccountBalance();
+
+        if(requestedPermission != null)
+        {
+            if(permissionGranted)
+            {
+                onPermissionGranted(requestedPermission);
+            }else{
+                onPermissionDenied(requestedPermission);
+            }
+
+            requestedPermission = null;
+            permissionRationale = null;
+        }
+    }
+
+    protected void onPermissionGranted(String permission) {}
+
+    protected void onPermissionDenied(String permission)
+    {
+        if(permissionRationale != null)
+            showSnackBarMessage(permissionRationale, Snackbar.LENGTH_LONG);
     }
 
     protected void onContractCreated(String contractAddress, ContractType type) {

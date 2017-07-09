@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityChangedListener;
 
 
@@ -326,10 +327,10 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
     }
 
     @Override
-    public void onActivityResumed(AppCompatActivity activity) { activity.registerReceiver(this, intentFilter); }
+    public void onActivityResumed(ActivityBase activity) { activity.registerReceiver(this, intentFilter); }
 
     @Override
-    public void onActivityStopped(AppCompatActivity activity) {
+    public void onActivityStopped(ActivityBase activity) {
         activity.unregisterReceiver(this);
     }
 }

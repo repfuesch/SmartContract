@@ -1,6 +1,5 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display;
 
-import android.app.DialogFragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,7 +14,6 @@ import org.jdeferred.Promise;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 import ch.uzh.ifi.csg.contract.async.Async;
@@ -28,10 +26,8 @@ import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.contract.IRentContract;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.contract.TimeUnit;
-import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialogFragment;
 
 /**
  * Created by flo on 05.06.17.
@@ -108,7 +104,6 @@ public class RentContractDetailFragment extends ContractDetailFragment
     {
         this.contract = (IRentContract) tradeContract;
 
-        BusyIndicator.show(bodyView);
         return super.init(contract).then(new DoneCallback<Void>() {
             @Override
             public void onDone(Void result) {
@@ -117,7 +112,7 @@ public class RentContractDetailFragment extends ContractDetailFragment
                     @Override
                     public Void call() throws Exception {
                         final ContractState state = contract.getState();
-                        final String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
+                        final String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
                         final String seller = contract.getSeller();
                         final String buyer = contract.getBuyer();
                         fee = contract.getPrice();
@@ -195,7 +190,7 @@ public class RentContractDetailFragment extends ContractDetailFragment
                 BigInteger totalFee = contract.getRentingFee();
                 final BigDecimal totalFeeEther = Web3Util.toEther(totalFee);
 
-                contextProvider.getServiceProvider().getExchangeService().getExchangeRate(selectedCurrency)
+                appContext.getServiceProvider().getExchangeService().getExchangeRate(selectedCurrency)
                         .done(new DoneCallback<BigDecimal>() {
                             @Override
                             public void onDone(BigDecimal exchangeRate) {
@@ -221,8 +216,7 @@ public class RentContractDetailFragment extends ContractDetailFragment
                                     }
                                 });
                             }
-                        })
-                        .always(new AlwaysCallback<BigDecimal>() {
+                        }).always(new AlwaysCallback<BigDecimal>() {
                             @Override
                             public void onAlways(Promise.State state, BigDecimal resolved, Throwable rejected) {
                                 BusyIndicator.hide(bodyView);
@@ -237,6 +231,11 @@ public class RentContractDetailFragment extends ContractDetailFragment
                 //todo:log
                 result.printStackTrace();
                 //messageHandler.handleError(result);
+            }
+        }).always(new AlwaysCallback<Void>() {
+            @Override
+            public void onAlways(Promise.State state, Void resolved, Throwable rejected) {
+                BusyIndicator.hide(bodyView);
             }
         });
     }
@@ -261,7 +260,7 @@ public class RentContractDetailFragment extends ContractDetailFragment
 
                     }
                 });
-                contextProvider.getTransactionManager().toTransaction(buyPromise, contract.getContractAddress());
+                appContext.getTransactionManager().toTransaction(buyPromise, contract.getContractAddress());
                 break;
             case R.id.abort_button:
                 BusyIndicator.show(bodyView);
@@ -271,7 +270,7 @@ public class RentContractDetailFragment extends ContractDetailFragment
                         BusyIndicator.hide(bodyView);
                     }
                 });
-                contextProvider.getTransactionManager().toTransaction(abortPromise, contract.getContractAddress());
+                appContext.getTransactionManager().toTransaction(abortPromise, contract.getContractAddress());
                 break;
             case R.id.return_button:
                 BusyIndicator.show(bodyView);
@@ -281,7 +280,7 @@ public class RentContractDetailFragment extends ContractDetailFragment
                         BusyIndicator.hide(bodyView);
                     }
                 });
-                contextProvider.getTransactionManager().toTransaction(returnPromise, contract.getContractAddress());
+                appContext.getTransactionManager().toTransaction(returnPromise, contract.getContractAddress());
                 break;
             case R.id.reclaim_button:
                 BusyIndicator.show(bodyView);
@@ -291,7 +290,7 @@ public class RentContractDetailFragment extends ContractDetailFragment
                         BusyIndicator.hide(bodyView);
                     }
                 });
-                contextProvider.getTransactionManager().toTransaction(reclaimPromise, contract.getContractAddress());
+                appContext.getTransactionManager().toTransaction(reclaimPromise, contract.getContractAddress());
                 break;
             default:
                 break;

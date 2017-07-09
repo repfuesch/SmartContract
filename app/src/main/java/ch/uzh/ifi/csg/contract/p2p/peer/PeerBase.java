@@ -16,7 +16,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import ch.uzh.ifi.csg.contract.async.Async;
-import ch.uzh.ifi.csg.contract.common.FileManager;
+import ch.uzh.ifi.csg.contract.common.FileUtil;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ch.uzh.ifi.csg.contract.service.serialization.GsonSerializationService;
 import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
@@ -151,7 +151,7 @@ public abstract class PeerBase implements Peer {
         if(userProfile.getProfileImagePath() != null)
         {
             callback.onP2pInfoMessage("Receiving profile image");
-            File tempFile = FileManager.createTemporaryFile("image", "jpg");
+            File tempFile = FileUtil.createTemporaryFile("image", "jpg");
             readFile(inputStream, tempFile);
             userProfile.setProfileImagePath(tempFile.getAbsolutePath());
         }

@@ -2,19 +2,21 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile;
 
 import android.os.Bundle;
 
+import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
 
 public class ProfileActivity extends ActivityBase {
 
-    private ProfileFragment vCardFragment;
+    private ProfileFragment profileFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        vCardFragment = (ProfileFragment) getFragmentManager().findFragmentById(R.id.vCard_fragment);
-        vCardFragment.setMode(ProfileFragment.ProfileMode.Edit);
-        vCardFragment.loadAccountProfileInformation();
+        profileFragment = (ProfileFragment) getFragmentManager().findFragmentById(R.id.vCard_fragment);
+        profileFragment.setMode(ProfileFragment.ProfileMode.Edit);
+        profileFragment.loadAccountProfileInformation();
     }
 
     @Override
@@ -24,6 +26,19 @@ public class ProfileActivity extends ActivityBase {
 
     @Override
     protected void onSettingsChanged() {
-        vCardFragment.loadAccountProfileInformation();
+        profileFragment.loadAccountProfileInformation();
+    }
+
+    @Override
+    protected void onPermissionGranted(String permission) {
+        super.onPermissionGranted(permission);
+
+        if(permission.equals(PermissionProvider.READ_STORAGE))
+        {
+            ImageHelper.openFile(profileFragment);
+        }else if(permission.equals(PermissionProvider.CAMERA))
+        {
+            ImageHelper.makePicture(profileFragment);
+        }
     }
 }

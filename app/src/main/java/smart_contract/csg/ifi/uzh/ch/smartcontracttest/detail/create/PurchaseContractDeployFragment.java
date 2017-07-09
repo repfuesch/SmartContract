@@ -4,11 +4,8 @@ import java.io.File;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
-import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
-import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 
@@ -35,7 +32,7 @@ public class PurchaseContractDeployFragment extends ContractDeployFragment
         if(!ensureBalance(priceWithDeposit))
             return null;
 
-        return  contextProvider.getServiceProvider().getContractService().deployPurchaseContract(
+        return  appContext.getServiceProvider().getContractService().deployPurchaseContract(
                 priceWithDeposit,
                 title,
                 description,

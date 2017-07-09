@@ -7,8 +7,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProviderImpl;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ServiceProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.SettingProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManager;
@@ -25,7 +30,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PSellerServ
  * Custom application class for holding and accessing the EthServiceProvider and EthSettingProvider instances
  */
 
-public class AppContext extends Application implements ActivityChangedListener, ApplicationContextProvider
+public class AppContext extends Application implements ApplicationContext
 {
     private EthSettingProvider settingsProvider;
     private EthServiceProvider ethServiceProvider;
@@ -35,14 +40,18 @@ public class AppContext extends Application implements ActivityChangedListener, 
     private P2PSellerServiceImpl p2PSellerService;
     private P2PBuyerServiceImpl p2PBuyerService;
     private WifiConnectionManager wifiManager;
+    private PermissionProviderImpl permissionProvider;
+    private List<ActivityChangedListener> activityChangedListeners;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
+        activityChangedListeners = new ArrayList<>();
+
         broadcastReceiver = new BroadCastReceiver();
         broadcastManager = LocalBroadcastManager.getInstance(this);
-
+        permissionProvider = PermissionProviderImpl.create();
         settingsProvider = EthSettingProvider.create(this);
         ethServiceProvider = EthServiceProvider.create(this);
         ethServiceProvider.initServices(settingsProvider);
@@ -56,6 +65,9 @@ public class AppContext extends Application implements ActivityChangedListener, 
 
         p2PBuyerService = new P2PBuyerServiceImpl(wifiManager);
         p2PSellerService = new P2PSellerServiceImpl(wifiManager);
+
+        activityChangedListeners.add(wifiManager);
+        activityChangedListeners.add(permissionProvider);
     }
 
     @Override
@@ -87,13 +99,24 @@ public class AppContext extends Application implements ActivityChangedListener, 
     }
 
     @Override
-    public void onActivityResumed(AppCompatActivity activity) {
-        wifiManager.onActivityResumed(activity);
+    public PermissionProvider getPermissionProvider() {
+        return permissionProvider;
     }
 
     @Override
-    public void onActivityStopped(AppCompatActivity activity) {
-        wifiManager.onActivityStopped(activity);
+    public void onActivityResumed(ActivityBase activity) {
+        for(ActivityChangedListener listener : activityChangedListeners)
+        {
+            listener.onActivityResumed(activity);
+        }
+    }
+
+    @Override
+    public void onActivityStopped(ActivityBase activity) {
+        for(ActivityChangedListener listener : activityChangedListeners)
+        {
+            listener.onActivityStopped(activity);
+        }
     }
 
     private class BroadCastReceiver extends BroadcastReceiver{
