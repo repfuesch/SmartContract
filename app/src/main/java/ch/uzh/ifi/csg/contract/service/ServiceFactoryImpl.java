@@ -18,6 +18,7 @@ import ch.uzh.ifi.csg.contract.service.account.CredentialProvider;
 import ch.uzh.ifi.csg.contract.service.account.CredentialProviderImpl;
 import ch.uzh.ifi.csg.contract.service.account.ParityAccountService;
 import ch.uzh.ifi.csg.contract.service.account.WalletAccountService;
+import ch.uzh.ifi.csg.contract.service.account.WalletWrapper;
 import ch.uzh.ifi.csg.contract.service.connection.EthConnectionService;
 import ch.uzh.ifi.csg.contract.service.connection.Web3ConnectionService;
 import ch.uzh.ifi.csg.contract.service.contract.FileManager;
@@ -61,7 +62,7 @@ public class ServiceFactoryImpl implements EthServiceFactory
     {
         String endpoint = "http://" + host + ":" + port + "/";
         Web3j web3 = ParityFactory.build(new HttpService(endpoint));
-        WalletAccountService accountService = new WalletAccountService(web3, fileManager, credentialProvider, walletDirectory, useFullEncryption);
+        WalletAccountService accountService = new WalletAccountService(web3, fileManager, credentialProvider, walletDirectory, useFullEncryption, new WalletWrapper());
 
         return accountService;
     }

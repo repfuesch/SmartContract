@@ -212,9 +212,7 @@ public class Web3jContractService implements ContractService
      */
     @Override
     public void saveContract(ITradeContract contract, String account) {
-        contractManager.saveContract(
-                new ContractInfo(contract.getContractType(),  contract.getContractAddress(), contract.getUserProfile(), contract.getImages()),
-                account);
+        saveContract(contract.getContractAddress(), contract.getContractType(), account);
     }
 
     /**
@@ -240,7 +238,7 @@ public class Web3jContractService implements ContractService
      */
     @Override
     public void removeContract(ITradeContract contract, String account) {
-        contractManager.deleteContract(contract.getContractAddress(), account);
+        removeContract(contract.getContractAddress(), account);
     }
 
 

@@ -29,15 +29,17 @@ public class WalletAccountService extends Web3AccountService{
     private String walletDirectory;
     private boolean useFullEncryption;
     private CredentialProvider credentialProvider;
+    private WalletWrapper walletWrapper;
     private Account unlockedAccount;
 
-    public WalletAccountService(Web3j web3, AccountManager accountManager, CredentialProvider credentialProvider, String walletDirectory, boolean useFullEncryption)
+    public WalletAccountService(Web3j web3, AccountManager accountManager, CredentialProvider credentialProvider, String walletDirectory, boolean useFullEncryption, WalletWrapper walletWrapper)
     {
         super(web3, accountManager);
         this.accountManager = accountManager;
         this.walletDirectory = walletDirectory;
         this.useFullEncryption = useFullEncryption;
         this.credentialProvider = credentialProvider;
+        this.walletWrapper = walletWrapper;
     }
 
     @Override
@@ -57,16 +59,8 @@ public class WalletAccountService extends Web3AccountService{
         return Async.toPromise(new Callable<Account>() {
             @Override
             public Account call() throws Exception {
-                File walletDir = new File(walletDirectory);
-                if(!walletDir.exists())
-                {
-                    if(!walletDir.createNewFile())
-                        throw new IOException("Cannot create Wallet directory!");
-                }
-
-                String walletFile = WalletUtils.generateNewWalletFile(password, walletDir, useFullEncryption);
-                String path = walletDir.getAbsolutePath();
-                Credentials credentials = WalletUtils.loadCredentials(password, path + "/" + walletFile);
+                String walletFile = walletWrapper.generateNewWalletFile(password, walletDirectory, useFullEncryption);
+                Credentials credentials = walletWrapper.loadCredentials(password, walletDirectory + "/" + walletFile);
                 Account newAccount = new Account(credentials.getAddress(), alias, walletFile);
                 accountManager.addAccount(newAccount);
                 credentialProvider.setCredentials(credentials);
@@ -83,7 +77,7 @@ public class WalletAccountService extends Web3AccountService{
             @Override
             public Boolean call() throws Exception {
                 try{
-                    Credentials credentials = WalletUtils.loadCredentials(password, walletDirectory + "/" + account.getWalletFile());
+                    Credentials credentials = walletWrapper.loadCredentials(password, walletDirectory + "/" + account.getWalletFile());
                     credentialProvider.setCredentials(credentials);
 
                 }catch(CipherException ex)

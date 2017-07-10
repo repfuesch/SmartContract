@@ -92,15 +92,15 @@
                     android:orientation="horizontal">
 
                     <ImageView
-                        android:layout_width="wrap_content"
+                        android:layout_width="24dp"
                         android:layout_height="wrap_content"
-                        android:src="@drawable/ic_eth_logo_big"/>
+                        android:src="@drawable/ic_icon_us_dollar"/>
 
                     <TextView
                         android:id="@+id/list_detail_price"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="500 ETH"
+                        android:text="500"
                         android:textAppearance="?attr/textAppearanceListItem"/>
 
                 </LinearLayout>

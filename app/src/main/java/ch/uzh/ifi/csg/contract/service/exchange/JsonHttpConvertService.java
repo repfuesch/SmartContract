@@ -19,6 +19,7 @@ import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import cz.msebera.android.httpclient.Header;
 import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.client.ClientProtocolException;
 import cz.msebera.android.httpclient.client.ResponseHandler;
 import cz.msebera.android.httpclient.client.methods.HttpGet;
 import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
@@ -55,14 +56,18 @@ public class JsonHttpConvertService implements EthConvertService
         request.setHeaders(buildHeaders());
 
         try {
-            return httpClient.execute(request, new ResponseHandler<Map<Currency, BigDecimal>>() {
+            HttpResponse response = httpClient.execute(request);
+
+            ResponseHandler<Map<Currency, BigDecimal>> handler = new ResponseHandler<Map<Currency, BigDecimal>>() {
                 @Override
-                public Map<Currency, BigDecimal> handleResponse(HttpResponse response) throws IOException {
+                public Map<Currency, BigDecimal> handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
                     String responseData = readResponse(response);
                     Map<Currency, BigDecimal> result = gson.fromJson(responseData, new TypeToken<HashMap<Currency, BigDecimal>>(){}.getType());
                     return result;
                 }
-            });
+            };
+
+            return handler.handleResponse(response);
 
         } finally {
             httpClient.close();
@@ -108,7 +113,7 @@ public class JsonHttpConvertService implements EthConvertService
             @Override
             public BigDecimal call() throws Exception {
                 Map<Currency, BigDecimal> exchangeMap = getEthExchangeRates();
-                return amountCurrency.divide(exchangeMap.get(exchangeCurrency));
+                return amountCurrency.divide(exchangeMap.get(exchangeCurrency), 18, BigDecimal.ROUND_HALF_EVEN);
             }
         });
     }
