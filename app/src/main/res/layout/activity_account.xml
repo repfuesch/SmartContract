@@ -30,6 +30,7 @@
                 android:layout_alignParentRight="true"
                 android:layout_margin="8dp"
                 android:onClick="onAddButtonClick"
+                android:id="@+id/account_add_button"
                 android:background="?android:attr/colorBackground"/>
 
         </LinearLayout>

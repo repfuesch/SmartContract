@@ -13,8 +13,7 @@ import android.widget.TextView;
 import java.util.List;
 import ch.uzh.ifi.csg.contract.datamodel.Account;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthSettingProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.SettingProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.setting.SettingProvider;
 
 
 public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecyclerViewAdapter.ViewHolder> {

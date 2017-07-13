@@ -125,7 +125,7 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
                 .fail(new FailCallback() {
                     @Override
                     public void onFail(Throwable result) {
-                        handleError(result);
+                        getAppContext().getMessageService().handleError(result);
                     }
                 });
     }

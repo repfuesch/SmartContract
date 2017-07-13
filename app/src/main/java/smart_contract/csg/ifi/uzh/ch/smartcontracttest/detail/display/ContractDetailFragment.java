@@ -34,12 +34,12 @@ import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.message.MessageService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialogFragment;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
 
@@ -63,7 +63,6 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
 
     protected LinearLayout bodyView;
     protected Currency selectedCurrency;
-    protected MessageHandler messageHandler;
     protected ApplicationContext appContext;
 
     protected boolean verifyIdentity;
@@ -120,14 +119,6 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
 
     private void attachContext(Context context)
     {
-        if(context instanceof MessageHandler)
-        {
-            messageHandler = (MessageHandler)context;
-        }else
-        {
-            throw new RuntimeException("Context must implement MessageHandler!");
-        }
-
         if(context instanceof ApplicationContextProvider)
         {
             appContext = ((ApplicationContextProvider) context).getAppContext();
@@ -161,7 +152,7 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
 
         if(balance.compareTo(value) < 0)
         {
-            messageHandler.showErrorMessage("You need at least " + value.toString() + " wei to do that!");
+            appContext.getMessageService().showErrorMessage("You need at least " + value.toString() + " wei to do that!");
             return false;
         }
 
@@ -260,29 +251,23 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
 
     private void addImage(String filepath)
     {
-        try {
-            final ProportionalImageView imageView = new ProportionalImageView(getActivity());
-            imageView.setScale(ProportionalImageView.ScaleDimension.Height);
-            int heightPx = (int)ImageHelper.convertDpToPixel(new Float(64.0), this.getActivity());
-            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(heightPx, heightPx);
-            layoutParams.setMargins(8,8,8,8);
-            imageView.setLayoutParams(layoutParams);
-            Bitmap bmp = BitmapFactory.decodeFile(filepath);
-            imageView.setImageBitmap(bmp);
-            imageContainer.addView(imageView);
-            images.put(imageView, bmp);
+        final ProportionalImageView imageView = new ProportionalImageView(getActivity());
+        imageView.setScale(ProportionalImageView.ScaleDimension.Height);
+        int heightPx = (int)ImageHelper.convertDpToPixel(new Float(64.0), this.getActivity());
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(heightPx, heightPx);
+        layoutParams.setMargins(8,8,8,8);
+        imageView.setLayoutParams(layoutParams);
+        Bitmap bmp = BitmapFactory.decodeFile(filepath);
+        imageView.setImageBitmap(bmp);
+        imageContainer.addView(imageView);
+        images.put(imageView, bmp);
 
-            imageView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    showImageDialog(imageView);
-                }
-            });
-
-        }
-        catch (Exception e) {
-            messageHandler.showSnackBarMessage(e.getMessage(), Snackbar.LENGTH_LONG);
-        }
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showImageDialog(imageView);
+            }
+        });
     }
 
     private void showImageDialog(ProportionalImageView imageView)

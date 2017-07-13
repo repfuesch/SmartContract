@@ -110,16 +110,9 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
     private void init(String contractAddress, ContractType type)
     {
         getAppContext().getServiceProvider().getContractService().loadContract(type, contractAddress, getAppContext().getSettingProvider().getSelectedAccount())
-                .always(new AlwaysCallback<ITradeContract>() {
+                .done(new DoneCallback<ITradeContract>() {
                     @Override
-                    public void onAlways(Promise.State state, final ITradeContract resolved, Throwable rejected) {
-
-                        if(rejected != null)
-                        {
-                            handleError(rejected);
-                            return;
-                        }
-
+                    public void onDone(final ITradeContract resolved) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -171,7 +164,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
                                 if(detailFragment.needsIdentityVerification() && contract.getUserProfile().getVCard() == null)
                                 {
                                     scanProfileButton.setVisibility(View.VISIBLE);
-                                    showMessage("You must first scan the user profile of your contract partner to interact with the contract!");
+                                    getAppContext().getMessageService().showMessage("You must first scan the user profile of your contract partner to interact with the contract!");
                                 }else{
                                     scanProfileButton.setVisibility(View.GONE);
                                 }

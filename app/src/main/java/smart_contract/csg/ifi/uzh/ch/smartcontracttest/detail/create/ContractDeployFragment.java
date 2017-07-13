@@ -41,6 +41,7 @@ import ch.uzh.ifi.csg.contract.common.ImageHelper;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialogFragment;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.message.MessageService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
@@ -48,7 +49,6 @@ import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.common.Web3Util;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.validation.RequiredTextFieldValidator;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
@@ -81,7 +81,6 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
 
     private boolean needsVerification;
     private boolean isValid;
-    private MessageHandler messageHandler;
 
     protected ApplicationContext appContext;
 
@@ -200,7 +199,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
 
         if(balance.compareTo(value) < 0)
         {
-            messageHandler.showErrorMessage("You don't have enough money to do that!");
+            appContext.getMessageService().showErrorMessage("You don't have enough money to do that!");
             return false;
         }
 
@@ -249,7 +248,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
                     @Override
                     public void onFail(Throwable result) {
                         //todo:log
-                        messageHandler.showErrorMessage("Cannot reach exchange service. Please try again later");
+                        appContext.getMessageService().showErrorMessage("Cannot reach exchange service. Please try again later");
                     }
                 });
 
@@ -267,13 +266,6 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
 
     private void attachContext(Context context)
     {
-        if(context instanceof MessageHandler)
-        {
-            messageHandler = (MessageHandler) context;
-        }else{
-            throw new RuntimeException("Context must implement MessageHandler!");
-        }
-
         if(context instanceof ApplicationContextProvider)
         {
             appContext = ((ApplicationContextProvider) context).getAppContext();
@@ -339,7 +331,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
                 {
                     deploy();
                 }else{
-                    messageHandler.showErrorMessage("Cannot deploy contract when connection to host is not established!");
+                    appContext.getMessageService().showErrorMessage("Cannot deploy contract when connection to host is not established!");
                 }
                 break;
             case R.id.action_cancel_deploy:
@@ -442,7 +434,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         }catch(IOException ex)
         {
             //todo:log
-            messageHandler.showErrorMessage("Could not save image: " + ex.getMessage());
+            appContext.getMessageService().showErrorMessage("Could not save image: " + ex.getMessage());
             return null;
         }
     }

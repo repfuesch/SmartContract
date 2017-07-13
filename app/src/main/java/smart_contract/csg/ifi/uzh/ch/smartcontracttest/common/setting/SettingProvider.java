@@ -1,4 +1,4 @@
-package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider;
+package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.setting;
 
 import java.math.BigInteger;
 

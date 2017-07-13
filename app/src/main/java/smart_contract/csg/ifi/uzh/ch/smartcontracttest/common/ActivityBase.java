@@ -1,6 +1,5 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -25,15 +24,16 @@ import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.common.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.service.connection.EthConnectionService;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.message.MessageService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.setting.SettingProviderImpl;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManager;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManagerImpl;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.MessageDialogFragment;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthSettingProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsActivity;
@@ -44,7 +44,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsActivity;
  * Created by flo on 13.03.17.
  *
  */
-public abstract class ActivityBase extends AppCompatActivity implements MessageHandler, MessageDialogFragment.ExceptionConfirmedListener, ApplicationContextProvider {
+public abstract class ActivityBase extends AppCompatActivity implements ApplicationContextProvider {
     private Toolbar toolbar;
     private LinearLayout accountBalanceView;
     private TextView accountBalanceField;
@@ -175,45 +175,6 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
         }
     }
 
-    @Override
-    public void handleError(Throwable exception) {
-        Bundle bundle = new Bundle();
-        bundle.putSerializable(MessageDialogFragment.EXCEPTION_MESSAGE, exception);
-        showMessageDialog(bundle);
-    }
-
-    @Override
-    public void showErrorMessage(String message) {
-        Bundle bundle = new Bundle();
-        bundle.putString(MessageDialogFragment.ERROR_MESSAGE, message);
-        showMessageDialog(bundle);
-    }
-
-    @Override
-    public void showMessage(String message) {
-        Bundle bundle = new Bundle();
-        bundle.putString(MessageDialogFragment.MESSAGE, message);
-        showMessageDialog(bundle);
-    }
-
-    @Override
-    public void showSnackBarMessage(String message, int length) {
-        Snackbar.make(this.findViewById(android.R.id.content), message,
-                length)
-                .show();
-    }
-
-    private void showMessageDialog(final Bundle bundle) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                DialogFragment errorDialogFragment = new MessageDialogFragment();
-                errorDialogFragment.setArguments(bundle);
-                errorDialogFragment.show(getSupportFragmentManager(), "messageDialogFragment");
-            }
-        });
-    }
-
     private void updateAccountBalance() {
         String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
         if (!selectedAccount.isEmpty()) {
@@ -222,7 +183,7 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
                         @Override
                         public void onAlways(Promise.State state, final BigInteger resolved, Throwable rejected) {
                             if (rejected != null) {
-                                handleError(rejected);
+                                //todo:log
                             } else {
                                 runOnUiThread(new Runnable() {
                                     @Override
@@ -236,16 +197,12 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
         }
     }
 
-    @Override
-    public void onExceptionConfirmed(Throwable throwable) {
-    }
-
     protected void onConnectionLost() {
-        showSnackBarMessage("Lost connection to host", Snackbar.LENGTH_LONG);
+        appContext.getMessageService().showSnackBarMessage("Lost connection to host", Snackbar.LENGTH_LONG);
     }
 
     protected void onConnectionEstablished() {
-        showSnackBarMessage("Established connection to host", Snackbar.LENGTH_LONG);
+        appContext.getMessageService().showSnackBarMessage("Established connection to host", Snackbar.LENGTH_LONG);
     }
 
     protected abstract void onSettingsChanged();
@@ -253,8 +210,7 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
     private void initIntentFilters() {
         contractIntentFilter = new IntentFilter();
         contractIntentFilter.addAction(TransactionManager.ACTION_HANDLE_TRANSACTION);
-        contractIntentFilter.addAction(EthSettingProvider.ACTION_SETTINGS_CHANGED);
-        contractIntentFilter.addAction(MessageHandler.ACTION_SHOW_ERROR);
+        contractIntentFilter.addAction(SettingProviderImpl.ACTION_SETTINGS_CHANGED);
         contractIntentFilter.addAction(AccountActivity.ACTION_ACCOUNT_CHANGED);
         contractIntentFilter.addAction(EthConnectionService.ACTION_HANDLE_CONNECTION_DOWN);
         contractIntentFilter.addAction(EthConnectionService.ACTION_HANDLE_CONNECTION_UP);
@@ -302,11 +258,11 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
     protected void onPermissionDenied(String permission)
     {
         if(permissionRationale != null)
-            showSnackBarMessage(permissionRationale, Snackbar.LENGTH_LONG);
+            appContext.getMessageService().showSnackBarMessage(permissionRationale, Snackbar.LENGTH_LONG);
     }
 
     protected void onContractCreated(String contractAddress, ContractType type) {
-        showSnackBarMessage(getString(R.string.contract_created), Snackbar.LENGTH_LONG);
+        appContext.getMessageService().showSnackBarMessage(getString(R.string.contract_created), Snackbar.LENGTH_LONG);
     }
 
     /**
@@ -324,13 +280,10 @@ public abstract class ActivityBase extends AppCompatActivity implements MessageH
                     return;
                 }
 
-            } else if (intent.getAction().equals(EthSettingProvider.ACTION_SETTINGS_CHANGED)) {
+            } else if (intent.getAction().equals(SettingProviderImpl.ACTION_SETTINGS_CHANGED)) {
                 onSettingsChanged();
-
             } else if (intent.getAction().equals(AccountActivity.ACTION_ACCOUNT_CHANGED)) {
-                showSnackBarMessage(getString(R.string.message_account_changed), Snackbar.LENGTH_LONG);
-            } else if (intent.getAction().equals(MessageHandler.ACTION_SHOW_ERROR)) {
-                showErrorMessage(intent.getStringExtra(MessageHandler.MESSAGE_SHOW_ERROR));
+                appContext.getMessageService().showSnackBarMessage(getString(R.string.message_account_changed), Snackbar.LENGTH_LONG);
             } else if (intent.getAction().equals(EthConnectionService.ACTION_HANDLE_CONNECTION_DOWN)) {
                 onConnectionLost();
             } else if (intent.getAction().equals(EthConnectionService.ACTION_HANDLE_CONNECTION_UP)) {

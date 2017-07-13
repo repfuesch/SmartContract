@@ -230,7 +230,7 @@ public class RentContractDetailFragment extends ContractDetailFragment
             public void onFail(Throwable result) {
                 //todo:log
                 result.printStackTrace();
-                //messageHandler.handleError(result);
+                //messageService.handleError(result);
             }
         }).always(new AlwaysCallback<Void>() {
             @Override

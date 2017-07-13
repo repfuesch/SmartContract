@@ -7,6 +7,7 @@ import ch.uzh.ifi.csg.contract.service.EthServiceFactory;
 import ch.uzh.ifi.csg.contract.service.ServiceFactoryImpl;
 import ch.uzh.ifi.csg.contract.service.exchange.EthConvertService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.AppContext;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.setting.SettingProviderImpl;
 
 /**
  * Created by flo on 18.03.17.
@@ -45,7 +46,7 @@ public class EthServiceProvider implements ServiceProvider
         appContext = context;
     }
 
-    public void initServices(EthSettingProvider settingsProvider)
+    public void initServices(SettingProviderImpl settingsProvider)
     {
         if(serviceFactory == null)
             serviceFactory = new ServiceFactoryImpl(settingsProvider.getAccountDirectory(), appContext);

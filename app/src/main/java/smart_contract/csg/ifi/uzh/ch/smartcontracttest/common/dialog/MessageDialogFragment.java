@@ -22,7 +22,6 @@ public class MessageDialogFragment extends DialogFragment
 
     private String message;
     private Throwable exception;
-    private ExceptionConfirmedListener listener;
 
     public MessageDialogFragment()
     {
@@ -56,8 +55,6 @@ public class MessageDialogFragment extends DialogFragment
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                if(exception != null)
-                    listener.onExceptionConfirmed(exception);
             }
         });
 
@@ -67,32 +64,5 @@ public class MessageDialogFragment extends DialogFragment
         final AlertDialog diag = builder.create();
 
         return diag;
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        attachContext(context);
-    }
-
-    private void attachContext(Context context)
-    {
-        if(context instanceof ExceptionConfirmedListener)
-        {
-            listener = (ExceptionConfirmedListener) context;
-        }else{
-            throw new RuntimeException(context.toString() + " must implement ExceptionConfirmedListener");
-        }
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        attachContext(activity);
-    }
-
-    public static interface ExceptionConfirmedListener
-    {
-        void onExceptionConfirmed(Throwable throwable);
     }
 }

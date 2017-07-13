@@ -32,7 +32,7 @@ import ezvcard.property.Address;
 import ezvcard.property.StructuredName;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialogFragment;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.message.MessageService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
@@ -63,7 +63,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     private ImageView profileImage;
 
     private ProfileMode mode;
-    private MessageHandler messageHandler;
     private ApplicationContext appContext;
 
     public ProfileFragment() {
@@ -134,13 +133,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
     private void attachContext(Context context)
     {
-        if(context instanceof MessageHandler)
-        {
-            messageHandler = (MessageHandler) context;
-        }else{
-            throw new RuntimeException("Context must implement MessageHandler!");
-        }
-
         if(context instanceof ApplicationContextProvider)
         {
             appContext = ((ApplicationContextProvider) context).getAppContext();
@@ -340,7 +332,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         catch (IOException e)
         {
             //todo:log
-            //messageHandler.showSnackBarMessage(e.getMessage(), Snackbar.LENGTH_LONG);
+            //messageService.showSnackBarMessage(e.getMessage(), Snackbar.LENGTH_LONG);
         }
     }
 
@@ -355,9 +347,9 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                     this.profile = getProfileInformation();
                     String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
                     appContext.getServiceProvider().getAccountService().saveAccountProfile(selectedAccount, profile);
-                    messageHandler.showErrorMessage("Profile saved!");
+                    appContext.getMessageService().showMessage("Profile saved!");
                 }else{
-                    messageHandler.showErrorMessage("Please fill out all required fields!");
+                    appContext.getMessageService().showErrorMessage("Please fill out all required fields!");
                 }
 
                 break;

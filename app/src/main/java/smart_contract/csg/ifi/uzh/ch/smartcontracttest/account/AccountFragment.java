@@ -5,8 +5,6 @@ import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -21,19 +19,16 @@ import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.datamodel.Account;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.message.MessageService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
 
 public class AccountFragment extends Fragment implements AccountRecyclerViewAdapter.OnAccountLoginListener {
 
-    private int mColumnCount = 1;
     private LinearLayout accountView;
     private RecyclerView accountList;
     private AccountRecyclerViewAdapter accountListAdapter;
     private List<Account> accounts;
-
-    private MessageHandler messageHandler;
     private ApplicationContext appContext;
 
     /**
@@ -58,11 +53,7 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
         accountView = (LinearLayout) view.findViewById(R.id.account_view);
 
         // Set the adapter
-        if (mColumnCount <= 1) {
-            accountList.setLayoutManager(new LinearLayoutManager(accountList.getContext()));
-        } else {
-            accountList.setLayoutManager(new GridLayoutManager(accountList.getContext(), mColumnCount));
-        }
+        accountList.setLayoutManager(new LinearLayoutManager(accountList.getContext()));
 
         accountListAdapter = new AccountRecyclerViewAdapter(accounts, this, appContext.getSettingProvider());
         accountListAdapter.notifyDataSetChanged();
@@ -81,13 +72,6 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
 
     private void attachContext(Context context)
     {
-        if(context instanceof MessageHandler)
-        {
-            messageHandler = (MessageHandler) context;
-        }else{
-            throw new RuntimeException(context.toString() + " must implement MessageHandler");
-        }
-
         if(context instanceof ApplicationContextProvider)
         {
             appContext = ((ApplicationContextProvider) context).getAppContext();
@@ -107,7 +91,7 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
     public void onResume() {
         super.onResume();
 
-        reloadAccountList();
+        //reloadAccountList();
     }
 
     public void reloadAccountList()
@@ -121,7 +105,8 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
                             @Override
                             public void run() {
                                 if(rejected != null){
-                                    messageHandler.showErrorMessage("An error occurred: " + rejected.getMessage());
+                                    //messageService.showErrorMessage("An error occurred: " + rejected.getMessage());
+                                    //todo:log
                                 }else{
                                     accounts.clear();
                                     accounts.addAll(resolved);
@@ -143,7 +128,7 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
 
                         if(rejected != null)
                         {
-                            notifyError("Could not create account. Reason: \n " + rejected.getMessage());
+                            appContext.getMessageService().showErrorMessage("Could not create account.");
                         }else{
                             notifyAccountChanged(resolved);
                         }
@@ -165,12 +150,13 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
                             if(rejected != null)
                             {
                                 resultListener.onLoginResult(false);
-                                notifyError("Could not unlock account. Reason: \n " + rejected.getMessage());
+                                appContext.getMessageService().showErrorMessage("Could not unlock account.");
+                                //todo:log
                             }
                             else if(!resolved)
                             {
                                 resultListener.onLoginResult(false);
-                                notifyError("Unlocking account failed. Wrong password");
+                                appContext.getMessageService().showErrorMessage("Unlocking account failed. Wrong password");
                             }else{
                                 resultListener.onLoginResult(true);
                                 notifyAccountChanged(account);
@@ -185,15 +171,7 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
         Intent intent = new Intent();
         intent.setAction(AccountActivity.ACTION_ACCOUNT_CHANGED);
         intent.putExtra(AccountActivity. MESSAGE_ACCOUNT_CHANGED, account.getId());
-        LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
-    }
 
-    private void notifyError(String message)
-    {
-        Intent intent = new Intent();
-        intent.setAction(MessageHandler.ACTION_SHOW_ERROR);
-        intent.putExtra(MessageHandler.MESSAGE_SHOW_ERROR, message);
-        LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
+        appContext.getBroadCastService().sendBroadcast(intent);
     }
-
 }

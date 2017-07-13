@@ -1,4 +1,4 @@
-package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider;
+package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.setting;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -13,25 +13,27 @@ import java.math.BigInteger;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.AppContext;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.broadcast.BroadCastService;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsActivity;
 
 /**
  * Created by flo on 20.03.17.
  */
 
-public class EthSettingProvider extends BroadcastReceiver implements SettingProvider, SharedPreferences.OnSharedPreferenceChangeListener
+public class SettingProviderImpl extends BroadcastReceiver implements SettingProvider, SharedPreferences.OnSharedPreferenceChangeListener
 {
     public static final String ACTION_SETTINGS_CHANGED = "ch.uzh.ifi.csg.smart_contract.settings";
 
-    private static EthSettingProvider instance;
+    private static SettingProviderImpl instance;
 
-    public static EthSettingProvider create(AppContext context)
+    public static SettingProviderImpl create(ApplicationContext context)
     {
-        instance = new EthSettingProvider(context);
+        instance = new SettingProviderImpl(context);
         return instance;
     }
 
-    private final AppContext appContext;
+    private final ApplicationContext appContext;
     private String host;
     private int port;
     private String selectedAccount = "";
@@ -43,13 +45,13 @@ public class EthSettingProvider extends BroadcastReceiver implements SettingProv
     private String walletFileEncryptionStrength;
     private String walletFileDirectory;
 
-    public EthSettingProvider(AppContext appContext)
+    public SettingProviderImpl(ApplicationContext appContext)
     {
         this.appContext = appContext;
-        PreferenceManager.setDefaultValues(appContext, R.xml.preferences, false);
-        LocalBroadcastManager.getInstance(appContext).registerReceiver(this, new IntentFilter(AccountActivity.ACTION_ACCOUNT_CHANGED));
+        PreferenceManager.setDefaultValues(appContext.getContext(), R.xml.preferences, false);
+        appContext.getBroadCastService().registerReceiver(this, new IntentFilter(AccountActivity.ACTION_ACCOUNT_CHANGED));
 
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(appContext);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(appContext.getContext());
         sharedPref.registerOnSharedPreferenceChangeListener(this);
 
         setSetting(sharedPref, SettingsActivity.KEY_PREF_CLIENT_HOST);
@@ -70,7 +72,7 @@ public class EthSettingProvider extends BroadcastReceiver implements SettingProv
             String account = intent.getStringExtra(AccountActivity.MESSAGE_ACCOUNT_CHANGED);
             selectedAccount = account;
 
-            LocalBroadcastManager.getInstance(appContext).sendBroadcast(new Intent(ACTION_SETTINGS_CHANGED));
+            appContext.getBroadCastService().sendBroadcast(new Intent(ACTION_SETTINGS_CHANGED));
         }
     }
 
@@ -78,7 +80,7 @@ public class EthSettingProvider extends BroadcastReceiver implements SettingProv
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s)
     {
         setSetting(sharedPreferences, s);
-        LocalBroadcastManager.getInstance(appContext).sendBroadcast(new Intent(ACTION_SETTINGS_CHANGED));
+        appContext.getBroadCastService().sendBroadcast(new Intent(ACTION_SETTINGS_CHANGED));
     }
 
     private void setSetting(SharedPreferences preferences, String key)
@@ -150,11 +152,11 @@ public class EthSettingProvider extends BroadcastReceiver implements SettingProv
 
     public String getAccountDirectory()
     {
-        return appContext.getApplicationContext().getFilesDir() + "/accounts_remote";
+        return appContext.getContext().getFilesDir() + "/accounts_remote";
     }
 
     public String getProfileImageDirectory()
     {
-        return appContext.getApplicationContext().getFilesDir() + "/profile_images";
+        return appContext.getContext().getFilesDir() + "/profile_images";
     }
 }

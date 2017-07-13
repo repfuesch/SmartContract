@@ -20,7 +20,7 @@ import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.MessageHandler;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.message.MessageService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * A fragment representing a list of Items.
  * <p/>
- * Activities containing this fragment MUST implement the {@link MessageHandler}
+ * Activities containing this fragment MUST implement the {@link MessageService}
  * interface.
  */
 public class ContractListFragment extends Fragment
@@ -45,8 +45,6 @@ public class ContractListFragment extends Fragment
     private LinearLayout contentView;
     private TradeContractRecyclerViewAdapter adapter;
     private List<ITradeContract> contracts;
-
-    private MessageHandler errorHandler;
     private ApplicationContext contextProvider;
 
     /**
@@ -112,13 +110,6 @@ public class ContractListFragment extends Fragment
 
     private void attachContext(Context context)
     {
-        if (context instanceof MessageHandler) {
-            errorHandler = (MessageHandler) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement MessageHandler");
-        }
-
         if (context instanceof ApplicationContextProvider) {
             contextProvider = ((ApplicationContextProvider) context).getAppContext();
         } else {
@@ -136,7 +127,6 @@ public class ContractListFragment extends Fragment
     @Override
     public void onDetach() {
         super.onDetach();
-        errorHandler = null;
     }
 
     public SimplePromise<List<ITradeContract>> loadContractsForAccount(String account)
