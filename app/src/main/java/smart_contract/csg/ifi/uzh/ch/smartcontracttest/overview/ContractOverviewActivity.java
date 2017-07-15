@@ -186,8 +186,6 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
                         .always(new AlwaysCallback<ITradeContract>() {
                             @Override
                             public void onAlways(Promise.State state, ITradeContract resolved, Throwable rejected) {
-
-                                //todo: make sure that Userprofile is not lost when contract cannot be loaded
                                 if(resolved != null)
                                 {
                                     resolved.setUserProfile(contractInfo.getUserProfile());
@@ -196,7 +194,7 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
                                         //copy the images into the correct application path
                                         resolved.addImage(imgSig, contractInfo.getImages().get(imgSig));
                                     }
-                                    getAppContext().getServiceProvider().getContractService().saveContract(resolved, getAppContext().getSettingProvider().getSelectedAccount());
+                                    //getAppContext().getServiceProvider().getContractService().saveContract(resolved, getAppContext().getSettingProvider().getSelectedAccount());
                                 }
                             }
                         });

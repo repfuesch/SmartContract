@@ -83,7 +83,7 @@ public class AddContractDialogFragment extends DialogFragment implements RadioGr
                     public void onClick(DialogInterface dialog, int id)
                     {
                         // address was added manually
-                        if(optionAddContract.isSelected())
+                        if(optionAddContract.isChecked())
                         {
                             selectedContractAddress = contractAddressField.getText().toString();
                             dialogListener.onAddContract(selectedContractAddress, selectedContractType);
@@ -127,6 +127,7 @@ public class AddContractDialogFragment extends DialogFragment implements RadioGr
         if(checkedId == R.id.option_add_contract)
         {
             contractAddressSection.setVisibility(View.VISIBLE);
+
         }else{
             contractAddressSection.setVisibility(View.GONE);
         }

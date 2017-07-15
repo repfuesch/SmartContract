@@ -1,8 +1,6 @@
-package ch.uzh.ifi.csg.contract.common;
+package ch.uzh.ifi.csg.contract.util;
 
-import org.spongycastle.crypto.digests.SHA3Digest;
 import org.spongycastle.jcajce.provider.digest.Keccak;
-import org.spongycastle.jcajce.provider.digest.SHA3;
 import org.spongycastle.util.encoders.Hex;
 
 import java.math.BigDecimal;

@@ -7,7 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.widget.TextView;
-import ch.uzh.ifi.csg.contract.common.Web3Util;
+import ch.uzh.ifi.csg.contract.util.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ezvcard.Ezvcard;
 import ezvcard.VCard;

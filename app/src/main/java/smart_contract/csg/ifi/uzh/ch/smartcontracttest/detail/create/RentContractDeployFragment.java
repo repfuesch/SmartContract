@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
-import ch.uzh.ifi.csg.contract.common.Web3Util;
+import ch.uzh.ifi.csg.contract.util.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.contract.TimeUnit;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
@@ -38,6 +38,7 @@ public class RentContractDeployFragment extends ContractDeployFragment
 
         depositField = (EditText) view.findViewById(R.id.contract_deposit);
         depositField.addTextChangedListener(new RequiredTextFieldValidator(depositField));
+        depositField.addTextChangedListener(this);
 
         timeUnitSpinner = (Spinner) view.findViewById(R.id.contract_time_unit_spinner);
         timeUnitSpinner.setAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, TimeUnit.values()));

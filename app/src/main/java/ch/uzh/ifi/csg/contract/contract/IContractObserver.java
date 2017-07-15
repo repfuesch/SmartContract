@@ -1,4 +1,4 @@
-package ch.uzh.ifi.csg.contract.event;
+package ch.uzh.ifi.csg.contract.contract;
 
 public interface IContractObserver 
 {

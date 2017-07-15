@@ -2,36 +2,19 @@
     <string name="app_name">SmartContracts</string>
 
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="login_text">Enter the password for your account</string>
-    <string name="login_title">Unlock an account</string>
     <string name="action_login">Manage accounts</string>
     <string name="action_overview">Show overview</string>
-    <string name="error_title">An error occurred</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
-    <string name="unlock">Unlock</string>
-    <string name="save">Save</string>
-    <string name="address">Address</string>
     <string name="field_account_name">Account name: </string>
     <string name="field_password">Password: </string>
     <string name="field_create_contract">Create new contract</string>
     <string name="field_add_contract">Add existing contract</string>
     <string name="title_create_account">Create Account</string>
     <string name="message_account_changed">Account unlocked</string>
-    <string name="message_account_created">Account created</string>
     <string name="action_create">create</string>
     <string name="contract_created">Contract created successfully</string>
     <string name="add_contract_dialog_title">Add a contract</string>
-    <string name="select_contract_source">Select contract source</string>
-    <string name="add_contract_manually">Manually from address</string>
-    <string name="add_contract_automatically">Automatically</string>
-    <string name="eth_host">ETH host name: </string>
-    <string name="eth_port">Port: </string>
-    <string name="eth_gas_limit">Gas limit: </string>
-    <string name="eth_gas_price">Gas price: </string>
-    <string name="eth_connection_attempts">Connection attempts: </string>
-    <string name="eth_sleep_duration">Transaction sleep duration: </string>
     <string name="settings_title">Settings</string>
     <string name="activity_profile_title">Profile</string>
     <string name="pref_account_title">Account</string>
@@ -44,9 +27,7 @@
     <string name="pref_transaction_sleep_time">Sleep time (s)</string>
     <string name="pref_client_title">ETH client</string>
     <string name="pref_client_host">Host</string>
-    <string name="pref_client_host_summary">Host of the eth client used</string>
     <string name="pref_client_port">Port</string>
-    <string name="pref_client_port_summary">Port of the eth client on the host</string>
     <string name="title_contract_overview">Contracts</string>
     <string name="title_contract_detail">Details</string>
     <string name="title_account">Accounts</string>
@@ -59,7 +40,6 @@
     <string name="hint_fee">Fee</string>
     <string name="hint_current_fee">Current fee</string>
     <string name="hint_paid_fee">Paid fee</string>
-    <string name="hint_time_unit">Unit of Time</string>
     <string name="hint_deposit">Deposit</string>
     <string name="hint_description">Description</string>
     <string name="hint_address">Address</string>
@@ -76,9 +56,6 @@
     <string name="hint_area">State/Area</string>
     <string name="hint_phone">Phone</string>
     <string name="hint_mail">E-Mail</string>
-    <string name="hint_company">Company</string>
-    <string name="hint_website">Website</string>
-    <string name="hint_person_title">Title</string>
     <string name="hint_pictures">Pictures</string>
     <string name="hint_identity_management">Identity Management</string>
     <string name="option_verify">Verify identity</string>

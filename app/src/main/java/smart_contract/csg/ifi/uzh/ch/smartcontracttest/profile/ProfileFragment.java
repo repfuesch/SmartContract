@@ -9,6 +9,9 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.support.design.widget.Snackbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -24,7 +27,7 @@ import net.glxn.qrgen.android.QRCode;
 import java.io.File;
 import java.io.IOException;
 
-import ch.uzh.ifi.csg.contract.common.ImageHelper;
+import ch.uzh.ifi.csg.contract.util.ImageHelper;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ezvcard.VCard;
 import ezvcard.parameter.TelephoneType;
@@ -32,7 +35,6 @@ import ezvcard.property.Address;
 import ezvcard.property.StructuredName;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialogFragment;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.message.MessageService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
@@ -43,7 +45,7 @@ import static android.app.Activity.RESULT_OK;
 /**
  * A fragment for retrieving and displaying user information
  */
-public class ProfileFragment extends Fragment implements View.OnClickListener {
+public class ProfileFragment extends Fragment implements View.OnClickListener, TextWatcher {
 
     private UserProfile profile;
 
@@ -78,25 +80,34 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
         firstNameField = (EditText) view.findViewById(R.id.field_profile_first_name);
         firstNameField.addTextChangedListener(new RequiredTextFieldValidator(firstNameField));
+        firstNameField.addTextChangedListener(this);
         lastNameField = (EditText) view.findViewById(R.id.field_profile_last_name);
         lastNameField.addTextChangedListener(new RequiredTextFieldValidator(lastNameField));
+        lastNameField.addTextChangedListener(this);
         streetField = (EditText) view.findViewById(R.id.field_profile_street);
         streetField.addTextChangedListener(new RequiredTextFieldValidator(streetField));
+        streetField.addTextChangedListener(this);
         cityField = (EditText) view.findViewById(R.id.field_profile_city);
         cityField.addTextChangedListener(new RequiredTextFieldValidator(cityField));
+        cityField.addTextChangedListener(this);
         zipField = (EditText) view.findViewById(R.id.field_profile_zip);
         zipField.addTextChangedListener(new RequiredTextFieldValidator(zipField));
+        zipField.addTextChangedListener(this);
         countryField = (EditText) view.findViewById(R.id.field_profile_country);
         countryField.addTextChangedListener(new RequiredTextFieldValidator(countryField));
+        countryField.addTextChangedListener(this);
         regionField = (EditText) view.findViewById(R.id.field_profile_region);
         regionField.addTextChangedListener(new RequiredTextFieldValidator(regionField));
+        regionField.addTextChangedListener(this);
         emailField = (EditText) view.findViewById(R.id.field_profile_email);
         emailField.addTextChangedListener(new RequiredTextFieldValidator(emailField));
+        emailField.addTextChangedListener(this);
         phoneField = (EditText) view.findViewById(R.id.field_profile_phone);
         phoneField.addTextChangedListener(new RequiredTextFieldValidator(phoneField));
+        phoneField.addTextChangedListener(this);
 
         editButton = (Button) view.findViewById(R.id.action_edit_identity);
-        saveButton = (Button) view.findViewById(R.id.action_save_identity);
+        saveButton = (Button) view.findViewById(R.id.action_save_profile);
         qrImageView = (ImageView) view.findViewById(R.id.profile_qr_image);
         profileImage = (ImageView) view.findViewById(R.id.profile_image);
 
@@ -220,6 +231,11 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    public ProfileMode getMode()
+    {
+        return mode;
+    }
+
     private void changeLayoutRecursive(ViewGroup viewGroup, ProfileMode mode)
     {
         int count = viewGroup.getChildCount();
@@ -239,18 +255,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     {
         Bitmap bitmap = QRCode.from(card.write()).bitmap();
         qrImageView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, 125, 125, false));
-    }
-
-    private boolean validateProfile()
-    {
-        return firstNameField.getError() == null &&
-                lastNameField.getError() == null &&
-                streetField.getError() == null &&
-                countryField.getError() == null &&
-                zipField.getError() == null &&
-                regionField.getError() == null &&
-                phoneField.getError() == null &&
-                emailField.getError() == null;
     }
 
     public void loadAccountProfileInformation()
@@ -341,17 +345,11 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
         switch(view.getId())
         {
-            case R.id.action_save_identity:
-                if(validateProfile())
-                {
-                    this.profile = getProfileInformation();
-                    String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
-                    appContext.getServiceProvider().getAccountService().saveAccountProfile(selectedAccount, profile);
-                    appContext.getMessageService().showMessage("Profile saved!");
-                }else{
-                    appContext.getMessageService().showErrorMessage("Please fill out all required fields!");
-                }
-
+            case R.id.action_save_profile:
+                this.profile = getProfileInformation();
+                String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
+                appContext.getServiceProvider().getAccountService().saveAccountProfile(selectedAccount, profile);
+                appContext.getMessageService().showSnackBarMessage("Profile saved", Snackbar.LENGTH_LONG);
                 break;
             case R.id.profile_qr_image:
                 DialogFragment imageDialog = new ImageDialogFragment();
@@ -376,7 +374,39 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    public static enum ProfileMode
+    @Override
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+    }
+
+    @Override
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+    }
+
+    @Override
+    public void afterTextChanged(Editable editable) {
+
+        if(verifyFields())
+        {
+            saveButton.setEnabled(true);
+        }else{
+            saveButton.setEnabled(false);
+        }
+    }
+
+    private boolean verifyFields()
+    {
+        return firstNameField.getError() == null &&
+                lastNameField.getError() == null &&
+                streetField.getError() == null &&
+                countryField.getError() == null &&
+                cityField.getError() == null &&
+                zipField.getError() == null &&
+                regionField.getError() == null &&
+                phoneField.getError() == null &&
+                emailField.getError() == null;
+    }
+
+    public enum ProfileMode
     {
         Edit,
         ReadOnly,

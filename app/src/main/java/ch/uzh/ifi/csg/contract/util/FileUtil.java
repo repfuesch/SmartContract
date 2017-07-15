@@ -1,7 +1,6 @@
-package ch.uzh.ifi.csg.contract.common;
+package ch.uzh.ifi.csg.contract.util;
 
 import android.os.Environment;
-import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,8 +8,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * Created by flo on 16.03.17.

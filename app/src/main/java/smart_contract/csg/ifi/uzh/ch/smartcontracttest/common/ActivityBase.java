@@ -9,8 +9,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -21,10 +19,9 @@ import org.jdeferred.Promise;
 import java.math.BigInteger;
 import java.math.MathContext;
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
-import ch.uzh.ifi.csg.contract.common.Web3Util;
+import ch.uzh.ifi.csg.contract.util.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.service.connection.EthConnectionService;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.message.MessageService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
@@ -33,7 +30,6 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.Transa
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManagerImpl;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.MessageDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsActivity;
@@ -209,7 +205,7 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
 
     private void initIntentFilters() {
         contractIntentFilter = new IntentFilter();
-        contractIntentFilter.addAction(TransactionManager.ACTION_HANDLE_TRANSACTION);
+        contractIntentFilter.addAction(TransactionManager.ACTION_CREATE_TRANSACTION);
         contractIntentFilter.addAction(SettingProviderImpl.ACTION_SETTINGS_CHANGED);
         contractIntentFilter.addAction(AccountActivity.ACTION_ACCOUNT_CHANGED);
         contractIntentFilter.addAction(EthConnectionService.ACTION_HANDLE_CONNECTION_DOWN);
@@ -222,7 +218,7 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
 
         appContext.onActivityStopped(this);
         if (broadcastReceiverRegistered) {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
+            appContext.getBroadCastService().unregisterReceiver(broadcastReceiver);
             broadcastReceiverRegistered = false;
         }
     }
@@ -233,7 +229,7 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
 
         appContext.onActivityResumed(this);
         if (!broadcastReceiverRegistered) {
-            LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, contractIntentFilter);
+            appContext.getBroadCastService().registerReceiver(broadcastReceiver, contractIntentFilter);
             broadcastReceiverRegistered = true;
         }
 
@@ -271,15 +267,11 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
     private class ContractBroadcastReceiver extends android.content.BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(TransactionManagerImpl.ACTION_HANDLE_TRANSACTION)) {
-                if (intent.getStringExtra(TransactionManagerImpl.CONTRACT_TRANSACTION_TYPE).equals(TransactionManagerImpl.CONTRACT_TRANSACTION_DEPLOY)) {
-                    //Load contract and persist it, such that it is stored independent of the currently active activity
-                    final String contractAddress = intent.getStringExtra(TransactionManager.CONTRACT_ADDRESS);
-                    final ContractType contractType = (ContractType) intent.getSerializableExtra(TransactionManager.CONTRACT_TYPE);
-                    onContractCreated(contractAddress, contractType);
-                    return;
-                }
-
+            if (intent.getAction().equals(TransactionManagerImpl.ACTION_CREATE_TRANSACTION)) {
+                final String contractAddress = intent.getStringExtra(TransactionManager.CONTRACT_ADDRESS);
+                final ContractType contractType = (ContractType) intent.getSerializableExtra(TransactionManager.CONTRACT_TYPE);
+                onContractCreated(contractAddress, contractType);
+                return;
             } else if (intent.getAction().equals(SettingProviderImpl.ACTION_SETTINGS_CHANGED)) {
                 onSettingsChanged();
             } else if (intent.getAction().equals(AccountActivity.ACTION_ACCOUNT_CHANGED)) {

@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Wrapper class for WalletUtil functionality
+ * Wrapper class for WalletUtil functionality (used for testing)
  */
 
 public class WalletWrapper {

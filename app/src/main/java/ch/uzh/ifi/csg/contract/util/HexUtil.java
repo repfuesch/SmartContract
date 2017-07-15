@@ -1,4 +1,4 @@
-package ch.uzh.ifi.csg.contract.common;
+package ch.uzh.ifi.csg.contract.util;
 
 /**
  * Created by flo on 29.05.17.

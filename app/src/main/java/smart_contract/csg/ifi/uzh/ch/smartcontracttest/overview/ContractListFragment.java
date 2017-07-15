@@ -77,8 +77,12 @@ public class ContractListFragment extends Fragment
     @Override
     public void onDestroy() {
         super.onDestroy();
-
         adapter.onDestroy();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
     }
 
     @Override

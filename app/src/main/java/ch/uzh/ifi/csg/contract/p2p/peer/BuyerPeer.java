@@ -8,7 +8,7 @@ import java.util.concurrent.Callable;
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
-import ch.uzh.ifi.csg.contract.common.FileUtil;
+import ch.uzh.ifi.csg.contract.util.FileUtil;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;

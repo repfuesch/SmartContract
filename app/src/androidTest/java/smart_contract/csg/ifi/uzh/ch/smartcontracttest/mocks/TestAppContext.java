@@ -2,7 +2,6 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.mocks;
 
 import android.app.Application;
 import android.content.Context;
-import android.os.Message;
 
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.broadcast.BroadCastService;
@@ -24,13 +23,13 @@ import static org.mockito.Mockito.mock;
 public class TestAppContext extends Application implements ApplicationContext
 {
     private static ServiceProvider serviceProvider = new TestServiceProvider();
-    private static SettingProvider settingProvider = mock(SettingProvider.class);
-    private static TransactionManager transactionManager = mock(TransactionManager.class);
-    private static P2PSellerService sellerService = mock(P2PSellerService.class);
-    private static P2PBuyerService buyerService = mock(P2PBuyerService.class);
-    private static PermissionProvider permissionProvider = mock(PermissionProvider.class);
-    private static BroadCastService broadCastService = mock(BroadCastService.class);
-    private static MessageService messageService = mock(MessageService.class);
+    public static SettingProvider SettingProvider = mock(SettingProvider.class);
+    public static TransactionManager TransactionManager = mock(TransactionManager.class);
+    public static P2PSellerService SellerService = mock(P2PSellerService.class);
+    public static P2PBuyerService BuyerService = mock(P2PBuyerService.class);
+    public static PermissionProvider PermissionProvider = mock(PermissionProvider.class);
+    public static BroadCastService BroadCastService = mock(BroadCastService.class);
+    public static MessageService MessageService = mock(MessageService.class);
 
     @Override
     public ServiceProvider getServiceProvider() {
@@ -38,35 +37,35 @@ public class TestAppContext extends Application implements ApplicationContext
     }
 
     @Override
-    public SettingProvider getSettingProvider() { return settingProvider; }
+    public SettingProvider getSettingProvider() { return SettingProvider; }
 
     @Override
     public TransactionManager getTransactionManager() {
-        return transactionManager;
+        return TransactionManager;
     }
 
     @Override
     public P2PSellerService getP2PSellerService() {
-        return sellerService;
+        return SellerService;
     }
 
     @Override
     public P2PBuyerService getP2PBuyerService() {
-        return buyerService;
+        return BuyerService;
     }
 
     @Override
     public PermissionProvider getPermissionProvider() {
-        return permissionProvider;
+        return PermissionProvider;
     }
 
     @Override
     public BroadCastService getBroadCastService() {
-        return broadCastService;
+        return BroadCastService;
     }
 
     @Override
-    public MessageService getMessageService() { return messageService; }
+    public MessageService getMessageService() { return MessageService; }
 
     @Override
     public Context getContext() {

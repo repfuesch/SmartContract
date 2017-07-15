@@ -36,9 +36,8 @@ public class TransactionManagerImpl implements TransactionManager
     private void notifyContractUpdated(String contractAddress)
     {
         Intent intent = new Intent();
-        intent.setAction(ACTION_HANDLE_TRANSACTION);
+        intent.setAction(ACTION_UPDATE_TRANSACTION);
         intent.putExtra(CONTRACT_ADDRESS, contractAddress);
-        intent.putExtra(CONTRACT_TRANSACTION_TYPE, CONTRACT_TRANSACTION_UPDATE);
 
         broadCastService.sendBroadcast(intent);
     }
@@ -46,10 +45,9 @@ public class TransactionManagerImpl implements TransactionManager
     private void notifyContractCreated(ITradeContract contract)
     {
         Intent intent = new Intent();
-        intent.setAction(ACTION_HANDLE_TRANSACTION);
+        intent.setAction(ACTION_CREATE_TRANSACTION);
         intent.putExtra(CONTRACT_ADDRESS, contract.getContractAddress());
         intent.putExtra(CONTRACT_TYPE, contract.getContractType());
-        intent.putExtra(CONTRACT_TRANSACTION_TYPE, CONTRACT_TRANSACTION_DEPLOY);
 
         broadCastService.sendBroadcast(intent);
     }

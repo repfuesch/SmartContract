@@ -6,7 +6,6 @@ import java.util.Map;
 
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
-import ch.uzh.ifi.csg.contract.event.IContractObservable;
 
 /**
  * Created by flo on 03.06.17.

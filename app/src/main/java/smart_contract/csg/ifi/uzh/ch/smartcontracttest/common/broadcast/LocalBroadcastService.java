@@ -33,6 +33,11 @@ public class LocalBroadcastService implements BroadCastService
     }
 
     @Override
+    public void unregisterReceiver(BroadcastReceiver receiver) {
+        LocalBroadcastManager.getInstance(context).unregisterReceiver(receiver);
+    }
+
+    @Override
     public void sendBroadcast(Intent intent) {
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }

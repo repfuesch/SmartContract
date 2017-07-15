@@ -36,17 +36,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
-import ch.uzh.ifi.csg.contract.common.ImageHelper;
+import ch.uzh.ifi.csg.contract.util.ImageHelper;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialogFragment;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.message.MessageService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
-import ch.uzh.ifi.csg.contract.common.Web3Util;
+import ch.uzh.ifi.csg.contract.util.Web3Util;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
@@ -194,6 +192,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         BigInteger balance = appContext.getServiceProvider().getAccountService().getAccountBalance(account).get();
         if(balance == null)
         {
+            //todo:cannot reach exchange service
             return false;
         }
 
@@ -221,36 +220,32 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         }
 
         final BigDecimal price = new BigDecimal(priceField.getText().toString());
-        appContext.getServiceProvider().getExchangeService().convertToEther(price, selectedCurrency)
-                .then(new DoneCallback<BigDecimal>() {
-                    @Override
-                    public void onDone(BigDecimal result)
-                    {
-                        BigInteger priceWei = Web3Util.toWei(result);
-                        SimplePromise<ITradeContract> promise = deployContract(priceWei, title, desc, needsVerification, imageSignatures)
-                                .done(new DoneCallback<ITradeContract>() {
-                                    @Override
-                                    public void onDone(ITradeContract result) {
-                                        //add image paths to contract after creation
-                                        for(String sig : imageSignatures.keySet())
-                                        {
-                                            result.getImages().put(sig, imageSignatures.get(sig).getAbsolutePath());
-                                        }
 
-                                        //persist contract on the file system
-                                        appContext.getServiceProvider().getContractService().saveContract(result, appContext.getSettingProvider().getSelectedAccount());
-                                    }
-                                });
+        //todo:show error when service not available
+        BigDecimal priceEther = appContext.getServiceProvider().getExchangeService().convertToEther(price, selectedCurrency).get();
+        if(priceEther == null)
+            return;
 
-                        appContext.getTransactionManager().toTransaction(promise);
-                    }
-                }).fail(new FailCallback() {
-                    @Override
-                    public void onFail(Throwable result) {
-                        //todo:log
-                        appContext.getMessageService().showErrorMessage("Cannot reach exchange service. Please try again later");
-                    }
-                });
+        BigInteger priceWei = Web3Util.toWei(priceEther);
+        SimplePromise<ITradeContract> promise = deployContract(priceWei, title, desc, needsVerification, imageSignatures);
+        if(promise == null)
+            return;
+
+        promise.done(new DoneCallback<ITradeContract>() {
+            @Override
+            public void onDone(ITradeContract result) {
+                //add image paths to contract after creation
+                for(String sig : imageSignatures.keySet())
+                {
+                    result.getImages().put(sig, imageSignatures.get(sig).getAbsolutePath());
+                }
+
+                //persist contract on the file system
+                appContext.getServiceProvider().getContractService().saveContract(result, appContext.getSettingProvider().getSelectedAccount());
+            }
+        });
+
+        appContext.getTransactionManager().toTransaction(promise);
 
         Intent intent = new Intent(getActivity(), ContractOverviewActivity.class);
         startActivity(intent);

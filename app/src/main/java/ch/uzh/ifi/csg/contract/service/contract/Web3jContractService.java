@@ -20,7 +20,7 @@ import java.util.concurrent.Callable;
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
-import ch.uzh.ifi.csg.contract.common.HexUtil;
+import ch.uzh.ifi.csg.contract.util.HexUtil;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.contract.PurchaseContract;
@@ -28,7 +28,6 @@ import ch.uzh.ifi.csg.contract.contract.RentContract;
 import ch.uzh.ifi.csg.contract.contract.TimeUnit;
 import ch.uzh.ifi.csg.contract.contract.TradeContract;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
-import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 
 /**
  * Web3j implementation of the ContractService.

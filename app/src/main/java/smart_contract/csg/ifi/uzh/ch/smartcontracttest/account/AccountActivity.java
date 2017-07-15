@@ -20,6 +20,7 @@ public class AccountActivity extends ActivityBase implements AccountCreateDialog
 
         getSupportActionBar().setTitle(R.string.title_account);
         accountFragment = (AccountFragment) getFragmentManager().findFragmentById(R.id.account_fragment);
+        accountFragment.reloadAccountList();
     }
 
     public void onAddButtonClick(View view)

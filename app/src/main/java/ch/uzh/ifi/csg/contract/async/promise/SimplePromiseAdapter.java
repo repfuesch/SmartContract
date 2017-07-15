@@ -80,42 +80,6 @@ public class SimplePromiseAdapter<T> implements SimplePromise<T>
         return this;
     }
 
-    @Override
-    public <U> SimplePromise<U> thenContinue(final ContinueCallback<T, U> continueCallback)
-    {
-        final Deferred<U, Throwable, Void> deferred = new DeferredObject<>();
-        promise.always(new org.jdeferred.AlwaysCallback<T, Throwable>() {
-            @Override
-            public void onAlways(Promise.State state, T resolved, Throwable rejected) {
-                if(rejected != null)
-                {
-                    deferred.reject(rejected);
-                }else{
-                    try {
-                        result = resolved;
-                    } catch (Exception e) {
-                        deferred.reject(e);
-                    }
-                }
-            }
-        });
-
-        try {
-            promise.waitSafely();
-
-        } catch (InterruptedException e)
-        {
-            deferred.reject(e);
-        }
-
-        if(result == null)
-        {
-            return new SimplePromiseAdapter<>(new DeferredPromise<>(deferred), UUID.randomUUID());
-        }else{
-            return continueCallback.onContinue(result);
-        }
-    }
-
     public T get()
     {
         promise.always(new org.jdeferred.AlwaysCallback<T, Throwable>() {

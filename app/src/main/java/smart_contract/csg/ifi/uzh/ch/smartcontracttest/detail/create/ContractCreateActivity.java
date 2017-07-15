@@ -6,13 +6,11 @@ import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.widget.TabHost;
 
-import ch.uzh.ifi.csg.contract.common.ImageHelper;
+import ch.uzh.ifi.csg.contract.util.ImageHelper;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
-import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment;
 
 public class ContractCreateActivity extends ActivityBase  {
 

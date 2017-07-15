@@ -238,7 +238,7 @@
             android:visibility="gone"
             android:background="@drawable/button_selector"
             android:gravity="center"
-            android:id="@+id/action_save_identity" />
+            android:id="@+id/action_save_profile" />
 
     </LinearLayout>
 

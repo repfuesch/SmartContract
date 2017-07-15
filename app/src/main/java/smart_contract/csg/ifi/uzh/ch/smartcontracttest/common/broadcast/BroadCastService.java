@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 public interface BroadCastService {
 
     void registerReceiver(BroadcastReceiver receiver, IntentFilter intentFilter);
+    void unregisterReceiver(BroadcastReceiver receiver);
     void sendBroadcast(Intent intent);
 
 }

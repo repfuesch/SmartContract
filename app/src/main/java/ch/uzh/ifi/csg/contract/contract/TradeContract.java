@@ -15,7 +15,6 @@ import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.generated.Uint8;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
-import org.web3j.protocol.core.filters.FilterException;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
@@ -38,9 +37,8 @@ import java.util.concurrent.ExecutionException;
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
-import ch.uzh.ifi.csg.contract.common.HexUtil;
+import ch.uzh.ifi.csg.contract.util.HexUtil;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
-import ch.uzh.ifi.csg.contract.event.IContractObserver;
 import rx.Subscription;
 import rx.functions.Action1;
 

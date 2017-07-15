@@ -1,4 +1,4 @@
-package ch.uzh.ifi.csg.contract.common;
+package ch.uzh.ifi.csg.contract.util;
 
 import android.app.Fragment;
 import android.content.Context;

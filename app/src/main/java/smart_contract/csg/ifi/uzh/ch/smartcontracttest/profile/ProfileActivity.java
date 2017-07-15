@@ -2,7 +2,7 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile;
 
 import android.os.Bundle;
 
-import ch.uzh.ifi.csg.contract.common.ImageHelper;
+import ch.uzh.ifi.csg.contract.util.ImageHelper;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
@@ -14,7 +14,7 @@ public class ProfileActivity extends ActivityBase {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        profileFragment = (ProfileFragment) getFragmentManager().findFragmentById(R.id.vCard_fragment);
+        profileFragment = (ProfileFragment) getFragmentManager().findFragmentById(R.id.profile_fragment);
         profileFragment.setMode(ProfileFragment.ProfileMode.Edit);
         profileFragment.loadAccountProfileInformation();
     }

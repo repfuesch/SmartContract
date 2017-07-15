@@ -7,8 +7,6 @@ import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.support.v7.widget.RecyclerView;
 
-import org.hamcrest.core.Is;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -21,14 +19,11 @@ import java.util.concurrent.Callable;
 
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.datamodel.Account;
-import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.service.account.AccountService;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.ViewActions.CustomViewActions;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.ViewHelper.CustomViewActions;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountCreateDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountRecyclerViewAdapter;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.broadcast.BroadCastService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.setting.SettingProvider;
 
@@ -40,7 +35,6 @@ import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition;
 import static android.support.test.espresso.matcher.RootMatchers.isDialog;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static android.support.test.espresso.matcher.ViewMatchers.isRoot;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.MatcherAssert.assertThat;

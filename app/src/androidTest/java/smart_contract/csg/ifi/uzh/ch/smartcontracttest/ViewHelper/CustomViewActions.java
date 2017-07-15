@@ -1,4 +1,4 @@
-package smart_contract.csg.ifi.uzh.ch.smartcontracttest.ViewActions;
+package smart_contract.csg.ifi.uzh.ch.smartcontracttest.ViewHelper;
 
 import android.support.test.espresso.UiController;
 import android.support.test.espresso.ViewAction;

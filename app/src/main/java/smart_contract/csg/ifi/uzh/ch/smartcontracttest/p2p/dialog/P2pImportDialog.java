@@ -5,7 +5,7 @@ import android.support.v7.app.AlertDialog;
 
 import java.io.File;
 
-import ch.uzh.ifi.csg.contract.common.ImageHelper;
+import ch.uzh.ifi.csg.contract.util.ImageHelper;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;

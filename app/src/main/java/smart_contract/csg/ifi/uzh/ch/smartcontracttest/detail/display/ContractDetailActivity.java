@@ -1,30 +1,28 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display;
 
-import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
-import android.media.Image;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TabHost;
+import android.widget.TextView;
 
-import org.jdeferred.Promise;
-
-import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
-import ch.uzh.ifi.csg.contract.event.IContractObserver;
+import ch.uzh.ifi.csg.contract.contract.IContractObserver;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ezvcard.Ezvcard;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment;
@@ -35,7 +33,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
     public final static String EXTRA_CONTRACT_ADDRESS = "ch.uzh.ifi.csg.smart_contract.address";
     public final static String EXTRA_CONTRACT_TYPE = "ch.uzh.ifi.csg.smart_contract.type";
 
-    private static final int SCAN_PROFILE_INFO_REQUEST = 1;
+    public static final int SCAN_PROFILE_INFO_REQUEST = 1;
 
     private ContractDetailFragment detailFragment;
     private ProfileFragment profileFragment;
@@ -230,6 +228,16 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
             removeProfileTab();
     }
 
+    private View getTabIndicator(Context context, String title, int icon, String viewTag) {
+        View view = LayoutInflater.from(context).inflate(R.layout.tab_layout, null);
+        ImageView iv = (ImageView) view.findViewById(R.id.image_view);
+        iv.setImageResource(icon);
+        TextView tv = (TextView) view.findViewById(R.id.text_view);
+        tv.setText(title);
+        tv.setTag(viewTag);
+        return view;
+    }
+
     private void removeProfileTab()
     {
         if(tabHost.getTabWidget().getTabCount() > 1)
@@ -262,10 +270,10 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
                 String vCardString = intent.getStringExtra(QrScanningActivity.MESSAGE_PROFILE_DATA);
                 UserProfile profile = new UserProfile();
                 profile.setVCard(Ezvcard.parse(vCardString).first());
-                profileFragment.setProfileInformation(profile);
-
                 tabHost.addTab(profileViewSpec);
                 tabHost.setCurrentTabByTag("Profile");
+
+                profileFragment.setProfileInformation(profile);
                 scanProfileButton.setVisibility(View.GONE);
                 contract.setUserProfile(profile);
                 profileFragment.setMode(ProfileFragment.ProfileMode.ReadOnly);

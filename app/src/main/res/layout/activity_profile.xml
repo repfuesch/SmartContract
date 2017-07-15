@@ -15,7 +15,7 @@
 
     <fragment
         android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment"
-        android:id="@+id/vCard_fragment"
+        android:id="@+id/profile_fragment"
         android:layout_weight="1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

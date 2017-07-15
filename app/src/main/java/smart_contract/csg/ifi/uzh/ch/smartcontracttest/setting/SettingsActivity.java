@@ -1,12 +1,8 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting;
 
-import android.app.Activity;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.LinearLayout;
 
-import ch.uzh.ifi.csg.contract.setting.EthSettings;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 
