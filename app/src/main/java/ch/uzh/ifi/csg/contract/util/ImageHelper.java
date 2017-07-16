@@ -31,7 +31,7 @@ import java.util.Date;
 
 public final class ImageHelper {
 
-    public static final int PICK_IMAGE_REQUEST_CODE = 54654;
+    public static final int PICK_FILE_REQUEST_CODE = 54654;
     public static final int IMAGE_CAPTURE_REQUEST_CODE = 74984;
 
     public static File saveBitmap(Bitmap bitmap, String imageDir)
@@ -203,7 +203,7 @@ public final class ImageHelper {
         }
     }
 
-    public static void openFile(Fragment fragment) {
+    public static void openImageFile(Fragment fragment) {
 
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
@@ -225,7 +225,34 @@ public final class ImageHelper {
             chooserIntent = Intent.createChooser(intent, "Select File");
         }
         try {
-            fragment.startActivityForResult(chooserIntent, PICK_IMAGE_REQUEST_CODE);
+            fragment.startActivityForResult(chooserIntent, PICK_FILE_REQUEST_CODE);
+        } catch (android.content.ActivityNotFoundException ex) {
+            Toast.makeText(fragment.getActivity().getApplicationContext(), "No suitable File Manager was found.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public static void openFile(Fragment fragment)
+    {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+        // special intent for Samsung file manager
+        Intent sIntent = new Intent("com.sec.android.app.myfiles.PICK_DATA");
+        intent.putExtra("CONTENT_TYPE", "*/*");
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+
+        Intent chooserIntent;
+        if (fragment.getActivity().getPackageManager().resolveActivity(sIntent, 0) != null){
+            // it is device with samsung file manager
+            chooserIntent = Intent.createChooser(sIntent, "Select File");
+            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] { intent});
+        }
+        else {
+            chooserIntent = Intent.createChooser(intent, "Select File");
+        }
+        try {
+            fragment.startActivityForResult(chooserIntent, PICK_FILE_REQUEST_CODE);
         } catch (android.content.ActivityNotFoundException ex) {
             Toast.makeText(fragment.getActivity().getApplicationContext(), "No suitable File Manager was found.", Toast.LENGTH_SHORT).show();
         }

@@ -5,10 +5,10 @@ import android.support.v4.app.DialogFragment;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import org.jdeferred.Promise;
-
-import java.util.List;
 
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
@@ -17,9 +17,7 @@ import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create.ContractCreateActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
@@ -32,6 +30,9 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
 
     private ContractListFragment listFragment;
     private LinearLayout bodyView;
+    private RelativeLayout overviewMenu;
+    private TextView infoTextView;
+    private LinearLayout contractListWrapper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,18 +40,28 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
 
         getSupportActionBar().setTitle(R.string.title_contract_overview);
 
+        bodyView = (LinearLayout)findViewById(R.id.overview_body);
+        overviewMenu = (RelativeLayout)findViewById(R.id.overview_menu);
+        infoTextView = (TextView)findViewById(R.id.overview_info_text);
+        contractListWrapper = (LinearLayout)findViewById(R.id.contract_list_wrapper);
+
         if(getAppContext().getSettingProvider().getSelectedAccount().isEmpty())
         {
-            //navigate to account activity when no account selected
-            Intent accountIntent = new Intent(this, AccountActivity.class);
-            startActivity(accountIntent);
-        }else{
-            bodyView = (LinearLayout)findViewById(R.id.overview_body);
-
-            if(getAppContext().getServiceProvider().getConnectionService().hasConnection())
-            {
-                loadContractList();
-            }
+            //show not logged in message and disable interactions
+            contractListWrapper.setVisibility(View.GONE);
+            overviewMenu.setVisibility(View.GONE);
+            infoTextView.setText("No account is unlocked");
+            infoTextView.setVisibility(View.VISIBLE);
+        }else if(!getAppContext().getServiceProvider().getConnectionService().hasConnection())
+        {
+            //show disconnected message and disable interactions
+            contractListWrapper.setVisibility(View.GONE);
+            overviewMenu.setVisibility(View.GONE);
+            infoTextView.setText("No connection to host");
+            infoTextView.setVisibility(View.VISIBLE);
+        }
+        else{
+            loadContractList();
         }
     }
 
@@ -158,21 +169,18 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
     @Override
     protected void onConnectionLost() {
         super.onConnectionLost();
-
-        bodyView.setEnabled(false);
+        this.recreate();
     }
 
     @Override
     protected void onConnectionEstablished() {
         super.onConnectionEstablished();
-
-        bodyView.setEnabled(true);
-        loadContractList();
+        this.recreate();
     }
 
     private void loadContractList()
     {
-        listFragment = (ContractListFragment) getFragmentManager().findFragmentById(R.id.purchase_list_fragment);
+        listFragment = (ContractListFragment) getFragmentManager().findFragmentById(R.id.contract_list_fragment);
         listFragment.loadContractsForAccount(getAppContext().getSettingProvider().getSelectedAccount());
     }
 

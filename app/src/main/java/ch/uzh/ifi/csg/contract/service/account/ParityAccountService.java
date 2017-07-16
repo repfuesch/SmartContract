@@ -84,6 +84,11 @@ public class ParityAccountService extends Web3AccountService{
     }
 
     @Override
+    public SimplePromise<Account> importAccount(String alias, String password, String walletFile) {
+        return createAccount(alias, password);
+    }
+
+    @Override
     public SimplePromise<Boolean> unlockAccount(final Account account, final String password) {
 
         return Async.toPromise(new Callable<Boolean>() {

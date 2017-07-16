@@ -31,8 +31,10 @@ public class FileUtil
     // Copy an InputStream to a File.
     public static void copyInputStreamToFile(InputStream in, File file) throws IOException
     {
-        OutputStream out = null;
+        if(!file.exists())
+            file.createNewFile();
 
+        OutputStream out = null;
         try {
             out = new FileOutputStream(file);
             byte[] buf = new byte[1024];

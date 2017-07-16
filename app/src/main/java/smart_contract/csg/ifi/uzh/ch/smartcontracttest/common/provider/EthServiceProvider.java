@@ -1,5 +1,7 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider;
 
+import android.os.Environment;
+
 import ch.uzh.ifi.csg.contract.service.account.AccountService;
 import ch.uzh.ifi.csg.contract.service.connection.EthConnectionService;
 import ch.uzh.ifi.csg.contract.service.contract.ContractService;
@@ -54,10 +56,17 @@ public class EthServiceProvider implements ServiceProvider
         if(connectionService != null)
             connectionService.stopPolling();
 
+        /*
         accountService = serviceFactory.createParityAccountService(
                 settingsProvider.getHost(),
                 settingsProvider.getPort()
                 );
+        */
+
+        accountService = serviceFactory.createWalletAccountService(
+                settingsProvider.getHost(),
+                settingsProvider.getPort(),
+                false);
 
         exchangeService = serviceFactory.createHttpExchangeService();
 
@@ -66,6 +75,7 @@ public class EthServiceProvider implements ServiceProvider
 
         if(settingsProvider.getSelectedAccount() != "")
         {
+            /*
             contractService = serviceFactory.createClientContractService(
                     settingsProvider.getHost(),
                     settingsProvider.getPort(),
@@ -74,15 +84,17 @@ public class EthServiceProvider implements ServiceProvider
                     settingsProvider.getGasLimit(),
                     settingsProvider.getTransactionAttempts(),
                     settingsProvider.getTransactionSleepDuration());
+            */
 
+            contractService = serviceFactory.createWalletContractService(
+                    settingsProvider.getHost(),
+                    settingsProvider.getPort(),
+                    settingsProvider.getSelectedAccount(),
+                    settingsProvider.getGasPrice(),
+                    settingsProvider.getGasLimit(),
+                    settingsProvider.getTransactionAttempts(),
+                    settingsProvider.getTransactionSleepDuration());
 
-            //todo: remove the following lines
-            //delete all contracts for account
-            /*
-            for(ITradeContract contract : contractService.loadContracts(settingsProvider.getSelectedAccount()).get())
-            {
-                contractService.removeContract(contract, settingsProvider.getSelectedAccount());
-            }*/
 
         }
 

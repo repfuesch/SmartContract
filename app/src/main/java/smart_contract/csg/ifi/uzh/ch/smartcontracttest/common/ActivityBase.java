@@ -19,6 +19,7 @@ import org.jdeferred.Promise;
 import java.math.BigInteger;
 import java.math.MathContext;
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
+import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.util.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.service.connection.EthConnectionService;
@@ -175,21 +176,17 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
         String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
         if (!selectedAccount.isEmpty()) {
             appContext.getServiceProvider().getAccountService().getAccountBalance(selectedAccount)
-                    .always(new AlwaysCallback<BigInteger>() {
-                        @Override
-                        public void onAlways(Promise.State state, final BigInteger resolved, Throwable rejected) {
-                            if (rejected != null) {
-                                //todo:log
-                            } else {
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        accountBalanceField.setText(Web3Util.toEther(resolved).round(MathContext.DECIMAL32).toString());
-                                    }
-                                });
+                .done(new DoneCallback<BigInteger>() {
+                    @Override
+                    public void onDone(final BigInteger resolved) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                accountBalanceField.setText(Web3Util.toEther(resolved).round(MathContext.DECIMAL32).toString());
                             }
-                        }
-                    });
+                        });
+                    }
+                });
         }
     }
 

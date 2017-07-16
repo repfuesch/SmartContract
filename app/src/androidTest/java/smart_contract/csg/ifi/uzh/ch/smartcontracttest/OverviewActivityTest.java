@@ -108,41 +108,6 @@ public class OverviewActivityTest extends InstrumentedTestBase {
     }
 
     @Test
-    public void onDestroy_WhenDestroyed_ThenContractsUnregistered() throws Throwable {
-        /*
-        //act
-        rule.launchActivity(new Intent());
-        onView(isRoot()).perform(CustomViewActions.waitFor(500));
-
-        rule.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                getInstrumentation().callActivityOnDestroy(rule.getActivity());
-            }
-        });
-*/
-
-        //arrange
-        Instrumentation.ActivityMonitor activityMonitor = getInstrumentation().addMonitor(AccountActivity.class.getName(), null, true);
-
-        //act
-        rule.launchActivity(new Intent());
-        //navigate to account activity
-        onView(withId(R.id.action_login)).perform(click());
-       // AccountActivity nextActivity = (AccountActivity)getInstrumentation().waitForMonitorWithTimeout(activityMonitor, 5000);
-        onView(isRoot()).perform(CustomViewActions.waitFor(500));
-
-        //assert that list items are registered exactly once on the contract
-        verify(purchaseContract, times(1)).addObserver(any(IContractObserver.class));
-        verify(rentContract, times(1)).addObserver(any(IContractObserver.class));
-
-        //assert that list items are unregistered exactly once on the contract
-        //assert that list items are registered exactly once on the contract
-        verify(purchaseContract, times(1)).removeObserver(any(IContractObserver.class));
-        verify(rentContract, times(1)).removeObserver(any(IContractObserver.class));
-    }
-
-    @Test
     public void onCreate_WhenCreated_ThenAccountBalanceUpdated()
     {
         //arrange

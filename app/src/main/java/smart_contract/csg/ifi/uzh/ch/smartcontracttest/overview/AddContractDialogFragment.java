@@ -3,6 +3,8 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
@@ -22,7 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ch.uzh.ifi.csg.contract.contract.ContractType;
+import ch.uzh.ifi.csg.contract.util.ImageHelper;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountDialogFragment;
+
+import static android.app.Activity.RESULT_OK;
 
 /**
  *

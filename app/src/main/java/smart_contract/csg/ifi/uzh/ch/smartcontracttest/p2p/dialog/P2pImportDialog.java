@@ -56,7 +56,7 @@ public class P2pImportDialog extends P2pDialog implements P2pBuyerCallback
         for(String imgSig : info.getImages().keySet())
         {
             //copy the images into the correct application path
-            File newFile = ImageHelper.saveImageFile(info.getImages().get(imgSig), contextProvider.getSettingProvider().getProfileImageDirectory());
+            File newFile = ImageHelper.saveImageFile(info.getImages().get(imgSig), contextProvider.getSettingProvider().getImageDirectory());
             info.getImages().put(imgSig, newFile.getAbsolutePath());
         }
 

@@ -307,7 +307,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         //get the new value from Intent data
         switch(requestCode) {
-            case ImageHelper.PICK_IMAGE_REQUEST_CODE:
+            case ImageHelper.PICK_FILE_REQUEST_CODE:
                 if (resultCode == RESULT_OK) {
                     replaceImage(data.getData());
                 }
@@ -327,7 +327,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
                 new File(profile.getProfileImagePath()).delete();
 
             Bitmap bmp = ImageHelper.getCorrectlyOrientedImage(getActivity(), uri, 1280);
-            File imgFile = ImageHelper.saveBitmap(bmp, appContext.getSettingProvider().getProfileImageDirectory());
+            File imgFile = ImageHelper.saveBitmap(bmp, appContext.getSettingProvider().getImageDirectory());
             profile.setProfileImagePath(imgFile.getAbsolutePath());
             String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
             appContext.getServiceProvider().getAccountService().saveAccountProfile(selectedAccount, profile);

@@ -16,6 +16,7 @@ public interface AccountService {
 
     SimplePromise<List<Account>> getAccounts();
     SimplePromise<Account> createAccount(String alias, String password);
+    SimplePromise<Account> importAccount(final String alias, final String password, final String walletFile);
     SimplePromise<Boolean> unlockAccount(Account account, String password);
     SimplePromise<BigInteger> getAccountBalance(String account);
     UserProfile getAccountProfile(String account);

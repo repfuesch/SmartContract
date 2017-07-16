@@ -114,7 +114,7 @@ public class AppContext extends Application implements ApplicationContext
 
     @Override
     public MessageService getMessageService() {
-        return null;
+        return messageService;
     }
 
     @Override

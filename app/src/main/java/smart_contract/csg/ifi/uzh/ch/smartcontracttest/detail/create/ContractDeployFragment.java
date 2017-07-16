@@ -214,7 +214,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
 
         for(Bitmap bmp : images.values())
         {
-            File imgFile = ImageHelper.saveBitmap(bmp, appContext.getSettingProvider().getProfileImageDirectory());
+            File imgFile = ImageHelper.saveBitmap(bmp, appContext.getSettingProvider().getImageDirectory());
             String hashSig = ImageHelper.getHash(bmp);
             imageSignatures.put(hashSig, imgFile);
         }
@@ -403,7 +403,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
     {
         switch (requestCode)
         {
-            case ImageHelper.PICK_IMAGE_REQUEST_CODE:
+            case ImageHelper.PICK_FILE_REQUEST_CODE:
                 if (resultCode == RESULT_OK) {
                     Bitmap bmp = getBitmap(intent.getData());
                     if(bmp != null)

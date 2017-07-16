@@ -3,6 +3,7 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TabHost;
 
@@ -11,6 +12,7 @@ import ch.uzh.ifi.csg.contract.contract.ContractType;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
 
 public class ContractCreateActivity extends ActivityBase  {
 
@@ -58,6 +60,13 @@ public class ContractCreateActivity extends ActivityBase  {
 
     @Override
     protected void onSettingsChanged() {
+    }
+
+    @Override
+    protected void onConnectionLost() {
+        super.onConnectionLost();
+        Intent intent = new Intent(this, ContractOverviewActivity.class);
+        startActivity(intent);
     }
 
     private void addFragment(FragmentManager fragmentManager, Fragment fragment)

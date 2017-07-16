@@ -23,6 +23,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import ch.uzh.ifi.csg.contract.p2p.peer.P2pCallback;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.UserProfileListener;
 
 /**
@@ -141,7 +142,7 @@ public abstract class P2pDialog extends DialogFragment implements P2pCallback {
         if(userProfile.getProfileImagePath() != null)
         {
             //copy the profile image into the correct path
-            File newFile = ImageHelper.saveImageFile(userProfile.getProfileImagePath(), contextProvider.getSettingProvider().getProfileImageDirectory());
+            File newFile = ImageHelper.saveImageFile(userProfile.getProfileImagePath(), contextProvider.getSettingProvider().getImageDirectory());
             userProfile.setProfileImagePath(newFile.getAbsolutePath());
         }
     }
@@ -186,11 +187,11 @@ public abstract class P2pDialog extends DialogFragment implements P2pCallback {
 
     protected void attachContext(Context context)
     {
-        if(context instanceof ApplicationContext)
+        if(context instanceof ApplicationContextProvider)
         {
-            contextProvider = (ApplicationContext)context;
+            contextProvider = ((ApplicationContextProvider)context).getAppContext();
         }else{
-            throw new RuntimeException(context.toString() + " must implement ApplicationContext");
+            throw new RuntimeException(context.toString() + " must implement ApplicationContextProvider");
         }
     }
 }

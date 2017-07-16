@@ -6,8 +6,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.provider.ContactsContract;
 import android.support.v4.content.LocalBroadcastManager;
 
+import java.io.File;
 import java.math.BigInteger;
 
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
@@ -44,6 +46,8 @@ public class SettingProviderImpl extends BroadcastReceiver implements SettingPro
     private int transactionSleepDuration;
     private String walletFileEncryptionStrength;
     private String walletFileDirectory;
+    private String accountDirectory;
+    private String imageDirectory;
 
     public SettingProviderImpl(ApplicationContext appContext)
     {
@@ -62,8 +66,21 @@ public class SettingProviderImpl extends BroadcastReceiver implements SettingPro
         setSetting(sharedPref, SettingsActivity.KEY_PREF_TRANSACTION_GAS_LIMIT);
         setSetting(sharedPref, SettingsActivity.KEY_PREF_TRANSACTION_ATTEMPTS);
         setSetting(sharedPref, SettingsActivity.KEY_PREF_TRANSACTION_SLEEP_DURATION);
+
+        accountDirectory = appContext.getContext().getFilesDir().getAbsolutePath() + File.separator + "accounts";
+        ensureDirectory(accountDirectory);
+        imageDirectory = appContext.getContext().getFilesDir().getAbsolutePath() + File.separator + "images";
+        ensureDirectory(imageDirectory);
+        walletFileDirectory = appContext.getContext().getFilesDir().getAbsolutePath() + File.separator + "walletFiles";
+        ensureDirectory(walletFileDirectory);
     }
 
+    private void ensureDirectory(String dir_path)
+    {
+        File dir = new File(dir_path);
+        if(!dir.exists())
+            dir.mkdir();
+    }
     @Override
     public void onReceive(Context context, Intent intent)
     {
@@ -120,7 +137,7 @@ public class SettingProviderImpl extends BroadcastReceiver implements SettingPro
         return walletFileEncryptionStrength;
     }
 
-    public String getWalletFileDirectory(){return walletFileDirectory;}
+    public String getWalletFileDirectory(){return walletFileDirectory; }
 
     public String getHost() {
         return host;
@@ -152,11 +169,11 @@ public class SettingProviderImpl extends BroadcastReceiver implements SettingPro
 
     public String getAccountDirectory()
     {
-        return appContext.getContext().getFilesDir() + "/accounts_remote";
+        return accountDirectory;
     }
 
-    public String getProfileImageDirectory()
+    public String getImageDirectory()
     {
-        return appContext.getContext().getFilesDir() + "/profile_images";
+        return imageDirectory;
     }
 }

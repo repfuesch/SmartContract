@@ -23,6 +23,7 @@ import ch.uzh.ifi.csg.contract.contract.IContractObserver;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ezvcard.Ezvcard;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment;
@@ -102,7 +103,15 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
     protected void onDestroy() {
         super.onDestroy();
 
-        contract.removeObserver(this);
+        if(contract != null)
+            contract.removeObserver(this);
+    }
+
+    @Override
+    protected void onConnectionLost() {
+        super.onConnectionLost();
+        Intent intent = new Intent(this, ContractOverviewActivity.class);
+        startActivity(intent);
     }
 
     private void init(String contractAddress, ContractType type)
@@ -226,16 +235,6 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
 
         if(!detailFragment.needsIdentityVerification() || contract.getUserProfile().getVCard() == null)
             removeProfileTab();
-    }
-
-    private View getTabIndicator(Context context, String title, int icon, String viewTag) {
-        View view = LayoutInflater.from(context).inflate(R.layout.tab_layout, null);
-        ImageView iv = (ImageView) view.findViewById(R.id.image_view);
-        iv.setImageResource(icon);
-        TextView tv = (TextView) view.findViewById(R.id.text_view);
-        tv.setText(title);
-        tv.setTag(viewTag);
-        return view;
     }
 
     private void removeProfileTab()

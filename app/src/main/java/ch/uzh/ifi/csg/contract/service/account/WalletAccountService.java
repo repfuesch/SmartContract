@@ -17,7 +17,7 @@ import ch.uzh.ifi.csg.contract.datamodel.Account;
 /**
  * Wallet implementation of the AccountService.
  * This implementation uses the WalletUtil of web3j to decrypt a local wallet file to obtain the
- * private key of an account. This is service is secure and should be used in a non-debug
+ * private key of an account. This service is secure and should be used in a non-debug
  * environment.
  * Note: Decryption of wallet file is very slow and therefore, this service should not be used for
  * debugging purposes.
@@ -60,6 +60,21 @@ public class WalletAccountService extends Web3AccountService{
             @Override
             public Account call() throws Exception {
                 String walletFile = walletWrapper.generateNewWalletFile(password, walletDirectory, useFullEncryption);
+                Credentials credentials = walletWrapper.loadCredentials(password, walletDirectory + "/" + walletFile);
+                Account newAccount = new Account(credentials.getAddress(), alias, walletFile);
+                accountManager.addAccount(newAccount);
+                credentialProvider.setCredentials(credentials);
+                unlockedAccount = newAccount;
+                return newAccount;
+            }
+        });
+    }
+
+    @Override
+    public SimplePromise<Account> importAccount(final String alias, final String password, final String walletFile) {
+        return Async.toPromise(new Callable<Account>() {
+            @Override
+            public Account call() throws Exception {
                 Credentials credentials = walletWrapper.loadCredentials(password, walletDirectory + "/" + walletFile);
                 Account newAccount = new Account(credentials.getAddress(), alias, walletFile);
                 accountManager.addAccount(newAccount);

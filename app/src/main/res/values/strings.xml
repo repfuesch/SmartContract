@@ -1,15 +1,13 @@
 <resources>
     <string name="app_name">SmartContracts</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="action_login">Manage accounts</string>
     <string name="action_overview">Show overview</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
-    <string name="field_account_name">Account name: </string>
-    <string name="field_password">Password: </string>
-    <string name="field_create_contract">Create new contract</string>
-    <string name="field_add_contract">Add existing contract</string>
+    <string name="hint_account_name">Account name</string>
+    <string name="hint_password">Password</string>
+    <string name="option_create_contract">Create new contract</string>
+    <string name="option_add_contract">Add existing contract</string>
     <string name="title_create_account">Create Account</string>
     <string name="message_account_changed">Account unlocked</string>
     <string name="action_create">create</string>
@@ -60,4 +58,7 @@
     <string name="hint_identity_management">Identity Management</string>
     <string name="option_verify">Verify identity</string>
     <string name="option_anonymous">Anonymous contract</string>
+    <string name="option_create_account">Create new Account</string>
+    <string name="option_import_account">Import account from wallet file</string>
+    <string name="hint_wallet_file">Wallet file</string>
 </resources>

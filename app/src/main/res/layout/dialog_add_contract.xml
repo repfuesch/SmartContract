@@ -43,13 +43,13 @@
         <RadioButton
             android:layout_width="wrap_content"
             android:id="@+id/option_create_contract"
-            android:text="@string/field_create_contract"
+            android:text="@string/option_create_contract"
             android:layout_height="wrap_content" />
 
         <RadioButton
             android:layout_width="wrap_content"
             android:id="@+id/option_add_contract"
-            android:text="@string/field_add_contract"
+            android:text="@string/option_add_contract"
             android:layout_height="wrap_content" />
 
     </RadioGroup>

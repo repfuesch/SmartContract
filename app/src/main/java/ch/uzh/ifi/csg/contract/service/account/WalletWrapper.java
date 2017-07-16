@@ -1,5 +1,6 @@
 package ch.uzh.ifi.csg.contract.service.account;
 
+import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.Wallet;
 import org.web3j.crypto.WalletUtils;
@@ -18,14 +19,19 @@ public class WalletWrapper {
         File walletDir = new File(walletDirectory);
         if(!walletDir.exists())
         {
-            if(!walletDir.createNewFile())
+            if(!walletDir.mkdirs())
                 throw new IOException("Cannot create wallet directory!");
         }
 
-        return WalletUtils.generateNewWalletFile(password, walletDir, useFullEncryption);
+        if(useFullEncryption)
+        {
+            return WalletUtils.generateFullNewWalletFile(password, walletDir);
+        }else{
+            return WalletUtils.generateLightNewWalletFile(password, walletDir);
+        }
     }
 
-    public Credentials loadCredentials(String password, String walletPath) throws Exception
+    public Credentials loadCredentials(String password, String walletPath) throws IOException, CipherException
     {
         return WalletUtils.loadCredentials(password, walletPath);
     }

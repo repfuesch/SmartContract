@@ -18,7 +18,6 @@ public interface EthServiceFactory
     AccountService createWalletAccountService(
             String host,
             int port,
-            String walletDirectory,
             boolean useFullEncryption);
 
     ContractService createWalletContractService(

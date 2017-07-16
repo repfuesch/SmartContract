@@ -52,7 +52,6 @@
             android:name=".account.AccountActivity"
             android:windowSoftInputMode="stateHidden"
             android:configChanges="orientation|screenSize"
-            android:launchMode="singleTask"
             android:screenOrientation="portrait"
             android:theme="@style/MyTheme" />
 
