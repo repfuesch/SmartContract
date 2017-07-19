@@ -368,7 +368,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
                 return false;
             }
 
-            ImageHelper.openFile(this);
+            ImageHelper.openImageFile(this);
         }
         else if(item.getTitle().equals("from camera"))
         {
@@ -426,7 +426,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         try{
             Bitmap bmp = ImageHelper.getCorrectlyOrientedImage(getActivity(), uri, 800);
             return bmp;
-        }catch(IOException ex)
+        }catch(Exception ex)
         {
             //todo:log
             appContext.getMessageService().showErrorMessage("Could not save image: " + ex.getMessage());

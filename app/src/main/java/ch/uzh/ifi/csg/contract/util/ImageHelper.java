@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
@@ -26,7 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * Provides auxiliary functions to resolve image resources by URI
+ * This class provides auxiliary functions for working with image Uri's and files
  */
 
 public final class ImageHelper {
@@ -34,6 +35,13 @@ public final class ImageHelper {
     public static final int PICK_FILE_REQUEST_CODE = 54654;
     public static final int IMAGE_CAPTURE_REQUEST_CODE = 74984;
 
+    /***
+     * Stores the bitmap in a new file in the the given iamge directory
+     *
+     * @param bitmap the bitmap to save
+     * @param imageDir the image directory in which the file should be stored
+     * @return the new image file
+     */
     public static File saveBitmap(Bitmap bitmap, String imageDir)
     {
         OutputStream outStream = null;
@@ -52,6 +60,13 @@ public final class ImageHelper {
         return file;
     }
 
+    /***
+     * Copies an image file form filepath to a new image file in the imageDir directory.
+     *
+     * @param filepath the path to the old image file
+     * @param imageDir the path in which the new file should be created
+     * @return the new image file
+     */
     public static File saveImageFile(String filepath, String imageDir)
     {
         File file = null;
@@ -66,6 +81,13 @@ public final class ImageHelper {
         return file;
     }
 
+    /***
+     * Creates an image file with a unique name in the provided directory
+     *
+     * @param dir the directory in which the file should be created
+     * @return The image file
+     * @throws IOException
+     */
     public static File createImageFile(String dir) throws IOException
     {
         File storageDir = new File(dir);
@@ -84,19 +106,6 @@ public final class ImageHelper {
         return image;
     }
 
-    private static int getOrientation(Context context, Uri photoUri) {
-    /* it's on the external media. */
-        Cursor cursor = context.getContentResolver().query(photoUri,
-                new String[] { MediaStore.Images.ImageColumns.ORIENTATION }, null, null, null);
-
-        if (cursor.getCount() != 1) {
-            return -1;
-        }
-
-        cursor.moveToFirst();
-        return cursor.getInt(0);
-    }
-
     /**
      * This method converts dp unit to equivalent pixels, depending on device density.
      *
@@ -111,17 +120,100 @@ public final class ImageHelper {
         return px;
     }
 
-    public static Bitmap getCorrectlyOrientedImage(Context context, Uri photoUri, int maxImageDimension) throws IOException {
+    private static boolean isLocalFileUri(Uri uri)
+    {
+        return uri.getScheme().equalsIgnoreCase("content") || uri.getScheme().equalsIgnoreCase("file");
+    }
+
+    /**
+     * This method returns the local image path for a Uri pointing to a local image
+     *
+     * @param context
+     * @param uri Uri to be resolved
+     * @return A String representig the absolute path to the file
+     */
+    private static String getImagePath(Context context, Uri uri){
+        Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
+        cursor.moveToFirst();
+        String document_id = cursor.getString(0);
+        document_id = document_id.substring(document_id.lastIndexOf(":")+1);
+        cursor.close();
+
+        cursor = context.getContentResolver().query(
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                null, MediaStore.Images.Media._ID + " = ? ", new String[]{document_id}, null);
+        cursor.moveToFirst();
+        String path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
+        cursor.close();
+
+        return path;
+    }
+
+    /**
+     * This method returns the orientation in degrees for a photo Uri
+     *
+     * @param context
+     * @param photoUri Uri to be resolved
+     * @return Int representing the rotation in degrees
+     */
+    private static int getUriOrientation(Context context, Uri photoUri) {
+    /* it's on the external media. */
+        Cursor cursor = context.getContentResolver().query(photoUri,
+                new String[] { MediaStore.Images.ImageColumns.ORIENTATION }, null, null, null);
+
+        if (cursor.getCount() != 1) {
+            return -1;
+        }
+
+        cursor.moveToFirst();
+        return cursor.getInt(0);
+    }
+
+    /**
+     * This method returns the orientation in degrees for a local file path
+     *
+     * @param filePath Path to file
+     * @return Int representing the rotation in degrees
+     */
+    private static int getFileOrientation(String filePath) throws Exception
+    {
+        ExifInterface exif = new ExifInterface(filePath);
+        String orientString = exif.getAttribute(ExifInterface.TAG_ORIENTATION);
+        int orientation = orientString != null ? Integer.parseInt(orientString) :  ExifInterface.ORIENTATION_NORMAL;
+
+        int rotationAngle = 0;
+        if (orientation == ExifInterface.ORIENTATION_ROTATE_90) rotationAngle = 90;
+        if (orientation == ExifInterface.ORIENTATION_ROTATE_180) rotationAngle = 180;
+        if (orientation == ExifInterface.ORIENTATION_ROTATE_270) rotationAngle = 270;
+
+        return rotationAngle;
+    }
+
+    /**
+     * This method returns a correctly oriented Bitmap of an image represented by the photo Uri. The uri can
+     * point to a local or to a remote file
+     *
+     * @param context Android context
+     * @param photoUri Uri pointing to the image
+     * @param maxImageDimension maximum dimension the image should be scaled to
+     * @return a Bitmap of the image that has the correct orientation and dimension
+     */
+    public static Bitmap getCorrectlyOrientedImage(Context context, Uri photoUri, int maxImageDimension) throws Exception {
         InputStream is = context.getContentResolver().openInputStream(photoUri);
         BitmapFactory.Options dbo = new BitmapFactory.Options();
         dbo.inJustDecodeBounds = true;
         BitmapFactory.decodeStream(is, null, dbo);
         is.close();
 
-        int rotatedWidth, rotatedHeight;
-        int orientation = getOrientation(context, photoUri);
+        int rotatedWidth, rotatedHeight, orientation;
+        if(isLocalFileUri(photoUri))
+        {
+            orientation = getFileOrientation(getImagePath(context, photoUri));
+        }else{
+            orientation = getUriOrientation(context, photoUri);
+        }
 
-        if (orientation == 90 || orientation == 270 || dbo.outWidth > dbo.outHeight) {
+        if (orientation == 90 || orientation == 270) {
             rotatedWidth = dbo.outHeight;
             rotatedHeight = dbo.outWidth;
         } else {
@@ -160,6 +252,12 @@ public final class ImageHelper {
         return srcBitmap;
     }
 
+    /**
+     * This method returns the SHA-256 hash of a bitmap
+     *
+     * @param image Bitmap of an image
+     * @return String representing the hexadecimal value of the calculated hash
+     */
     public static String getHash(Bitmap image)
     {
         byte[] bytes = getBytes(image);
@@ -167,8 +265,7 @@ public final class ImageHelper {
         try {
             digest = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
+            // todo:log
             //Log.d(TAG, "getHash: ");
         }
 
@@ -189,57 +286,48 @@ public final class ImageHelper {
         return String.format("%0" + (data.length*2) + "X", new BigInteger(1, data));
     }
 
+    /***
+     * Makes an intent for making a picture to the default photo app on the device
+     *
+     * @param fragment fragment that should resolve the intent
+     */
     public static void makePicture(Fragment fragment)
     {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(fragment.getActivity().getPackageManager()) != null) {
-            /*
-            Uri photoUri = fragment.getActivity().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    new ContentValues());
-            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
-            */
-            //start camera intent
             fragment.startActivityForResult(takePictureIntent, IMAGE_CAPTURE_REQUEST_CODE);
         }
     }
 
+    /***
+     * Makes an intent for opening an image file on the device using the media browser
+     *
+     * @param fragment fragment that should resolve the intent
+     */
     public static void openImageFile(Fragment fragment) {
 
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("image/*");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-
-        // special intent for Samsung file manager
-        Intent sIntent = new Intent("com.sec.android.app.myfiles.PICK_FILE");
-        // if you want any file type, you can skip next line
-        sIntent.putExtra("CONTENT_TYPE", "*image/*");
-        sIntent.addCategory(Intent.CATEGORY_DEFAULT);
-
-        Intent chooserIntent;
-        if (fragment.getActivity().getPackageManager().resolveActivity(sIntent, 0) != null){
-            // it is device with samsung file manager
-            chooserIntent = Intent.createChooser(sIntent, "Select File");
-            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] { intent});
-        }
-        else {
-            chooserIntent = Intent.createChooser(intent, "Select File");
-        }
-        try {
-            fragment.startActivityForResult(chooserIntent, PICK_FILE_REQUEST_CODE);
-        } catch (android.content.ActivityNotFoundException ex) {
-            Toast.makeText(fragment.getActivity().getApplicationContext(), "No suitable File Manager was found.", Toast.LENGTH_SHORT).show();
-        }
+        openFile(fragment, "image/*", "*image/*");
     }
 
+    /***
+     * Makes an intent for opening a file on the device using the file browser
+     *
+     * @param fragment fragment that should resolve the intent
+     */
     public static void openFile(Fragment fragment)
     {
+        openFile(fragment, "*", "*/*");
+    }
+
+    private static void openFile(Fragment fragment, String contentType, String samsungContentType)
+    {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("*");
+        intent.setType(contentType);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
 
         // special intent for Samsung file manager
         Intent sIntent = new Intent("com.sec.android.app.myfiles.PICK_DATA");
-        intent.putExtra("CONTENT_TYPE", "*/*");
+        intent.putExtra("CONTENT_TYPE", samsungContentType);
         intent.addCategory(Intent.CATEGORY_DEFAULT);
 
         Intent chooserIntent;

@@ -202,7 +202,7 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
                                         //copy the images into the correct application path
                                         resolved.addImage(imgSig, contractInfo.getImages().get(imgSig));
                                     }
-                                    //getAppContext().getServiceProvider().getContractService().saveContract(resolved, getAppContext().getSettingProvider().getSelectedAccount());
+                                    getAppContext().getServiceProvider().getContractService().saveContract(resolved, getAppContext().getSettingProvider().getSelectedAccount());
                                 }
                             }
                         });

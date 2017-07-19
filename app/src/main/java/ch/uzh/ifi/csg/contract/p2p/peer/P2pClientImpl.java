@@ -50,6 +50,11 @@ public class P2pClientImpl implements P2pClient {
         {
             sendFile(path);
         }
+
+        if(contractInfo.getUserProfile().getProfileImagePath() != null)
+        {
+            sendFile(contractInfo.getUserProfile().getProfileImagePath());
+        }
     }
 
     @Override

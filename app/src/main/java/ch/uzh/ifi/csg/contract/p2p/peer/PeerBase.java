@@ -27,7 +27,6 @@ import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
 
 public abstract class PeerBase implements Peer {
 
-    private OnPeerStoppedHandler stoppedHandler;
     private Integer port;
     private String hostname;
     private ScheduledFuture mainTask;
@@ -40,11 +39,10 @@ public abstract class PeerBase implements Peer {
     protected DataInputStream inputStream;
     protected DataOutputStream outputStream;
 
-    public PeerBase(SerializationService serializationService, P2pCallback callback, OnPeerStoppedHandler stoppedHandler, Integer port, String host)
+    public PeerBase(SerializationService serializationService, P2pCallback callback, Integer port, String host)
     {
         this.serializationService = serializationService;
         this.callback = callback;
-        this.stoppedHandler = stoppedHandler;
         this.port = port;
         this.hostname = host;
     }
@@ -69,8 +67,6 @@ public abstract class PeerBase implements Peer {
     {
         if(!mainTask.isDone())
             mainTask.cancel(true);
-
-        stoppedHandler.OnPeerStopped();
     }
 
     protected abstract void startProtocol();
@@ -80,7 +76,7 @@ public abstract class PeerBase implements Peer {
         if(hostname == null)
         {
             /**
-             * We are in the role of the Groupowner. We wait until the other peer connects
+             * We are in the role of the Group Owner. We wait until the other peer connects to us
              **/
 
             ServerSocket serverSocket = null;
@@ -96,22 +92,21 @@ public abstract class PeerBase implements Peer {
 
             }catch(Exception ex)
             {   //todo:log
-                callback.onP2pErrorMessage("An error occurred while opening the connection to the other peer");
-                stop();
+                onError(ex, "An error occurred while opening the connection to the other peer");
             }
             finally {
                 if(serverSocket != null) {
                     try {
                         serverSocket.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        //todo:log
                     }
                 }
             }
 
         }else{
             /**
-             * We are not in the role of the Groupowner. We connect to the group owner
+             * We are not in the role of the Group owner. We connect to the group owner
              **/
             try
             {
@@ -130,33 +125,20 @@ public abstract class PeerBase implements Peer {
                     waitForSocketConnection();
                 }
                 catch(InterruptedException ie){
-                    ie.printStackTrace();
                     //todo:log
                 }
             } catch (IOException e) {
 
-                callback.onP2pErrorMessage("An error occurred while opening the connection to the other peer");
-                stop();
-                e.printStackTrace();
-                //todo:log
+                onError(e, "An error occurred while opening the connection to the other peer");
             }
         }
     }
 
-    protected void awaitProfileInfo() throws IOException
+    protected void onError(Throwable exception, String message)
     {
-        callback.onP2pInfoMessage("Receiving the profile of the other peer");
-        String jsonString = readString(inputStream);
-        userProfile = serializationService.deserialize(jsonString, new TypeToken<UserProfile>(){}.getType());
-        if(userProfile.getProfileImagePath() != null)
-        {
-            callback.onP2pInfoMessage("Receiving profile image");
-            File tempFile = FileUtil.createTemporaryFile("image", "jpg");
-            readFile(inputStream, tempFile);
-            userProfile.setProfileImagePath(tempFile.getAbsolutePath());
-        }
-
-        callback.onUserProfileReceived(userProfile);
+        //todo:log exception
+        callback.onP2pErrorMessage(message);
+        stop();
     }
 
     protected String readString(DataInputStream inputStream) throws IOException

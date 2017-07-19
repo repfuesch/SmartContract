@@ -23,48 +23,16 @@ public class BuyerPeer extends PeerBase implements UserProfileListener {
     private P2pBuyerCallback callback;
     private ContractInfo contractInfo;
 
-    public BuyerPeer(SerializationService serializationService, P2pBuyerCallback callback, OnPeerStoppedHandler stoppedHandler, Integer port, String host)
+    public BuyerPeer(SerializationService serializationService, P2pBuyerCallback callback, Integer port, String host)
     {
-        super(serializationService, callback, stoppedHandler, port, host);
+        super(serializationService, callback,  port, host);
         this.callback = callback;
     }
 
     @Override
     protected void startProtocol()
     {
-        awaitConnectionConfig();
-    }
-
-    private void awaitConnectionConfig()
-    {
-        try{
-            callback.onP2pInfoMessage("Reading connection configuration");
-            String configString = readString(inputStream);
-            ConnectionConfig config = serializationService.deserialize(configString, new TypeToken<ConnectionConfig>(){}.getType());
-            if(config.isIdentificationUsed())
-            {
-                callback.onP2pInfoMessage("Waiting for local user profile");
-                callback.onUserProfileRequested(this);
-            }else{
-                awaitContractInfo();
-            }
-        }catch(IOException ex)
-        {
-            callback.onP2pErrorMessage("An error occurred during communication with the other peer");
-            //todo:log
-        }
-    }
-
-    protected void awaitProfileInfo()
-    {
-        try{
-            super.awaitProfileInfo();
-            awaitContractInfo();
-        }catch(IOException ex)
-        {
-            callback.onP2pErrorMessage("An error occurred during communication with the other peer");
-            //todo:log
-        }
+        awaitContractInfo();
     }
 
     private void awaitContractInfo()
@@ -92,15 +60,30 @@ public class BuyerPeer extends PeerBase implements UserProfileListener {
                 }
             }
 
+            if(contractInfo.getUserProfile().getProfileImagePath() != null)
+            {
+                callback.onP2pInfoMessage("Receiving profile image");
+
+                //receive profile image
+                File tempFile = FileUtil.createTemporaryFile("image", "jpg");
+                readFile(inputStream, tempFile);
+                contractInfo.getUserProfile().setProfileImagePath(tempFile.getAbsolutePath());
+            }
+
             callback.onContractInfoReceived(contractInfo);
-            callback.onP2pInfoMessage("Transmission complete");
-            client.sendTransmissionConfirmed(new TransmissionConfirmedResponse());
-            stop();
+
+            if(contractInfo.getUserProfile().getVCard() == null)
+            {
+                stop();
+                callback.onP2pInfoMessage("Transmission complete");
+                callback.onTransmissionComplete();
+            }else{
+                callback.onUserProfileRequested(this);
+            }
         }
         catch(IOException e)
         {
-            callback.onP2pErrorMessage("An error occurred during communication with the other peer");
-            //todo:log
+            onError(e, "An error occurred during communication with the other peer");
         }
     }
 
@@ -118,16 +101,32 @@ public class BuyerPeer extends PeerBase implements UserProfileListener {
             @Override
             public void onFail(Throwable result)
             {
-                callback.onP2pErrorMessage("An error occurred during communication with the other peer");
-                //todo:log
+                onError(result, "An error occurred during communication with the other peer");
             }
         }).done(new DoneCallback<Void>() {
             @Override
             public void onDone(Void result) {
-                //wait for seller profile
-                awaitProfileInfo();
+                stop();
+                callback.onP2pInfoMessage("Transmission complete");
+                callback.onTransmissionComplete();
             }
         });
     }
 
+    /*
+    private void awaitTransmissionConfirmed()
+    {
+        try {
+            callback.onP2pInfoMessage("Waiting for transmission acknowledgement");
+            String jsonString = readString(inputStream);
+            serializationService.deserialize(jsonString, new TypeToken<TransmissionConfirmedResponse>() {}.getType());
+            callback.onTransmissionConfirmed();
+            stop();
+        }catch(IOException ex)
+        {
+            callback.onP2pErrorMessage("An error occurred during communication with the other peer");
+            //todo:log
+        }
+    }
+    */
 }

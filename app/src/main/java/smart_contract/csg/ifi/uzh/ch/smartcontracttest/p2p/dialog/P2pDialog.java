@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.io.File;
@@ -37,9 +38,11 @@ public abstract class P2pDialog extends DialogFragment implements P2pCallback {
     protected AlertDialog dialog;
     protected LinearLayout dialogContent;
     protected TextView dialogInfo;
+    protected LinearLayout verifyProfileView;
+    protected CheckBox profileImageCheckbox;
+    protected Button cancelButton;
+    protected Button okButton;
 
-    private LinearLayout verifyProfileView;
-    private CheckBox profileImageCheckbox;
     private String title;
 
     public P2pDialog(String dialogTitle)
@@ -52,7 +55,14 @@ public abstract class P2pDialog extends DialogFragment implements P2pCallback {
 
     protected abstract void onDialogCanceled();
 
-    protected abstract void onShowDialog();
+    protected void onShowDialog()
+    {
+        setCancelable(false);
+        okButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        okButton.setEnabled(false);
+        cancelButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+        cancelButton.setEnabled(true);
+    }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState)
@@ -94,57 +104,6 @@ public abstract class P2pDialog extends DialogFragment implements P2pCallback {
         });
 
         return dialog;
-    }
-
-    @Override
-    public void onUserProfileRequested(final UserProfileListener listener)
-    {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                BusyIndicator.hide(dialogContent);
-
-                verifyProfileView.setVisibility(View.VISIBLE);
-                final Button okButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-
-                okButton.setEnabled(true);
-                okButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        okButton.setEnabled(false);
-                        okButton.setOnClickListener(null);
-
-                        //construct new UserProfile based on selection of user
-                        String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
-                        UserProfile localProfile = contextProvider.getServiceProvider().getAccountService().getAccountProfile(selectedAccount);
-
-                        final UserProfile profile = new UserProfile();
-                        profile.setVCard(localProfile.getVCard());
-
-                        if(profileImageCheckbox.isChecked())
-                        {
-                            profile.setProfileImagePath(localProfile.getProfileImagePath());
-                        }
-
-                        listener.onUserProfileReceived(profile);
-
-                        BusyIndicator.show(dialogContent);
-                    }
-                });
-            }
-        });
-
-    }
-
-    @Override
-    public void onUserProfileReceived(final UserProfile data) {
-        userProfile = data;
-        if(userProfile.getProfileImagePath() != null)
-        {
-            //copy the profile image into the correct path
-            File newFile = ImageHelper.saveImageFile(userProfile.getProfileImagePath(), contextProvider.getSettingProvider().getImageDirectory());
-            userProfile.setProfileImagePath(newFile.getAbsolutePath());
-        }
     }
 
     @Override

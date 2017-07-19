@@ -287,7 +287,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
                 return true;
             }
 
-            ImageHelper.openFile(this);
+            ImageHelper.openImageFile(this);
         }
         else if(item.getTitle().equals("from camera"))
         {
@@ -333,7 +333,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
             appContext.getServiceProvider().getAccountService().saveAccountProfile(selectedAccount, profile);
             profileImage.setImageURI(Uri.fromFile(imgFile));
         }
-        catch (IOException e)
+        catch (Exception e)
         {
             //todo:log
             //messageService.showSnackBarMessage(e.getMessage(), Snackbar.LENGTH_LONG);

@@ -211,7 +211,10 @@ public class Web3jContractService implements ContractService
      */
     @Override
     public void saveContract(ITradeContract contract, String account) {
-        saveContract(contract.getContractAddress(), contract.getContractType(), account);
+        ContractInfo info = new ContractInfo(contract.getContractType(), contract.getContractAddress(), contract.getUserProfile(), contract.getImages());
+        contractManager.saveContract(
+                info,
+                account);
     }
 
     /**

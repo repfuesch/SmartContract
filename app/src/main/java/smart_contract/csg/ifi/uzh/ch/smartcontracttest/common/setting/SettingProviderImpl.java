@@ -67,7 +67,7 @@ public class SettingProviderImpl extends BroadcastReceiver implements SettingPro
         setSetting(sharedPref, SettingsActivity.KEY_PREF_TRANSACTION_ATTEMPTS);
         setSetting(sharedPref, SettingsActivity.KEY_PREF_TRANSACTION_SLEEP_DURATION);
 
-        accountDirectory = appContext.getContext().getFilesDir().getAbsolutePath() + File.separator + "accounts";
+        accountDirectory = appContext.getContext().getFilesDir().getAbsolutePath() + File.separator + "accounts_remote";
         ensureDirectory(accountDirectory);
         imageDirectory = appContext.getContext().getFilesDir().getAbsolutePath() + File.separator + "images";
         ensureDirectory(imageDirectory);

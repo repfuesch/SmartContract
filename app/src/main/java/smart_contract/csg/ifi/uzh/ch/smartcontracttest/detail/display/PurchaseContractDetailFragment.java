@@ -191,6 +191,9 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
     @Override
     protected void selectedCurrencyChanged()
     {
+        if(price == null)
+            return;
+
         appContext.getServiceProvider().getExchangeService().convertToCurrency(Web3Util.toEther(price), selectedCurrency)
                 .done(new DoneCallback<BigDecimal>() {
                     @Override

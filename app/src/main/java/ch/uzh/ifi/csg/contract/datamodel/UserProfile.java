@@ -11,7 +11,6 @@ public class UserProfile {
 
     private VCard vCard;
     private String profileImagePath;
-    private boolean isVerified;
 
     public UserProfile() {
     }
@@ -22,14 +21,6 @@ public class UserProfile {
 
     public void setVCard(VCard vCard) {
         this.vCard = vCard;
-    }
-
-    public boolean isVerified() {
-        return isVerified;
-    }
-
-    public void setVerified(boolean verified) {
-        isVerified = verified;
     }
 
     public String getProfileImagePath() {

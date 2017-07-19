@@ -8,7 +8,7 @@ import ch.uzh.ifi.csg.contract.p2p.peer.P2pSellerCallback;
 
 public interface P2PSellerService
 {
-    void requestConnection(P2pSellerCallback callback, boolean useIdentification);
+    void requestConnection(P2pSellerCallback callback);
     void connect(String deviceName);
     void disconnect();
 }

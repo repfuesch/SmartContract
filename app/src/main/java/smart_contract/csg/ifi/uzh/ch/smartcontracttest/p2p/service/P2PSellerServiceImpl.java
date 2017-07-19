@@ -13,11 +13,10 @@ import ch.uzh.ifi.csg.contract.p2p.peer.P2pSellerCallback;
  * Created by flo on 23.06.17.
  */
 
-public class P2PSellerServiceImpl implements P2PSellerService, P2PConnectionListener, Peer.OnPeerStoppedHandler {
+public class P2PSellerServiceImpl implements P2PSellerService, P2PConnectionListener {
 
     private final P2PConnectionManager connectionManager;
     private P2pSellerCallback callback;
-    private boolean useIdentification;
     private Peer sellerPeer;
 
     public P2PSellerServiceImpl(P2PConnectionManager connectionManager)
@@ -27,7 +26,9 @@ public class P2PSellerServiceImpl implements P2PSellerService, P2PConnectionList
 
     @Override
     public void onConnectionLost() {
-        callback.onP2pErrorMessage("Connection to other Peer lost");
+
+        if(callback != null)
+            callback.onP2pErrorMessage("Connection to other Peer lost");
     }
 
     @Override
@@ -62,31 +63,22 @@ public class P2PSellerServiceImpl implements P2PSellerService, P2PConnectionList
         sellerPeer = new SellerPeer(
                 new GsonSerializationService(),
                 callback,
-                this,
                 port,
-                hostname,
-                useIdentification);
+                hostname);
 
         sellerPeer.start();
     }
 
     @Override
     public void onConnectionError(String message) {
-        callback.onP2pErrorMessage("Can not connect to the other peer");
+        if(callback != null)
+            callback.onP2pErrorMessage("Can not connect to the other peer");
     }
 
     @Override
-    public void OnPeerStopped() {
-        sellerPeer = null;
-        connectionManager.stopListening();
-        connectionManager.disconnect();
-    }
-
-    @Override
-    public void requestConnection(P2pSellerCallback callback, boolean useIdentification)
+    public void requestConnection(P2pSellerCallback callback)
     {
         this.callback = callback;
-        this.useIdentification = useIdentification;
         connectionManager.startListening(this);
     }
 

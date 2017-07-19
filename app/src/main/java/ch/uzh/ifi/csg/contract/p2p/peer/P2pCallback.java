@@ -11,6 +11,5 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.UserProfileLi
 public interface P2pCallback {
     void onP2pInfoMessage(String message);
     void onP2pErrorMessage(String message);
-    void onUserProfileReceived(UserProfile data);
-    void onUserProfileRequested(UserProfileListener listener);
+    void onTransmissionComplete();
 }

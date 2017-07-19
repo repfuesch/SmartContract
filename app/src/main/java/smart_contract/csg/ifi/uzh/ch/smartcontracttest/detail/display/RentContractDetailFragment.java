@@ -174,6 +174,9 @@ public class RentContractDetailFragment extends ContractDetailFragment
     @Override
     protected void selectedCurrencyChanged()
     {
+        if(fee == null)
+            return;
+
         updateCurrencyFields();
     }
 

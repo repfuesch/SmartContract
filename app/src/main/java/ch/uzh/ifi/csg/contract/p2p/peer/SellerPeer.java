@@ -2,6 +2,7 @@ package ch.uzh.ifi.csg.contract.p2p.peer;
 
 import com.google.gson.reflect.TypeToken;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 
@@ -11,6 +12,7 @@ import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
+import ch.uzh.ifi.csg.contract.util.FileUtil;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.ContractInfoListener;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.UserProfileListener;
 
@@ -18,72 +20,35 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.UserProfileLi
  * Created by flo on 30.06.17.
  */
 
-public class SellerPeer extends PeerBase implements UserProfileListener, ContractInfoListener
+public class SellerPeer extends PeerBase implements ContractInfoListener
 {
     private P2pSellerCallback callback;
-    private boolean useIdentity;
 
-    public SellerPeer(SerializationService serializationService, P2pSellerCallback callback, OnPeerStoppedHandler stoppedHandler, Integer port, String host, boolean useIdentity)
+    public SellerPeer(SerializationService serializationService, P2pSellerCallback callback, Integer port, String host)
     {
-        super(serializationService, callback, stoppedHandler, port, host);
-        this.useIdentity = useIdentity;
+        super(serializationService, callback, port, host);
         this.callback = callback;
     }
 
     @Override
     protected void startProtocol() {
-
-        try{
-            client.sendConnectionConfiguration(new ConnectionConfig(useIdentity));
-            if(useIdentity)
-            {
-                awaitProfileInfo();
-            }else{
-                callback.onContractInfoRequested(SellerPeer.this);
-            }
-        }catch(IOException e)
-        {
-            callback.onP2pErrorMessage("An error occurred during communication with the other peer");
-            //todo:log
-        }
+        callback.onContractInfoRequested(SellerPeer.this);
     }
 
-    protected void awaitProfileInfo()
+    protected void awaitProfileInfo() throws IOException
     {
-        try{
-            super.awaitProfileInfo();
-            callback.onUserProfileRequested(this);
-        }catch(IOException ex)
+        callback.onP2pInfoMessage("Receiving the profile of the other peer");
+        String jsonString = readString(inputStream);
+        userProfile = serializationService.deserialize(jsonString, new TypeToken<UserProfile>(){}.getType());
+        if(userProfile.getProfileImagePath() != null)
         {
-            callback.onP2pErrorMessage("An error occurred during communication with the other peer");
-            //todo:log
+            callback.onP2pInfoMessage("Receiving profile image");
+            File tempFile = FileUtil.createTemporaryFile("image", "jpg");
+            readFile(inputStream, tempFile);
+            userProfile.setProfileImagePath(tempFile.getAbsolutePath());
         }
-    }
 
-    @Override
-    public void onUserProfileReceived(final UserProfile profile) {
-
-        Async.run(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                client.sendProfile(profile);
-                return null;
-            }
-        }).fail(new FailCallback() {
-            @Override
-            public void onFail(Throwable result)
-            {
-                callback.onP2pErrorMessage("An error occurred during communication with the other peer");
-                //todo:log
-            }
-        }).done(new DoneCallback<Void>() {
-            @Override
-            public void onDone(Void result) {
-                //wait for seller profile
-                callback.onP2pInfoMessage("Waiting for local contract information");
-                callback.onContractInfoRequested(SellerPeer.this);
-            }
-        });
+        callback.onUserProfileReceived(userProfile);
     }
 
     @Override
@@ -94,23 +59,28 @@ public class SellerPeer extends PeerBase implements UserProfileListener, Contrac
             public Void call() throws Exception {
                 callback.onP2pInfoMessage("Sending contract information");
                 client.sendContract(contractInfo);
+                if(contractInfo.getUserProfile().getVCard() != null)
+                {
+                    awaitProfileInfo();
+                }
                 return null;
             }
         }).fail(new FailCallback() {
             @Override
             public void onFail(Throwable result) {
-                callback.onP2pErrorMessage("An error occurred during communication with the other peer");
-                //todo:log
+                onError(result, "An error occurred during communication with the other peer");
             }
         }).done(new DoneCallback<Void>() {
             @Override
             public void onDone(Void result) {
-                //wait for seller profile
-                awaitTransmissionConfirmed();
+                stop();
+                callback.onP2pInfoMessage("Transmission complete");
+                callback.onTransmissionComplete();
             }
         });
     }
 
+    /*
     private void awaitTransmissionConfirmed()
     {
         try {
@@ -125,4 +95,5 @@ public class SellerPeer extends PeerBase implements UserProfileListener, Contrac
             //todo:log
         }
     }
+*/
 }

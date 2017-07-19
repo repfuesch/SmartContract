@@ -14,7 +14,7 @@ import ch.uzh.ifi.csg.contract.p2p.peer.P2pBuyerCallback;
  * Created by flo on 23.06.17.
  */
 
-public class P2PBuyerServiceImpl implements P2PBuyerService, P2PConnectionListener, Peer.OnPeerStoppedHandler {
+public class P2PBuyerServiceImpl implements P2PBuyerService, P2PConnectionListener {
 
     private final P2PConnectionManager connectionManager;
     private P2pBuyerCallback callback;
@@ -83,7 +83,6 @@ public class P2PBuyerServiceImpl implements P2PBuyerService, P2PConnectionListen
         buyerPeer = new BuyerPeer(
                 new GsonSerializationService(),
                 callback,
-                this,
                 port,
                 hostname);
 
@@ -92,14 +91,7 @@ public class P2PBuyerServiceImpl implements P2PBuyerService, P2PConnectionListen
 
     @Override
     public void onConnectionError(String message) {
-        callback.onP2pErrorMessage("Cannot connect to the other peer");
-    }
-
-    @Override
-    public void OnPeerStopped()
-    {
-        buyerPeer = null;
-        connectionManager.stopListening();
-        connectionManager.disconnect();
+        if(callback != null)
+            callback.onP2pErrorMessage("Cannot connect to the other peer");
     }
 }

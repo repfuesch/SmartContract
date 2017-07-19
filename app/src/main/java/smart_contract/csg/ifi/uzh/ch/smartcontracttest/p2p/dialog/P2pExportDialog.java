@@ -9,6 +9,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -16,6 +17,7 @@ import java.util.concurrent.Callable;
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
+import ch.uzh.ifi.csg.contract.util.ImageHelper;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
 import ch.uzh.ifi.csg.contract.p2p.peer.P2pSellerCallback;
@@ -38,11 +40,10 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
     private List<String> deviceList;
     private Spinner deviceListSpinner;
     private String selectedDevice;
-    private Button okButton;
 
     public P2pExportDialog()
     {
-        super("ExportDialog");
+        super("Export Contract");
 
         deviceList = new ArrayList<>();
     }
@@ -71,17 +72,24 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
     @Override
     protected void onShowDialog()
     {
-        setCancelable(false);
-        okButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-        okButton.setEnabled(false);
-
+        super.onShowDialog();
         deviceListSpinner = (Spinner) dialog.findViewById(R.id.connection_list_spinner);
 
-        contextProvider.getP2PSellerService().requestConnection(P2pExportDialog.this, useIdentification);
+        contextProvider.getP2PSellerService().requestConnection(P2pExportDialog.this);
         dialogInfo.setText("Waiting for peer list");
         BusyIndicator.show(dialogContent);
     }
 
+    @Override
+    public void onUserProfileReceived(final UserProfile data) {
+        userProfile = data;
+        if(userProfile.getProfileImagePath() != null)
+        {
+            //copy the profile image into the correct path
+            File newFile = ImageHelper.saveImageFile(userProfile.getProfileImagePath(), contextProvider.getSettingProvider().getImageDirectory());
+            userProfile.setProfileImagePath(newFile.getAbsolutePath());
+        }
+    }
 
     private boolean updateDeviceList(List<String> devices)
     {
@@ -127,7 +135,47 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
     @Override
     public void onContractInfoRequested(final ContractInfoListener listener)
     {
-        listener.onContractInfoReceived(contractInfo);
+        //make sure that no profile info is set
+        contractInfo.getUserProfile().setVCard(null);
+        contractInfo.getUserProfile().setProfileImagePath(null);
+
+        if(useIdentification)
+        {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    BusyIndicator.hide(dialogContent);
+
+                    verifyProfileView.setVisibility(View.VISIBLE);
+                    final Button okButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+
+                    okButton.setEnabled(true);
+                    okButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            okButton.setEnabled(false);
+                            okButton.setOnClickListener(null);
+
+                            //construct new UserProfile based on selection of user
+                            String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
+                            UserProfile localProfile = contextProvider.getServiceProvider().getAccountService().getAccountProfile(selectedAccount);
+                            contractInfo.getUserProfile().setVCard(localProfile.getVCard());
+
+                            if(profileImageCheckbox.isChecked())
+                            {
+                                contractInfo.getUserProfile().setProfileImagePath(localProfile.getProfileImagePath());
+                            }
+
+                            listener.onContractInfoReceived(contractInfo);
+
+                            BusyIndicator.show(dialogContent);
+                        }
+                    });
+                }
+            });
+        }else{
+            listener.onContractInfoReceived(contractInfo);
+        }
     }
 
     @Override
@@ -182,24 +230,28 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
     }
 
     @Override
-    public void onTransmissionConfirmed() {
-
+    public void onTransmissionComplete()
+    {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                cancelButton.setEnabled(false);
+                okButton.setEnabled(true);
+                okButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        contextProvider.getP2PBuyerService().disconnect();
+                        if(exportListener != null)
+                            exportListener.onContractDataExchanged(userProfile);
 
-                //After transmission of contract data, we enable the ''OK' button and inform the listener
-                if(exportListener != null)
-                {
-                    exportListener.onContractDataExchanged(userProfile);
-                }
-
-                dismiss();
+                        dismiss();
+                    }
+                });
             }
         });
     }
 
-    public static interface P2pExportListener
+    public interface P2pExportListener
     {
         void onContractDataExchanged(UserProfile buyerProfile);
         void onContractDialogCanceled();

@@ -56,18 +56,18 @@ public class EthServiceProvider implements ServiceProvider
         if(connectionService != null)
             connectionService.stopPolling();
 
-        /*
+
         accountService = serviceFactory.createParityAccountService(
                 settingsProvider.getHost(),
                 settingsProvider.getPort()
                 );
-        */
 
+/*
         accountService = serviceFactory.createWalletAccountService(
                 settingsProvider.getHost(),
                 settingsProvider.getPort(),
                 false);
-
+*/
         exchangeService = serviceFactory.createHttpExchangeService();
 
         connectionService = serviceFactory.createConnectionService(settingsProvider.getHost(), settingsProvider.getPort(), 5000);
@@ -75,7 +75,7 @@ public class EthServiceProvider implements ServiceProvider
 
         if(settingsProvider.getSelectedAccount() != "")
         {
-            /*
+
             contractService = serviceFactory.createClientContractService(
                     settingsProvider.getHost(),
                     settingsProvider.getPort(),
@@ -84,8 +84,8 @@ public class EthServiceProvider implements ServiceProvider
                     settingsProvider.getGasLimit(),
                     settingsProvider.getTransactionAttempts(),
                     settingsProvider.getTransactionSleepDuration());
-            */
 
+/*
             contractService = serviceFactory.createWalletContractService(
                     settingsProvider.getHost(),
                     settingsProvider.getPort(),
@@ -94,7 +94,7 @@ public class EthServiceProvider implements ServiceProvider
                     settingsProvider.getGasLimit(),
                     settingsProvider.getTransactionAttempts(),
                     settingsProvider.getTransactionSleepDuration());
-
+*/
 
         }
 
