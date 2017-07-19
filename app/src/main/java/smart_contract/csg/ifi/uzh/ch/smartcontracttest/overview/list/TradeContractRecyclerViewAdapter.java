@@ -1,4 +1,4 @@
-package smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview;
+package smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.list;
 
 import android.content.Intent;
 import android.os.Handler;
@@ -9,6 +9,8 @@ import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -35,25 +37,38 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-public class TradeContractRecyclerViewAdapter
-        extends RecyclerView.Adapter<TradeContractRecyclerViewAdapter.ViewHolder> {
+public class TradeContractRecyclerViewAdapter extends RecyclerView.Adapter<TradeContractRecyclerViewAdapter.ViewHolder> implements Filterable {
 
-    private final List<ITradeContract> contracts;
+    private  List<ITradeContract> originalContracts;
+    private  List<ITradeContract> filteredContracts;
     private final List<ViewHolder> boundViewHolders;
     private ITradeContract selectedContract;
     private ApplicationContext contextProvider;
 
-    public TradeContractRecyclerViewAdapter(List<ITradeContract> contracts, ApplicationContext contextProvider)
+    public TradeContractRecyclerViewAdapter(ApplicationContext contextProvider)
     {
-        this.contracts = contracts;
+        this.originalContracts = new ArrayList<>();
+        this.filteredContracts = new ArrayList<>();
         this.boundViewHolders = new ArrayList<>();
         this.contextProvider = contextProvider;
+    }
+
+    public void addContract(ITradeContract contract)
+    {
+        originalContracts.add(contract);
+        filteredContracts.add(contract);
+    }
+
+    public void setContracts(List<ITradeContract> contracts)
+    {
+        originalContracts = new ArrayList<>(contracts);
+        filteredContracts = new ArrayList<>(contracts);
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.fragment_purchasecontract, parent, false);
+                .inflate(R.layout.fragment_contract_item, parent, false);
         return new ViewHolder(view, contextProvider);
     }
 
@@ -65,7 +80,7 @@ public class TradeContractRecyclerViewAdapter
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position)
     {
-        final ITradeContract contract = contracts.get(position);
+        final ITradeContract contract = filteredContracts.get(position);
         holder.attachContract(contract);
         holder.cardView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -87,7 +102,7 @@ public class TradeContractRecyclerViewAdapter
 
     @Override
     public int getItemCount() {
-        return contracts.size();
+        return filteredContracts.size();
     }
 
     @Override
@@ -105,6 +120,49 @@ public class TradeContractRecyclerViewAdapter
         return selectedContract;
     }
 
+    @Override
+    public Filter getFilter() {
+        return new Filter() {
+
+            @SuppressWarnings("unchecked")
+            @Override
+            protected void publishResults(CharSequence constraint, FilterResults results) {
+                filteredContracts = (List<ITradeContract>) results.values;
+                TradeContractRecyclerViewAdapter.this.notifyDataSetChanged();
+            }
+
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+                List<ITradeContract> filteredResults = null;
+                if (constraint.length() == 0) {
+                    filteredResults = originalContracts;
+                } else {
+                    filteredResults = getFilteredResults(constraint.toString().toLowerCase());
+                }
+
+                FilterResults results = new FilterResults();
+                results.values = filteredResults;
+
+                return results;
+            }
+        };
+    }
+
+    protected List<ITradeContract> getFilteredResults(String constraint) {
+        List<ITradeContract> results = new ArrayList<>();
+
+        for (ITradeContract item : originalContracts) {
+            if (item.getTitle().get().toLowerCase().contains(constraint)) {
+                results.add(item);
+            }else if(item.getDescription().get().toLowerCase().contains(constraint))
+            {
+                results.add(item);
+            }
+        }
+
+        return results;
+    }
+
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, IContractObserver, View.OnCreateContextMenuListener {
         private final TextView titleView;
         private final TextView stateView;
@@ -116,6 +174,8 @@ public class TradeContractRecyclerViewAdapter
         private Handler handler;
         private ITradeContract contract;
         private ContractState state;
+        private String title;
+        private String description;
 
         private final ApplicationContext contextProvider;
 
@@ -191,9 +251,10 @@ public class TradeContractRecyclerViewAdapter
                 @Override
                 public Void call() throws Exception {
 
-                    state = contract.getState();
-                    final BigInteger price = contract.getPrice();
-                    final String title = contract.getTitle();
+                    state = contract.getState().get();
+                    final BigInteger price = contract.getPrice().get();
+                    title = contract.getTitle().get();
+                    description = contract.getDescription().get();
                     final ContractType type = contract.getContractType();
 
                     BigDecimal amountEther;
@@ -204,7 +265,7 @@ public class TradeContractRecyclerViewAdapter
                         contractType = "Purchase Contract";
                     }else{
                         IRentContract rentContract = (IRentContract)contract;
-                        amountEther = Web3Util.toEther(rentContract.getRentingFee());
+                        amountEther = Web3Util.toEther(rentContract.getRentingFee().get());
                         contractType = "Rent Contract";
                     }
 
@@ -233,6 +294,13 @@ public class TradeContractRecyclerViewAdapter
                     BusyIndicator.hide(cardContent);
                 }
             });
+        }
+
+        public void applySearch(ListSearch search)
+        {
+            //filter based on text search
+            if(!title.contains(search.getSearchText()) && !description.contains(search.getSearchText()))
+                this.itemView.setVisibility(View.GONE);
         }
 
         @Override

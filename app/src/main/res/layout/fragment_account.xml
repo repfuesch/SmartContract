@@ -46,25 +46,33 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"
                     android:layout_marginRight="10dp"
-                    android:visibility="gone"
+                    android:gravity="center_vertical"
                     android:id="@+id/account_login_view">
 
-                    <EditText
+                    <android.support.design.widget.TextInputLayout
                         android:layout_width="0dp"
                         android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/white"
-                        android:inputType="textPassword"
-                        android:text="password"
-                        android:id="@+id/account_password_field"/>
+                        android:layout_height="wrap_content">
+
+                        <EditText
+                            android:layout_width="match_parent"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/white"
+                            android:hint="@string/hint_password"
+                            android:inputType="textPassword"
+                            android:id="@+id/account_password_field"/>
+
+                    </android.support.design.widget.TextInputLayout>
 
                     <ImageButton
                         android:layout_width="0dp"
                         android:layout_weight="0.2"
                         android:layout_height="wrap_content"
                         android:background="@color/cardview_dark_background"
-                        android:src="@drawable/ic_action_login"
+                        android:src="@drawable/ic_action_unlock"
                         android:id="@+id/account_login_button"/>
+
                 </LinearLayout>
 
 

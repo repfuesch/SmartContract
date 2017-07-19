@@ -103,4 +103,11 @@ public class ParityAccountService extends Web3AccountService{
         });
     }
 
+    /***
+     * Cannot be implemented because there does not exist a method to lock an unlocked account on the parity interface!
+     */
+    @Override
+    public void lockAccount() {
+    }
+
 }

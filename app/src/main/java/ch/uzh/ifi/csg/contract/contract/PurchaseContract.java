@@ -45,7 +45,7 @@ public class PurchaseContract extends TradeContract implements IPurchaseContract
                     public String call() throws Exception {
                         Function function = new Function("confirmPurchase", Arrays.<Type>asList(), Collections.<TypeReference<?>>emptyList());
                         try{
-                            TransactionReceipt result = executeTransaction(function, getPrice().multiply(BigInteger.valueOf(2)));
+                            TransactionReceipt result = executeTransaction(function, getPrice().get().multiply(BigInteger.valueOf(2)));
                             return result.getTransactionHash();
                         }catch(MessageDecodingException ex)
                         {

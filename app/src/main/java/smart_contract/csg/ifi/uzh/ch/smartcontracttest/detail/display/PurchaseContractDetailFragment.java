@@ -145,11 +145,11 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
                 Async.run(new Callable<Void>() {
                     @Override
                     public Void call() throws Exception {
-                        final ContractState state = contract.getState();
+                        final ContractState state = contract.getState().get();
                         final String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
-                        final String seller = contract.getSeller();
-                        final String buyer = contract.getBuyer();
-                        price  = contract.getPrice();
+                        final String seller = contract.getSeller().get();
+                        final String buyer = contract.getBuyer().get();
+                        price  = contract.getPrice().get();
 
                         getActivity().runOnUiThread(new Runnable() {
                             @Override

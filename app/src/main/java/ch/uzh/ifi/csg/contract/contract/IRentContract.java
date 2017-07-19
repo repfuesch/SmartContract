@@ -16,5 +16,5 @@ public interface IRentContract extends ITradeContract {
     SimplePromise<String> rentItem();
 
     //accessors for remote fields
-    BigInteger getRentingFee() throws Exception;
+    SimplePromise<BigInteger> getRentingFee();
 }

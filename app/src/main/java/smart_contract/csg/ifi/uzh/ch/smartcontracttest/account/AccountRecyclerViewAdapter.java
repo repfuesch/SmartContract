@@ -19,10 +19,10 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.setting.SettingPro
 public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecyclerViewAdapter.ViewHolder> {
 
     private final List<Account> accounts;
-    private OnAccountLoginListener loginListener;
+    private OnAccountListener loginListener;
     private SettingProvider settingProvider;
 
-    public AccountRecyclerViewAdapter(List<Account> accounts, OnAccountLoginListener loginListener, SettingProvider settingProvider) {
+    public AccountRecyclerViewAdapter(List<Account> accounts, OnAccountListener loginListener, SettingProvider settingProvider) {
 
         this.accounts = accounts;
         this.loginListener = loginListener;
@@ -59,10 +59,10 @@ public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecy
         private final LinearLayout loginView;
 
         private Handler handler;
-        private OnAccountLoginListener loginListener;
+        private OnAccountListener loginListener;
         private SettingProvider settingProvider;
 
-        public ViewHolder(View view, OnAccountLoginListener loginListener, SettingProvider settingProvider)
+        public ViewHolder(View view, OnAccountListener loginListener, SettingProvider settingProvider)
         {
             super(view);
 
@@ -90,8 +90,11 @@ public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecy
             if(settingProvider.getSelectedAccount().equals(account.getId()))
             {
                 accountView.setBackgroundResource(R.drawable.card_selected_background);
+                loginButton.setImageResource(R.drawable.ic_action_lock);
+
             }else{
                 accountView.setBackgroundResource(R.drawable.card_background);
+                loginButton.setImageResource(R.drawable.ic_action_unlock);
             }
 
         }
@@ -117,8 +120,14 @@ public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecy
                     break;
                 case R.id.account_login_button:
 
-                    String password = passwordView.getText().toString();
-                    loginListener.onAccountLogin(account, password, this);
+                    if(settingProvider.getSelectedAccount().equals(account.getId()))
+                    {
+                        passwordView.setText("");
+                        loginListener.onAccountLock();
+                    }else{
+                        String password = passwordView.getText().toString();
+                        loginListener.onAccountLogin(account, password, this);
+                    }
             }
         }
 
@@ -136,6 +145,7 @@ public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecy
                     if(success)
                     {
                         accountView.setBackgroundResource(R.drawable.card_selected_background);
+                        loginButton.setImageResource(R.drawable.ic_action_lock);
                     }else{
                         passwordView.setText("");
                         passwordView.requestFocus();
@@ -145,9 +155,10 @@ public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecy
         }
     }
 
-    public interface OnAccountLoginListener
+    public interface OnAccountListener
     {
         void onAccountLogin(Account account, String password, OnAccountLoginResultListener resultListener);
+        void onAccountLock();
     }
 
     public interface OnAccountLoginResultListener

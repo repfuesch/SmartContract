@@ -111,12 +111,12 @@ public class RentContractDetailFragment extends ContractDetailFragment
                 Async.run(new Callable<Void>() {
                     @Override
                     public Void call() throws Exception {
-                        final ContractState state = contract.getState();
+                        final ContractState state = contract.getState().get();
                         final String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
-                        final String seller = contract.getSeller();
-                        final String buyer = contract.getBuyer();
-                        fee = contract.getPrice();
-                        deposit = contract.getDeposit();
+                        final String seller = contract.getSeller().get();
+                        final String buyer = contract.getBuyer().get();
+                        fee = contract.getPrice().get();
+                        deposit = contract.getDeposit().get();
 
                         updateCurrencyFields();
 
@@ -190,50 +190,34 @@ public class RentContractDetailFragment extends ContractDetailFragment
             {
                 final BigDecimal depositEther = Web3Util.toEther(deposit);
                 final BigDecimal feeEther = Web3Util.toEther(fee);
-                BigInteger totalFee = contract.getRentingFee();
+                BigInteger totalFee = contract.getRentingFee().get();
                 final BigDecimal totalFeeEther = Web3Util.toEther(totalFee);
 
-                appContext.getServiceProvider().getExchangeService().getExchangeRate(selectedCurrency)
-                        .done(new DoneCallback<BigDecimal>() {
-                            @Override
-                            public void onDone(BigDecimal exchangeRate) {
-                                final BigDecimal depositCurrency = depositEther.multiply(exchangeRate);
-                                BigDecimal feeCurrency = feeEther.multiply(exchangeRate);
-                                BigDecimal totalFeeCurrency = totalFeeEther.multiply(exchangeRate);
-                                if(selectedTimeUnit == TimeUnit.Days)
-                                {
-                                    feeCurrency = feeCurrency.multiply(BigDecimal.valueOf(3600 * 24));
-                                }else{
-                                    feeCurrency = feeCurrency.multiply(BigDecimal.valueOf(3600));
-                                }
+                BigDecimal exchangeRate = appContext.getServiceProvider().getExchangeService().getExchangeRate(selectedCurrency).get();
 
-                                final BigDecimal finalTotalFeeCurrency = totalFeeCurrency;
-                                final BigDecimal finalFeeCurrency = feeCurrency;
+                final BigDecimal depositCurrency = depositEther.multiply(exchangeRate);
+                BigDecimal feeCurrency = feeEther.multiply(exchangeRate);
+                BigDecimal totalFeeCurrency = totalFeeEther.multiply(exchangeRate);
+                if(selectedTimeUnit == TimeUnit.Days)
+                {
+                    feeCurrency = feeCurrency.multiply(BigDecimal.valueOf(3600 * 24));
+                }else{
+                    feeCurrency = feeCurrency.multiply(BigDecimal.valueOf(3600));
+                }
 
-                                getActivity().runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        rentFeeField.setText(finalFeeCurrency.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString());
-                                        depositField.setText(depositCurrency.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString());
-                                        currentFeeField.setText(finalTotalFeeCurrency.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString());
-                                    }
-                                });
-                            }
-                        }).always(new AlwaysCallback<BigDecimal>() {
-                            @Override
-                            public void onAlways(Promise.State state, BigDecimal resolved, Throwable rejected) {
-                                BusyIndicator.hide(bodyView);
-                            }
-                        });
+                final BigDecimal finalTotalFeeCurrency = totalFeeCurrency;
+                final BigDecimal finalFeeCurrency = feeCurrency;
+
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        rentFeeField.setText(finalFeeCurrency.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString());
+                        depositField.setText(depositCurrency.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString());
+                        currentFeeField.setText(finalTotalFeeCurrency.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString());
+                    }
+                });
 
                 return null;
-            }
-        }).fail(new FailCallback() {
-            @Override
-            public void onFail(Throwable result) {
-                //todo:log
-                result.printStackTrace();
-                //messageService.handleError(result);
             }
         }).always(new AlwaysCallback<Void>() {
             @Override

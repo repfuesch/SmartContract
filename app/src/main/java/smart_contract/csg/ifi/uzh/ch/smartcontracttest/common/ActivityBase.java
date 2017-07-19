@@ -15,10 +15,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import org.jdeferred.Promise;
+
 import java.math.BigInteger;
 import java.math.MathContext;
-import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
+
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.util.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
@@ -90,6 +90,7 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
     public boolean onPrepareOptionsMenu(final Menu menu) {
         menu.clear();
         getMenuInflater().inflate(R.menu.menu, menu);
+
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -272,7 +273,12 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
             } else if (intent.getAction().equals(SettingProviderImpl.ACTION_SETTINGS_CHANGED)) {
                 onSettingsChanged();
             } else if (intent.getAction().equals(AccountActivity.ACTION_ACCOUNT_CHANGED)) {
-                appContext.getMessageService().showSnackBarMessage(getString(R.string.message_account_changed), Snackbar.LENGTH_LONG);
+                if(appContext.getSettingProvider().getSelectedAccount().isEmpty())
+                {
+                    appContext.getMessageService().showSnackBarMessage(getString(R.string.message_account_locked), Snackbar.LENGTH_LONG);
+                }else{
+                    appContext.getMessageService().showSnackBarMessage(getString(R.string.message_account_unlocked), Snackbar.LENGTH_LONG);
+                }
             } else if (intent.getAction().equals(EthConnectionService.ACTION_HANDLE_CONNECTION_DOWN)) {
                 onConnectionLost();
             } else if (intent.getAction().equals(EthConnectionService.ACTION_HANDLE_CONNECTION_UP)) {

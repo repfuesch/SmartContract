@@ -19,11 +19,10 @@ import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.datamodel.Account;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.message.MessageService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
 
-public class AccountFragment extends Fragment implements AccountRecyclerViewAdapter.OnAccountLoginListener {
+public class AccountFragment extends Fragment implements AccountRecyclerViewAdapter.OnAccountListener {
 
     private LinearLayout accountView;
     private RecyclerView accountList;
@@ -166,11 +165,26 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
                     });
     }
 
+    @Override
+    public void onAccountLock()
+    {
+        BusyIndicator.show(accountView);
+        notifyAccountChanged(null);
+        appContext.getServiceProvider().getAccountService().lockAccount();
+        BusyIndicator.hide(accountView);
+    }
+
     private void notifyAccountChanged(Account account)
     {
         Intent intent = new Intent();
         intent.setAction(AccountActivity.ACTION_ACCOUNT_CHANGED);
-        intent.putExtra(AccountActivity. MESSAGE_ACCOUNT_CHANGED, account.getId());
+        if(account == null)
+        {
+            //set empty account id
+            intent.putExtra(AccountActivity. MESSAGE_ACCOUNT_CHANGED, "");
+        }else{
+            intent.putExtra(AccountActivity. MESSAGE_ACCOUNT_CHANGED, account.getId());
+        }
 
         appContext.getBroadCastService().sendBroadcast(intent);
     }

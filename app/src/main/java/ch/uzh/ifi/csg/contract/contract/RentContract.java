@@ -1,5 +1,7 @@
 package ch.uzh.ifi.csg.contract.contract;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Function;
@@ -56,7 +58,7 @@ public class RentContract extends TradeContract implements IRentContract
                     @Override
                     public String call() throws Exception
                     {
-                        BigInteger fee = getRentingFee();
+                        BigInteger fee = getRentingFee().get();
                         Function function = new Function("returnItem", Arrays.<Type>asList(), Collections.<TypeReference<?>>emptyList());
                         TransactionReceipt result = executeTransaction(function, fee);
                         return result.getTransactionHash();
@@ -71,7 +73,7 @@ public class RentContract extends TradeContract implements IRentContract
                     @Override
                     public String call() throws Exception
                     {
-                        BigInteger deposit = getDeposit();
+                        BigInteger deposit = getDeposit().get();
                         Function function = new Function("reclaimItem", Arrays.<Type>asList(), Collections.<TypeReference<?>>emptyList());
                         TransactionReceipt result = executeTransaction(function, deposit);
                         return result.getTransactionHash();
@@ -86,7 +88,7 @@ public class RentContract extends TradeContract implements IRentContract
                     @Override
                     public String call() throws Exception
                     {
-                        BigInteger deposit = getDeposit();
+                        BigInteger deposit = getDeposit().get();
                         Function function = new Function("rentItem", Arrays.<Type>asList(), Collections.<TypeReference<?>>emptyList());
                         TransactionReceipt result = executeTransaction(function, deposit);
                         return result.getTransactionHash();
@@ -95,14 +97,19 @@ public class RentContract extends TradeContract implements IRentContract
     }
 
     @Override
-    public BigInteger getRentingFee() throws Exception {
+    public SimplePromise<BigInteger> getRentingFee() {
 
-        Function function = new Function("calculateRentingFee",
-                Arrays.<Type>asList(),
-                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {
-                }));
-        Uint256 result = executeCallSingleValueReturn(function);
+        return Async.toPromise(new Callable<BigInteger>() {
+            @Override
+            public BigInteger call() throws Exception {
+                Function function = new Function("calculateRentingFee",
+                        Arrays.<Type>asList(),
+                        Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {
+                        }));
+                Uint256 result = executeCallSingleValueReturn(function);
 
-        return result.getValue();
+                return result.getValue();
+            }
+        });
     }
 }

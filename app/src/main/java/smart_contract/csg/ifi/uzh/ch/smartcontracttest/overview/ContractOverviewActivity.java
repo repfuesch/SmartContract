@@ -1,11 +1,19 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview;
 
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.DialogFragment;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.SearchView;
 import android.widget.TextView;
 
 import org.jdeferred.Promise;
@@ -18,6 +26,7 @@ import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.list.ContractListFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create.ContractCreateActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
@@ -45,6 +54,7 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
         infoTextView = (TextView)findViewById(R.id.overview_info_text);
         contractListWrapper = (LinearLayout)findViewById(R.id.contract_list_wrapper);
 
+
         if(getAppContext().getSettingProvider().getSelectedAccount().isEmpty())
         {
             //show not logged in message and disable interactions
@@ -63,6 +73,35 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
         else{
             loadContractList();
         }
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        boolean result = super.onPrepareOptionsMenu(menu);
+
+        MenuItem searchItem = menu.findItem(R.id.menu_item_search);
+        searchItem.setVisible(true);
+
+        SearchView searchView = (SearchView) searchItem.getActionView();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                if(listFragment != null)
+                    listFragment.getListFilter().filter(query);
+
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if(listFragment != null)
+                    listFragment.getListFilter().filter(newText);
+
+                return true;
+            }
+        });
+
+        return result;
     }
 
     @Override

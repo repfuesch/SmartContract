@@ -197,12 +197,12 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
             public Void call() throws Exception {
 
                 ContractDetailFragment.this.contract = contract;
-                verifyIdentity = contract.getVerifyIdentity();
-                state = contract.getState();
-                seller = contract.getSeller();
-                final String description = contract.getDescription();
-                final String title = contract.getTitle();
-                final List<String> imageSignatures = contract.getImageSignatures();
+                verifyIdentity = contract.getVerifyIdentity().get();
+                state = contract.getState().get();
+                seller = contract.getSeller().get();
+                final String description = contract.getDescription().get();
+                final String title = contract.getTitle().get();
+                final List<String> imageSignatures = contract.getImageSignatures().get();
 
                 getActivity().runOnUiThread(new Runnable() {
                     @Override

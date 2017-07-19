@@ -105,4 +105,10 @@ public class WalletAccountService extends Web3AccountService{
             }
         });
     }
+
+    @Override
+    public void lockAccount() {
+        credentialProvider.setCredentials(null);
+        unlockedAccount = null;
+    }
 }

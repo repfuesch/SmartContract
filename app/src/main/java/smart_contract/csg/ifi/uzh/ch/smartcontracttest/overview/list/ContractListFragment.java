@@ -1,4 +1,4 @@
-package smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview;
+package smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.list;
 
 import android.app.Activity;
 import android.content.Context;
@@ -7,10 +7,15 @@ import android.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.Filter;
 import android.widget.LinearLayout;
 
 import org.jdeferred.Promise;
@@ -44,7 +49,6 @@ public class ContractListFragment extends Fragment
 
     private LinearLayout contentView;
     private TradeContractRecyclerViewAdapter adapter;
-    private List<ITradeContract> contracts;
     private ApplicationContext contextProvider;
 
     /**
@@ -63,6 +67,11 @@ public class ContractListFragment extends Fragment
         return fragment;
     }
 
+    public Filter getListFilter()
+    {
+        return adapter.getFilter();
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,8 +79,6 @@ public class ContractListFragment extends Fragment
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
         }
-
-        contracts = new ArrayList<>();
     }
 
     @Override
@@ -101,7 +108,7 @@ public class ContractListFragment extends Fragment
             purchaseList.setLayoutManager(new GridLayoutManager(context, mColumnCount));
         }
 
-        adapter = new TradeContractRecyclerViewAdapter(contracts, contextProvider);
+        adapter = new TradeContractRecyclerViewAdapter(contextProvider);
         purchaseList.setAdapter(adapter);
         registerForContextMenu(purchaseList);
 
@@ -138,7 +145,6 @@ public class ContractListFragment extends Fragment
     public SimplePromise<List<ITradeContract>> loadContractsForAccount(String account)
     {
         BusyIndicator.show(contentView);
-        contracts.clear();
         return contextProvider.getServiceProvider().getContractService().loadContracts(account)
                 .always(new AlwaysCallback<List<ITradeContract>>() {
                     @Override
@@ -151,7 +157,7 @@ public class ContractListFragment extends Fragment
                                     //todo:log
                                     //errorHandler.handleError(rejected);
                                 }else{
-                                    contracts.addAll(resolved);
+                                    adapter.setContracts(resolved);
                                 }
 
                                 adapter.notifyDataSetChanged();
@@ -177,8 +183,8 @@ public class ContractListFragment extends Fragment
                                     //todo:log
                                     //errorHandler.handleError(rejected);
                                 }else{
-                                    contracts.add(resolved);
-                                    adapter.notifyItemInserted(contracts.size() - 1);
+                                    adapter.addContract(resolved);
+                                    adapter.notifyItemInserted(adapter.getItemCount() - 1);
                                 }
 
                                 BusyIndicator.hide(contentView);

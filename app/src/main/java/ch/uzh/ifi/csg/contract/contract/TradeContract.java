@@ -53,6 +53,13 @@ public abstract class TradeContract extends Contract implements ITradeContract
     private UserProfile userProfile;
     private Map<String, String> images;
 
+    //attribute values that will not change after deployment are only fetched once
+    private String title;
+    private String description;
+    private BigInteger deposit;
+    private BigInteger price;
+    private Boolean verifyIdentity;
+
     protected TradeContract(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit)
     {
         super(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
@@ -266,110 +273,180 @@ public abstract class TradeContract extends Contract implements ITradeContract
     }
 
     @Override
-    public BigInteger getPrice() throws Exception
+    public SimplePromise<BigInteger> getPrice()
     {
-        Function function = new Function("price",
-                Arrays.<Type>asList(),
-                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {
-                }));
-        Uint256 result = executeCallSingleValueReturn(function);
+        return Async.toPromise(new Callable<BigInteger>() {
+            @Override
+            public BigInteger call() throws Exception {
 
-        return result.getValue();
+                if(price != null)
+                    return price;
+
+                Function function = new Function("price",
+                        Arrays.<Type>asList(),
+                        Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {
+                        }));
+                Uint256 result = executeCallSingleValueReturn(function);
+                price = result.getValue();
+                return price;
+            }
+        });
     }
 
     @Override
-    public String getSeller() throws Exception
+    public SimplePromise<String> getSeller()
     {
-        Function function = new Function("seller",
-                Arrays.<Type>asList(),
-                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {
-                }));
-        Address result = executeCallSingleValueReturn(function);
-        return result.toString();
+        return Async.toPromise(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                Function function = new Function("seller",
+                        Arrays.<Type>asList(),
+                        Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {
+                        }));
+                Address result = executeCallSingleValueReturn(function);
+                return result.toString();
+            }
+        });
     }
 
     @Override
-    public String getBuyer() throws Exception {
-        Function function = new Function("buyer",
-                Arrays.<Type>asList(),
-                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {
-                }));
-        Address result = executeCallSingleValueReturn(function);
-        return result.toString();
+    public SimplePromise<String> getBuyer() {
+
+        return Async.toPromise(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                Function function = new Function("buyer",
+                        Arrays.<Type>asList(),
+                        Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {
+                        }));
+                Address result = executeCallSingleValueReturn(function);
+                return result.toString();
+            }
+        });
     }
 
     @Override
-    public String getTitle() throws Exception {
+    public SimplePromise<String> getTitle() {
 
-        Function function = new Function("title",
-                Arrays.<Type>asList(),
-                Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {
-                }));
-        Utf8String result = executeCallSingleValueReturn(function);
-        return result.toString();
+        return Async.toPromise(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+
+                if(title != null)
+                    return title;
+
+                Function function = new Function("title",
+                        Arrays.<Type>asList(),
+                        Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {
+                        }));
+                Utf8String result = executeCallSingleValueReturn(function);
+                title = result.toString();
+                return title;
+            }
+        });
     }
 
     @Override
-    public String getDescription() throws Exception {
+    public SimplePromise<String> getDescription() {
 
-        Function function = new Function("description",
-                Arrays.<Type>asList(),
-                Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {
-                }));
-        Utf8String result = executeCallSingleValueReturn(function);
-        return result.toString();
+        return Async.toPromise(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+
+                if(description != null)
+                    return description;
+
+                Function function = new Function("description",
+                        Arrays.<Type>asList(),
+                        Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {
+                        }));
+                Utf8String result = executeCallSingleValueReturn(function);
+                description = result.toString();
+                return description;
+            }
+        });
     }
 
     @Override
-    public ContractState getState() throws Exception {
+    public SimplePromise<ContractState> getState() {
 
-        Function function = new Function("state",
-                Arrays.<Type>asList(),
-                Arrays.<TypeReference<?>>asList(new TypeReference<Uint8>() {
-                }));
-        Uint8 value = executeCallSingleValueReturn(function);
-        BigInteger bigValue = value.getValue();
-        return ContractState.valueOf(bigValue.intValue());
+        return Async.toPromise(new Callable<ContractState>() {
+            @Override
+            public ContractState call() throws Exception {
+                Function function = new Function("state",
+                        Arrays.<Type>asList(),
+                        Arrays.<TypeReference<?>>asList(new TypeReference<Uint8>() {
+                        }));
+                Uint8 value = executeCallSingleValueReturn(function);
+                BigInteger bigValue = value.getValue();
+                return ContractState.valueOf(bigValue.intValue());
+            }
+        });
     }
 
     @Override
-    public BigInteger getDeposit() throws Exception {
+    public SimplePromise<BigInteger> getDeposit() {
 
-        Function function = new Function("deposit",
-                Arrays.<Type>asList(),
-                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {
-                }));
-        Uint256 value = executeCallSingleValueReturn(function);
-        BigInteger bigValue = value.getValue();
-        return bigValue;
+        return Async.toPromise(new Callable<BigInteger>() {
+            @Override
+            public BigInteger call() throws Exception {
+
+                if(deposit != null)
+                    return deposit;
+
+                Function function = new Function("deposit",
+                        Arrays.<Type>asList(),
+                        Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {
+                        }));
+                Uint256 value = executeCallSingleValueReturn(function);
+                BigInteger bigValue = value.getValue();
+                deposit = bigValue;
+                return bigValue;
+            }
+        });
     }
 
     @Override
-    public Boolean getVerifyIdentity() throws Exception {
+    public SimplePromise<Boolean> getVerifyIdentity() {
 
-        Function function = new Function("verifyIdentity",
-                Arrays.<Type>asList(),
-                Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {
-                }));
-        Bool result = executeCallSingleValueReturn(function);
-        return result.getValue();
+        return Async.toPromise(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+
+                if(verifyIdentity != null)
+                    return verifyIdentity;
+
+                Function function = new Function("verifyIdentity",
+                        Arrays.<Type>asList(),
+                        Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {
+                        }));
+                Bool result = executeCallSingleValueReturn(function);
+                verifyIdentity = result.getValue();
+                return verifyIdentity;
+            }
+        });
     }
 
     @Override
-    public List<String> getImageSignatures() throws Exception
+    public SimplePromise<List<String>> getImageSignatures()
     {
-        Function function = new Function("getImageSignatures",
-                Arrays.<Type>asList(),
-                Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Bytes32>>() {
-                }));
+        return Async.toPromise(new Callable<List<String>>() {
+            @Override
+            public List<String> call() throws Exception {
+                Function function = new Function("getImageSignatures",
+                        Arrays.<Type>asList(),
+                        Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Bytes32>>() {
+                        }));
 
-        List<String> signatures = new ArrayList<String>();
-        DynamicArray<Bytes32> result = executeCallSingleValueReturn(function);
-        for(Bytes32 bytes : result.getValue())
-        {
-            signatures.add(new String(HexUtil.byteArrayToHexString(bytes.getValue())));
-        }
+                List<String> signatures = new ArrayList<String>();
+                DynamicArray<Bytes32> result = executeCallSingleValueReturn(function);
+                for(Bytes32 bytes : result.getValue())
+                {
+                    signatures.add(new String(HexUtil.byteArrayToHexString(bytes.getValue())));
+                }
 
-        return signatures;
+                return signatures;
+            }
+        });
     }
 }

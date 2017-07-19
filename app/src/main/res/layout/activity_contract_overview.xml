@@ -17,50 +17,60 @@
         android:orientation="vertical"
         android:id="@+id/overview_body">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/overview_menu"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:background="@color/cardview_shadow_start_color">
 
-            <include layout="@layout/fragment_account_balance"/>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
+            <RelativeLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_margin="8dp"
+                android:id="@+id/overview_menu"
+                android:layout_marginBottom="8dp"
                 android:orientation="horizontal">
 
-                <ImageButton
+                <include layout="@layout/fragment_account_balance"/>
+
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:onClick="onImportFromDeviceButtonClick"
-                    android:background="?android:attr/colorBackground"
+                    android:layout_alignParentRight="true"
+                    android:layout_marginTop="8dp"
                     android:layout_marginRight="8dp"
-                    android:src="@drawable/ic_action_wifi"/>
+                    android:orientation="horizontal">
 
-                <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:onClick="onScanButtonClick"
-                    android:background="?android:attr/colorBackground"
-                    android:layout_marginRight="8dp"
-                    android:id="@+id/action_scan_contract"
-                    android:src="@drawable/ic_action_scan_qr_code"/>
+                    <ImageButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:onClick="onImportFromDeviceButtonClick"
+                        android:background="@null"
+                        android:layout_marginRight="8dp"
+                        android:src="@drawable/ic_action_wifi"/>
 
-                <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_action_add"
-                    android:onClick="onAddButtonClick"
-                    android:id="@+id/action_add_contract"
-                    android:background="?android:attr/colorBackground"/>
+                    <ImageButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:onClick="onScanButtonClick"
+                        android:background="@null"
+                        android:layout_marginRight="8dp"
+                        android:id="@+id/action_scan_contract"
+                        android:src="@drawable/ic_action_scan_qr_code"/>
 
-            </LinearLayout>
-        </RelativeLayout>
+                    <ImageButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_action_add"
+                        android:onClick="onAddButtonClick"
+                        android:id="@+id/action_add_contract"
+                        android:background="@null"/>
+
+                </LinearLayout>
+            </RelativeLayout>
+
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -82,11 +92,10 @@
                 android:layout_height="match_parent">
 
                 <fragment
-                    android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractListFragment"
+                    android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.list.ContractListFragment"
                     android:id="@+id/contract_list_fragment"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_margin="16dp"
                     tools:layout="@layout/fragment_purchasecontract_list" />
 
             </LinearLayout>
