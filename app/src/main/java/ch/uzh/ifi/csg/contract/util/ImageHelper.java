@@ -19,7 +19,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -258,7 +257,7 @@ public final class ImageHelper {
      * @param image Bitmap of an image
      * @return String representing the hexadecimal value of the calculated hash
      */
-    public static String getHash(Bitmap image)
+    public static String getImageHash(Bitmap image)
     {
         byte[] bytes = getBytes(image);
         MessageDigest digest=null;
@@ -266,11 +265,11 @@ public final class ImageHelper {
             digest = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e1) {
             // todo:log
-            //Log.d(TAG, "getHash: ");
+            //Log.d(TAG, "getImageHash: ");
         }
 
         digest.reset();
-        String hex =  bin2hex(digest.digest(bytes));
+        String hex =  BinaryUtil.bin2hex(digest.digest(bytes));
         return hex;
     }
 
@@ -280,10 +279,6 @@ public final class ImageHelper {
         ByteBuffer byteBuffer = ByteBuffer.allocate(size);
         image.copyPixelsToBuffer(byteBuffer);
         return byteBuffer.array();
-    }
-
-    private static String bin2hex(byte[] data) {
-        return String.format("%0" + (data.length*2) + "X", new BigInteger(1, data));
     }
 
     /***
@@ -326,7 +321,7 @@ public final class ImageHelper {
         intent.addCategory(Intent.CATEGORY_OPENABLE);
 
         // special intent for Samsung file manager
-        Intent sIntent = new Intent("com.sec.android.app.myfiles.PICK_DATA");
+        Intent sIntent = new Intent("com.sec.android.app.myfiles.PICK_FILE");
         intent.putExtra("CONTENT_TYPE", samsungContentType);
         intent.addCategory(Intent.CATEGORY_DEFAULT);
 

@@ -24,7 +24,11 @@ import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
+import ch.uzh.ifi.csg.contract.contract.PurchaseContract;
+import ch.uzh.ifi.csg.contract.contract.RentContract;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
+import ch.uzh.ifi.csg.contract.service.serialization.GsonSerializationService;
+import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.list.ContractListFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
@@ -139,24 +143,14 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
                 if(intent == null)
                     return;
 
-                final String contractAddress = intent.getStringExtra(QrScanningActivity.MESSAGE_CONTRACT_ADDRESS);
-                ensureContract(contractAddress).then(new DoneCallback<Boolean>() {
-                    @Override
-                    public void onDone(Boolean result) {
-                        final ContractType type = (ContractType) intent.getSerializableExtra(QrScanningActivity.MESSAGE_CONTRACT_TYPE);
-                        getAppContext().getServiceProvider().getContractService().saveContract(contractAddress, type, getAppContext().getSettingProvider().getSelectedAccount());
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Intent detailIntent = new Intent(ContractOverviewActivity.this, ContractDetailActivity.class);
-                                detailIntent.putExtra(ContractDetailActivity.EXTRA_CONTRACT_ADDRESS, contractAddress);
-                                detailIntent.putExtra(ContractDetailActivity.EXTRA_CONTRACT_TYPE, type);
-                                startActivity(detailIntent);
-                            }
-                        });
-                    }
-                });
+                SerializationService serializationService = new GsonSerializationService();
+                final ContractInfo contractInfo = serializationService.deserialize(intent.getStringExtra(QrScanningActivity.MESSAGE_CONTRACT_DATA), ContractInfo.class);
+                getAppContext().getServiceProvider().getContractService().saveContract(contractInfo, getAppContext().getSettingProvider().getSelectedAccount());
 
+                Intent detailIntent = new Intent(ContractOverviewActivity.this, ContractDetailActivity.class);
+                detailIntent.putExtra(ContractDetailActivity.EXTRA_CONTRACT_ADDRESS, contractInfo.getContractAddress());
+                detailIntent.putExtra(ContractDetailActivity.EXTRA_CONTRACT_TYPE, contractInfo.getContractType());
+                startActivity(detailIntent);
                 break;
         }
         super.onActivityResult(requestCode, resultCode, intent);
@@ -169,13 +163,24 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
         listFragment.loadContract(type, contractAddress);
     }
 
-    private SimplePromise<Boolean> ensureContract(final String address)
+    private SimplePromise<Boolean> ensureContract(final String address, final ContractType contractType)
     {
-        return getAppContext().getServiceProvider().getContractService().isContract(address)
-                .fail(new FailCallback() {
+        String code = null;
+        if(contractType == ContractType.Purchase)
+        {
+            code = PurchaseContract.BINARY_FULL;
+        }else{
+            code = RentContract.BINARY_FULL;
+        }
+
+        return getAppContext().getServiceProvider().getContractService().verifyContractCode(address, code)
+                .always(new AlwaysCallback<Boolean>() {
                     @Override
-                    public void onFail(Throwable result) {
-                        getAppContext().getMessageService().handleError(result);
+                    public void onAlways(Promise.State state, Boolean resolved, Throwable rejected) {
+                        if(rejected != null || !resolved)
+                        {
+                            getAppContext().getMessageService().showErrorMessage("Could not verify the contract code. Please try again.");
+                        }
                     }
                 });
     }
@@ -183,10 +188,27 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
     @Override
     public void onAddContract(final String contractAddress, final ContractType type)
     {
-        ensureContract(contractAddress).then(new DoneCallback<Boolean>() {
+        //check if contract exists and has correct binary code
+        ensureContract(contractAddress, type).then(new DoneCallback<Boolean>() {
             @Override
             public void onDone(Boolean result) {
-                listFragment.loadContract(type, contractAddress);
+                if(!result)
+                    return;
+
+                //store the contract before loading it
+                ContractInfo info = new ContractInfo(type, contractAddress);
+                getAppContext().getServiceProvider().getContractService().saveContract(info, getAppContext().getSettingProvider().getSelectedAccount());
+
+                listFragment.loadContract(type, contractAddress)
+                        .done(new DoneCallback<ITradeContract>() {
+                            @Override
+                            public void onDone(ITradeContract resolved) {
+                                if(resolved != null)
+                                {
+                                    getAppContext().getServiceProvider().getContractService().saveContract(resolved, getAppContext().getSettingProvider().getSelectedAccount());
+                                }
+                            }
+                        });
             }
         });
     }
@@ -226,27 +248,25 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
     @Override
     public void onContractDataReceived(final ContractInfo contractInfo)
     {
-        ensureContract(contractInfo.getContractAddress()).then(new DoneCallback<Boolean>() {
-            @Override
-            public void onDone(Boolean result) {
-                listFragment.loadContract(contractInfo.getContractType(), contractInfo.getContractAddress())
-                        .always(new AlwaysCallback<ITradeContract>() {
-                            @Override
-                            public void onAlways(Promise.State state, ITradeContract resolved, Throwable rejected) {
-                                if(resolved != null)
-                                {
-                                    resolved.setUserProfile(contractInfo.getUserProfile());
-                                    for(String imgSig : contractInfo.getImages().keySet())
-                                    {
-                                        //copy the images into the correct application path
-                                        resolved.addImage(imgSig, contractInfo.getImages().get(imgSig));
-                                    }
-                                    getAppContext().getServiceProvider().getContractService().saveContract(resolved, getAppContext().getSettingProvider().getSelectedAccount());
-                                }
+        //store the contract before loading it
+        getAppContext().getServiceProvider().getContractService().saveContract(contractInfo, getAppContext().getSettingProvider().getSelectedAccount());
+
+        listFragment.loadContract(contractInfo.getContractType(), contractInfo.getContractAddress())
+                .always(new AlwaysCallback<ITradeContract>() {
+                    @Override
+                    public void onAlways(Promise.State state, ITradeContract resolved, Throwable rejected) {
+                        if(resolved != null)
+                        {
+                            resolved.setUserProfile(contractInfo.getUserProfile());
+                            for(String imgSig : contractInfo.getImages().keySet())
+                            {
+                                //copy the images into the correct application path
+                                resolved.addImage(imgSig, contractInfo.getImages().get(imgSig));
                             }
-                        });
-            }
-        });
+                            getAppContext().getServiceProvider().getContractService().saveContract(resolved, getAppContext().getSettingProvider().getSelectedAccount());
+                        }
+                    }
+                });
     }
 
     @Override

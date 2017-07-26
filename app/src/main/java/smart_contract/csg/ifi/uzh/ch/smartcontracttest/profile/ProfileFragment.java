@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.provider.ContactsContract;
 import android.support.design.widget.Snackbar;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -66,6 +67,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
 
     private ProfileMode mode;
     private ApplicationContext appContext;
+    private ProfileDataChangedListener dataChangedListener;
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -149,6 +151,13 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
             appContext = ((ApplicationContextProvider) context).getAppContext();
         }else{
             throw new RuntimeException("Context must implement ApplicationContextProvider!");
+        }
+
+        if(context instanceof  ProfileDataChangedListener)
+        {
+            dataChangedListener = (ProfileDataChangedListener)context;
+        }else{
+            throw new RuntimeException("Context must implement ProfileDataChangedListener!");
         }
     }
 
@@ -323,20 +332,20 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
     {
         try
         {
+            //delete old image
             if(profile.getProfileImagePath() != null)
                 new File(profile.getProfileImagePath()).delete();
 
             Bitmap bmp = ImageHelper.getCorrectlyOrientedImage(getActivity(), uri, 1280);
             File imgFile = ImageHelper.saveBitmap(bmp, appContext.getSettingProvider().getImageDirectory());
             profile.setProfileImagePath(imgFile.getAbsolutePath());
-            String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
-            appContext.getServiceProvider().getAccountService().saveAccountProfile(selectedAccount, profile);
             profileImage.setImageURI(Uri.fromFile(imgFile));
+
+            dataChangedListener.onProfileDataChanged(getProfileInformation());
         }
         catch (Exception e)
         {
             //todo:log
-            //messageService.showSnackBarMessage(e.getMessage(), Snackbar.LENGTH_LONG);
         }
     }
 
@@ -347,8 +356,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
         {
             case R.id.action_save_profile:
                 this.profile = getProfileInformation();
-                String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
-                appContext.getServiceProvider().getAccountService().saveAccountProfile(selectedAccount, profile);
+                dataChangedListener.onProfileDataChanged(profile);
                 appContext.getMessageService().showSnackBarMessage("Profile saved", Snackbar.LENGTH_LONG);
                 break;
             case R.id.profile_qr_image:
@@ -410,5 +418,10 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
     {
         Edit,
         ReadOnly,
+    }
+
+    public interface ProfileDataChangedListener
+    {
+        void onProfileDataChanged(UserProfile profile);
     }
 }

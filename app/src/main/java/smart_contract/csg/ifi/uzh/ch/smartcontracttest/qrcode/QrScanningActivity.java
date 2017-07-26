@@ -7,6 +7,13 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.widget.TextView;
+
+import java.util.HashMap;
+
+import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
+import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
+import ch.uzh.ifi.csg.contract.service.serialization.GsonSerializationService;
+import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
 import ch.uzh.ifi.csg.contract.util.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ezvcard.Ezvcard;
@@ -18,8 +25,7 @@ public class QrScanningActivity extends AppCompatActivity {
 
     public static final String ACTION_SCAN_CONTRACT = "ch.uzh.ifi.csg.smart_contract.contract.scan";
     public static final String ACTION_SCAN_PROFILE = "ch.uzh.ifi.csg.smart_contract.account.profile.scan";
-    public static final String MESSAGE_CONTRACT_ADDRESS = "ch.uzh.ifi.csg.smart_contract.address";
-    public static final String MESSAGE_CONTRACT_TYPE = "ch.uzh.ifi.csg.smart_contract.type";
+    public static final String MESSAGE_CONTRACT_DATA = "ch.uzh.ifi.csg.smart_contract.data";
     public static final String MESSAGE_PROFILE_DATA = "ch.uzh.ifi.csg.smart_contract.account.profile.vcard";
 
     private boolean scanContract;
@@ -65,19 +71,16 @@ public class QrScanningActivity extends AppCompatActivity {
 
                 if(scanContract)
                 {
-                    //validate contract data
-                    String[] tokens = data.split(",");
-                    if(tokens.length != 2)
+                    try{
+                        SerializationService serializationService = new GsonSerializationService();
+                        ContractInfo info = serializationService.deserialize(data, ContractInfo.class);
+                        info.setImages(new HashMap<String, String>());
+                        info.setUserProfile(new UserProfile());
+                        returnContractData(info);
+                    }catch(Exception ex)
+                    {
                         return;
-
-                    String address = tokens[0].trim();
-                    String type = tokens[1].trim();
-                    if(!validateContractAddress(address))
-                        return;
-                    if(!validateContractType(type))
-                        return;
-
-                    returnContractData(address, ContractType.valueOf(type));
+                    }
 
                 }else if (validateVCard(data))
                 {
@@ -102,11 +105,11 @@ public class QrScanningActivity extends AppCompatActivity {
         setResult(Activity.RESULT_OK, result);
         finish();
     }
-    private void returnContractData(String address, ContractType type)
+    private void returnContractData(ContractInfo contractInfo)
     {
         Intent result = new Intent();
-        result.putExtra(MESSAGE_CONTRACT_ADDRESS, address);
-        result.putExtra(MESSAGE_CONTRACT_TYPE, type);
+        SerializationService serializationService = new GsonSerializationService();
+        result.putExtra(MESSAGE_CONTRACT_DATA, serializationService.serialize(contractInfo));
         setResult(Activity.RESULT_OK, result);
         finish();
     }

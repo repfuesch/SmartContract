@@ -37,7 +37,10 @@ import java.util.concurrent.ExecutionException;
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
-import ch.uzh.ifi.csg.contract.util.HexUtil;
+import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
+import ch.uzh.ifi.csg.contract.service.serialization.GsonSerializationService;
+import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
+import ch.uzh.ifi.csg.contract.util.BinaryUtil;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import rx.Subscription;
 import rx.functions.Action1;
@@ -52,13 +55,9 @@ public abstract class TradeContract extends Contract implements ITradeContract
     private List<Subscription> subscriptions;
     private UserProfile userProfile;
     private Map<String, String> images;
-
-    //attribute values that will not change after deployment are only fetched once
-    private String title;
-    private String description;
+    private ContractInfo contractInfo;
     private BigInteger deposit;
     private BigInteger price;
-    private Boolean verifyIdentity;
 
     protected TradeContract(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit)
     {
@@ -70,12 +69,18 @@ public abstract class TradeContract extends Contract implements ITradeContract
         images = new HashMap<>();
     }
 
+    public void initContract(ContractInfo contractInfo)
+    {
+        this.contractInfo = contractInfo;
+    }
+
     public static <T extends TradeContract>  SimplePromise<ITradeContract> deployContractAsync(
             final Class<T> clazz,
             final Web3j web3j,
             final TransactionManager transactionManager,
             final BigInteger gasPrice,
             final BigInteger gasLimit,
+            final ContractInfo contractInfo,
             final String binary,
             final BigInteger value,
             final Type... args)
@@ -83,7 +88,7 @@ public abstract class TradeContract extends Contract implements ITradeContract
         return Async.toPromise(new Callable<ITradeContract>() {
             @Override
             public ITradeContract call() throws Exception {
-                return deployContract(clazz, web3j, transactionManager, gasPrice, gasLimit, binary, value, args);
+                return deployContract(clazz, web3j, transactionManager, gasPrice, gasLimit, contractInfo, binary, value, args);
             }
         });
     }
@@ -94,12 +99,14 @@ public abstract class TradeContract extends Contract implements ITradeContract
             final TransactionManager transactionManager,
             final BigInteger gasPrice,
             final BigInteger gasLimit,
+            final ContractInfo contractInfo,
             final String binary,
             final BigInteger value,
             final Type... args) throws Exception
     {
             String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.asList(args));
-            ITradeContract contract = deploy(clazz, web3j, transactionManager, gasPrice, gasLimit, binary, encodedConstructor, value);
+            TradeContract contract = deploy(clazz, web3j, transactionManager, gasPrice, gasLimit, binary, encodedConstructor, value);
+            contract.initContract(contractInfo);
             return contract;
     }
 
@@ -109,13 +116,15 @@ public abstract class TradeContract extends Contract implements ITradeContract
             final Web3j web3j,
             final TransactionManager transactionManager,
             final BigInteger gasPrice,
-            final BigInteger gasLimit) throws Exception
+            final BigInteger gasLimit,
+            final ContractInfo contractInfo) throws Exception
     {
             Constructor<T> constructor = clazz.getDeclaredConstructor(
                     String.class, Web3j.class, TransactionManager.class, BigInteger.class, BigInteger.class);
             constructor.setAccessible(true);
 
-            ITradeContract contract = constructor.newInstance(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
+            TradeContract contract = constructor.newInstance(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
+            contract.initContract(contractInfo);
             return contract;
     }
 
@@ -125,13 +134,14 @@ public abstract class TradeContract extends Contract implements ITradeContract
             final Web3j web3j,
             final TransactionManager transactionManager,
             final BigInteger gasPrice,
-            final BigInteger gasLimit)
+            final BigInteger gasLimit,
+            final ContractInfo contractInfo)
     {
         return Async.toPromise(
                 new Callable<ITradeContract>() {
                     @Override
                     public ITradeContract call() throws Exception {
-                    return loadContract(clazz, contractAddress, web3j, transactionManager, gasPrice, gasLimit);
+                    return loadContract(clazz, contractAddress, web3j, transactionManager, gasPrice, gasLimit, contractInfo);
                     }
                 });
     }
@@ -237,26 +247,16 @@ public abstract class TradeContract extends Contract implements ITradeContract
     }
 
     @Override
-    public SimplePromise<String> setImageSignatures(List<String> imageSignatures)
+    public boolean isLightContract()
     {
-        final List<Bytes32> sigList = new ArrayList<>();
-        for(String imgSig : imageSignatures)
-        {
-            byte[] bytes = HexUtil.hexStringToByteArray(imgSig);
-            sigList.add(new Bytes32(bytes));
-        }
+        return contractInfo.isLightContract();
+    }
 
-        return Async.toPromise(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                Function function = new Function("addImageSignatures",
-                        Arrays.<Type>asList(new DynamicArray(sigList)),
-                        Collections.<TypeReference<?>>emptyList());
-
-                TransactionReceipt result = executeTransaction(function);
-                return result.getTransactionHash();
-            }
-        });
+    @Override
+    public String toJson()
+    {
+        SerializationService serializationService = new GsonSerializationService();
+        return serializationService.serialize(contractInfo);
     }
 
     @Override
@@ -332,16 +332,15 @@ public abstract class TradeContract extends Contract implements ITradeContract
             @Override
             public String call() throws Exception {
 
-                if(title != null)
-                    return title;
+                if(contractInfo.isLightContract())
+                    return contractInfo.getTitle();
 
                 Function function = new Function("title",
                         Arrays.<Type>asList(),
                         Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {
                         }));
                 Utf8String result = executeCallSingleValueReturn(function);
-                title = result.toString();
-                return title;
+                return result.toString();
             }
         });
     }
@@ -353,16 +352,15 @@ public abstract class TradeContract extends Contract implements ITradeContract
             @Override
             public String call() throws Exception {
 
-                if(description != null)
-                    return description;
+                if(contractInfo.isLightContract())
+                    return contractInfo.getDescription();
 
                 Function function = new Function("description",
                         Arrays.<Type>asList(),
                         Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {
                         }));
                 Utf8String result = executeCallSingleValueReturn(function);
-                description = result.toString();
-                return description;
+                return result.toString();
             }
         });
     }
@@ -413,16 +411,15 @@ public abstract class TradeContract extends Contract implements ITradeContract
             @Override
             public Boolean call() throws Exception {
 
-                if(verifyIdentity != null)
-                    return verifyIdentity;
+                if(contractInfo.isLightContract())
+                    return contractInfo.isVerifyIdentity();
 
                 Function function = new Function("verifyIdentity",
                         Arrays.<Type>asList(),
                         Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {
                         }));
                 Bool result = executeCallSingleValueReturn(function);
-                verifyIdentity = result.getValue();
-                return verifyIdentity;
+                return result.getValue();
             }
         });
     }
@@ -433,6 +430,10 @@ public abstract class TradeContract extends Contract implements ITradeContract
         return Async.toPromise(new Callable<List<String>>() {
             @Override
             public List<String> call() throws Exception {
+
+                if(contractInfo.isLightContract())
+                    return new ArrayList<>(contractInfo.getImages().keySet());
+
                 Function function = new Function("getImageSignatures",
                         Arrays.<Type>asList(),
                         Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Bytes32>>() {
@@ -442,11 +443,49 @@ public abstract class TradeContract extends Contract implements ITradeContract
                 DynamicArray<Bytes32> result = executeCallSingleValueReturn(function);
                 for(Bytes32 bytes : result.getValue())
                 {
-                    signatures.add(new String(HexUtil.byteArrayToHexString(bytes.getValue())));
+                    signatures.add(new String(BinaryUtil.byteArrayToHexString(bytes.getValue())));
                 }
 
                 return signatures;
             }
         });
+    }
+
+    @Override
+    public SimplePromise<String> getContentHash()
+    {
+        return Async.toPromise(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+
+                if(contractInfo.isLightContract())
+                    return contractInfo.getContentHash();
+
+                Function function = new Function("getImageSignatures",
+                        Arrays.<Type>asList(),
+                        Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Bytes32>>() {
+                        }));
+
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public SimplePromise<Boolean> verifyContent()
+    {
+        return Async.toPromise(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception
+            {
+                if(!contractInfo.isLightContract())
+                    return true;
+
+                String remoteContent = getContentHash().get();
+                String localContent = contractInfo.getContentHash();
+                return remoteContent.equals(localContent);
+            }
+        });
+
     }
 }

@@ -26,7 +26,6 @@ import android.widget.RadioGroup;
 import android.widget.Spinner;
 
 import java.io.File;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -65,6 +64,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
     private EditText descriptionField;
     private Button deployButton;
     private Button cancelButton;
+    private RadioGroup verifyOptionsGroup;
     private RadioGroup deployOptionsGroup;
 
     private Spinner currencySpinner;
@@ -80,6 +80,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
     private boolean needsVerification;
     private boolean isValid;
 
+    protected boolean deployFull;
     protected ApplicationContext appContext;
 
     public ContractDeployFragment() {
@@ -92,6 +93,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
 
         images = new LinkedHashMap<>();
         currencies = Arrays.asList(Currency.values());
+        deployFull = true;
 
         // Tell the framework to try to keep this fragment around
         // during a configuration change.
@@ -144,9 +146,12 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
 
         cancelButton = (Button) view.findViewById(R.id.action_cancel_deploy);
         cancelButton.setOnClickListener(this);
-        deployOptionsGroup = (RadioGroup) view.findViewById(R.id.contract_options_radio_group);
+        verifyOptionsGroup = (RadioGroup) view.findViewById(R.id.contract_verify_options_radio_group);
+        verifyOptionsGroup.setOnCheckedChangeListener(this);
 
+        deployOptionsGroup = (RadioGroup) view.findViewById(R.id.contract_deploy_options_radio_group);
         deployOptionsGroup.setOnCheckedChangeListener(this);
+
         priceField.addTextChangedListener(this);
         titleField.addTextChangedListener(this);
         descriptionField.addTextChangedListener(this);
@@ -215,7 +220,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         for(Bitmap bmp : images.values())
         {
             File imgFile = ImageHelper.saveBitmap(bmp, appContext.getSettingProvider().getImageDirectory());
-            String hashSig = ImageHelper.getHash(bmp);
+            String hashSig = ImageHelper.getImageHash(bmp);
             imageSignatures.put(hashSig, imgFile);
         }
 
@@ -309,11 +314,22 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
     @Override
     public void onCheckedChanged(RadioGroup radioGroup, int i) {
 
-        if(i == R.id.option_verification)
+        if(radioGroup.getId() == R.id.contract_verify_options_radio_group)
         {
-            needsVerification = true;
-        }else{
-            needsVerification = false;
+            if(i == R.id.option_verification)
+            {
+                needsVerification = true;
+            }else{
+                needsVerification = false;
+            }
+        }else if(radioGroup.getId() == R.id.contract_deploy_options_radio_group)
+        {
+            if(i == R.id.option_deploy_full)
+            {
+                deployFull = true;
+            }else{
+                deployFull = false;
+            }
         }
     }
 

@@ -26,8 +26,6 @@ public class SettingsActivity extends ActivityBase
         getFragmentManager().beginTransaction()
                 .add(R.id.settings_fragment, new SettingsFragment())
                 .commit();
-
-        getBalanceView().setVisibility(View.GONE);
     }
 
     @Override

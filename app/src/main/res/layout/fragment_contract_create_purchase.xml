@@ -133,50 +133,83 @@
                 android:orientation="vertical"
                 android:layout_height="wrap_content">
 
-                <android.support.design.widget.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_alignParentTop="true"
-                    android:layout_height="wrap_content">
+                    <android.support.design.widget.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_alignParentTop="true"
+                        android:layout_height="wrap_content">
 
-                    <EditText
-                        android:enabled="false"
+                        <EditText
+                            android:enabled="false"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/hint_identity_management"/>
+
+                    </android.support.design.widget.TextInputLayout>
+
+                    <RadioGroup
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="@string/hint_identity_management"/>
+                        android:layout_alignParentLeft="true"
+                        android:id="@+id/contract_verify_options_radio_group"
+                        android:checkedButton="@+id/option_anonymous">
 
-                </android.support.design.widget.TextInputLayout>
+                        <RadioButton
+                            android:layout_width="wrap_content"
+                            android:id="@+id/option_anonymous"
+                            android:text="@string/option_anonymous"
+                            android:layout_height="wrap_content" />
 
-                <RadioGroup
+                        <RadioButton
+                            android:layout_width="wrap_content"
+                            android:id="@+id/option_verification"
+                            android:text="@string/option_verify"
+                            android:layout_height="wrap_content" />
+
+                    </RadioGroup>
+
+                </LinearLayout>
+
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
-                    android:id="@+id/contract_options_radio_group"
-                    android:checkedButton="@+id/option_anonymous">
+                    android:orientation="vertical"
+                    android:layout_height="wrap_content">
 
-                    <RadioButton
-                        android:layout_width="wrap_content"
-                        android:id="@+id/option_anonymous"
-                        android:text="@string/option_anonymous"
-                        android:layout_height="wrap_content" />
+                    <android.support.design.widget.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_alignParentTop="true"
+                        android:layout_height="wrap_content">
 
-                    <RadioButton
-                        android:layout_width="wrap_content"
-                        android:id="@+id/option_verification"
-                        android:text="@string/option_verify"
-                        android:layout_height="wrap_content" />
+                        <EditText
+                            android:enabled="false"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/hint_deployment"/>
 
-                </RadioGroup>
+                    </android.support.design.widget.TextInputLayout>
 
-                <ImageView
-                    android:layout_marginTop="16dp"
-                    android:id="@+id/action_scan_profile"
-                    android:visibility="gone"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:src="@drawable/ic_action_scan_qr_code"/>
+                    <RadioGroup
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:id="@+id/contract_deploy_options_radio_group"
+                        android:checkedButton="@+id/option_deploy_full">
 
-            </LinearLayout>
+                        <RadioButton
+                            android:layout_width="wrap_content"
+                            android:id="@+id/option_deploy_full"
+                            android:text="@string/option_deploy_full"
+                            android:layout_height="wrap_content" />
+
+                        <RadioButton
+                            android:layout_width="wrap_content"
+                            android:id="@+id/option_deploy_light"
+                            android:text="@string/option_deploy_light"
+                            android:layout_height="wrap_content" />
+
+                    </RadioGroup>
+
+                </LinearLayout>
+
             </LinearLayout>
         </ScrollView>
 

@@ -20,9 +20,10 @@ public interface ITradeContract extends IContractObservable
     void addImage(String signature, String filename);
     Map<String, String> getImages();
     ContractType getContractType();
+    boolean isLightContract();
+    String toJson();
 
     //remote transaction methods
-    SimplePromise<String> setImageSignatures(List<String> imageSignatures);
     SimplePromise<String> abort();
 
     //remote getters for smart contract attributes
@@ -35,4 +36,7 @@ public interface ITradeContract extends IContractObservable
     SimplePromise<String> getBuyer();
     SimplePromise<ContractState> getState();
     SimplePromise<Boolean> getVerifyIdentity();
+
+    SimplePromise<String> getContentHash();
+    SimplePromise<Boolean> verifyContent();
 }

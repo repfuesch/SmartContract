@@ -203,7 +203,7 @@
                 <RadioGroup
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/contract_options_radio_group"
+                    android:id="@+id/contract_verify_options_radio_group"
                     android:checkedButton="@+id/option_anonymous">
 
                     <RadioButton
@@ -229,6 +229,46 @@
                     android:layout_alignParentRight="true"
                     android:src="@drawable/ic_action_scan_qr_code"/>
 
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:orientation="vertical"
+                android:layout_height="wrap_content">
+
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_alignParentTop="true"
+                    android:layout_height="wrap_content">
+
+                    <EditText
+                        android:enabled="false"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/hint_deployment"/>
+
+                </android.support.design.widget.TextInputLayout>
+
+                <RadioGroup
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true"
+                    android:id="@+id/contract_deploy_options_radio_group"
+                    android:checkedButton="@+id/option_deploy_full">
+
+                    <RadioButton
+                        android:layout_width="wrap_content"
+                        android:id="@+id/option_deploy_full"
+                        android:text="@string/option_deploy_full"
+                        android:layout_height="wrap_content" />
+
+                    <RadioButton
+                        android:layout_width="wrap_content"
+                        android:id="@+id/option_deploy_light"
+                        android:text="@string/option_deploy_light"
+                        android:layout_height="wrap_content" />
+
+                </RadioGroup>
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

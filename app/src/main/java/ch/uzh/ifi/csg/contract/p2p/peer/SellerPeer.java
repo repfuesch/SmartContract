@@ -79,21 +79,4 @@ public class SellerPeer extends PeerBase implements ContractInfoListener
             }
         });
     }
-
-    /*
-    private void awaitTransmissionConfirmed()
-    {
-        try {
-            callback.onP2pInfoMessage("Waiting for transmission acknowledgement");
-            String jsonString = readString(inputStream);
-            serializationService.deserialize(jsonString, new TypeToken<TransmissionConfirmedResponse>() {}.getType());
-            callback.onTransmissionConfirmed();
-            stop();
-        }catch(IOException ex)
-        {
-            callback.onP2pErrorMessage("An error occurred during communication with the other peer");
-            //todo:log
-        }
-    }
-*/
 }

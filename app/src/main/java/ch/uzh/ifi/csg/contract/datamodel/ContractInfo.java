@@ -1,13 +1,15 @@
 package ch.uzh.ifi.csg.contract.datamodel;
 
 import java.io.Serializable;
-import java.util.HashMap;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
-import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
+import ch.uzh.ifi.csg.contract.util.BinaryUtil;
 
 /**
  * Class used to represent a TradeContract for storage on the local filesystem
@@ -19,6 +21,10 @@ public class ContractInfo implements Serializable
 
     private ContractType contractType;
     private String contractAddress;
+    private String title;
+    private String description;
+    private boolean verifyIdentity;
+    private boolean isLightContract;
     private UserProfile userProfile;
     private Map<String, String> images;
 
@@ -28,10 +34,37 @@ public class ContractInfo implements Serializable
         this.images = new LinkedHashMap<>();
     }
 
-    public ContractInfo(ContractType contractType, String contractAddress, UserProfile userProfile, Map<String, String> imageMap) {
+    public ContractInfo(ContractType contractType, String contractAddress, String title, String description, boolean verifyIdentity, boolean isLightContract) {
         this(contractType, contractAddress);
-        this.userProfile = userProfile;
-        this.images = imageMap;
+
+        this.title = title;
+        this.description = description;
+        this.verifyIdentity = verifyIdentity;
+        this.isLightContract = isLightContract;
+    }
+
+    public String getContentHash()
+    {
+        ArrayList<Byte> byteList = new ArrayList<>();
+        byteList.addAll(BinaryUtil.toByteList(title.getBytes()));
+        byteList.addAll(BinaryUtil.toByteList(description.getBytes()));
+        byteList.add((byte) (verifyIdentity ? 1 : 0 ));
+        for(String imageSig : images.values())
+        {
+            byteList.addAll(BinaryUtil.toByteList(imageSig.getBytes()));
+        }
+
+        MessageDigest digest=null;
+        try {
+            digest = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e1) {
+            // todo:log
+            //Log.d(TAG, "getImageHash: ");
+        }
+
+        digest.reset();
+        String hex = BinaryUtil.bin2hex(digest.digest(BinaryUtil.toByteArray(byteList)));
+        return hex;
     }
 
     public String getContractAddress() {
@@ -40,6 +73,14 @@ public class ContractInfo implements Serializable
 
     public void setContractAddress(String contractAddress) {
         this.contractAddress = contractAddress;
+    }
+
+    public void setUserProfile(UserProfile userProfile) {
+        this.userProfile = userProfile;
+    }
+
+    public void setImages(Map<String, String> images) {
+        this.images = images;
     }
 
     public UserProfile getUserProfile() {
@@ -52,5 +93,25 @@ public class ContractInfo implements Serializable
 
     public ContractType getContractType() {
         return contractType;
+    }
+
+    public boolean isVerifyIdentity() {
+        return verifyIdentity;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public boolean isLightContract() {
+        return isLightContract;
+    }
+
+    public void setLightContract(boolean lightContract) {
+        isLightContract = lightContract;
     }
 }

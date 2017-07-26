@@ -198,7 +198,7 @@ public class TradeContractRecyclerViewAdapter extends RecyclerView.Adapter<Trade
         @Override
         public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
         {
-            if(state == ContractState.Inactive)
+            if(state != ContractState.Locked)
             {
                 menu.setHeaderTitle("Remove contract?");
                 menu.add(0, v.getId(), 0, "remove");

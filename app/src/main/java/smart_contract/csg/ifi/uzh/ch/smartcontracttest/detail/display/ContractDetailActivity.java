@@ -29,7 +29,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.dialog.P2pExportDialog;
 
-public class ContractDetailActivity extends ActivityBase implements IContractObserver, P2pExportDialog.P2pExportListener {
+public class ContractDetailActivity extends ActivityBase implements IContractObserver, P2pExportDialog.P2pExportListener, ProfileFragment.ProfileDataChangedListener {
 
     public final static String EXTRA_CONTRACT_ADDRESS = "ch.uzh.ifi.csg.smart_contract.address";
     public final static String EXTRA_CONTRACT_TYPE = "ch.uzh.ifi.csg.smart_contract.type";
@@ -171,7 +171,6 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
                                 if(detailFragment.needsIdentityVerification() && contract.getUserProfile().getVCard() == null)
                                 {
                                     scanProfileButton.setVisibility(View.VISIBLE);
-                                    getAppContext().getMessageService().showMessage("You must first scan the user profile of your contract partner to interact with the contract!");
                                 }else{
                                     scanProfileButton.setVisibility(View.GONE);
                                 }
@@ -299,8 +298,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
     {
         DialogFragment exportFragment = new P2pExportDialog();
         Bundle args = new Bundle();
-        args.putBoolean(P2pExportDialog.MESSAGE_IDENTIFICATION_USED, detailFragment.needsIdentityVerification());
-        args.putSerializable(P2pExportDialog.MESSAGE_CONTRACT_DATA, new ContractInfo(contract.getContractType(), contract.getContractAddress(), new UserProfile(), contract.getImages()));
+        args.putString(P2pExportDialog.MESSAGE_CONTRACT_DATA, contract.toJson());
         exportFragment.setArguments(args);
         exportFragment.show(getSupportFragmentManager(), "importDialogFragment");
     }
@@ -321,5 +319,13 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
 
     @Override
     public void onContractDialogCanceled() {
+    }
+
+    @Override
+    public void onProfileDataChanged(UserProfile profile)
+    {
+        String account = getAppContext().getSettingProvider().getSelectedAccount();
+        contract.setUserProfile(profile);
+        getAppContext().getServiceProvider().getContractService().saveContract(contract, account);
     }
 }

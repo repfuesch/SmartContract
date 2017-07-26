@@ -37,6 +37,7 @@ public class PurchaseContractDeployFragment extends ContractDeployFragment
                 title,
                 description,
                 new ArrayList(imageSignatures.keySet()),
-                needsVerification);
+                needsVerification,
+                !deployFull);
     }
 }

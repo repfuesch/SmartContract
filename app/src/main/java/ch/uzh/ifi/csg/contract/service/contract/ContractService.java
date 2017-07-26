@@ -12,6 +12,7 @@ import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.contract.IRentContract;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.contract.TimeUnit;
+import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 
 /**
  * Created by flo on 24.02.17.
@@ -24,7 +25,8 @@ public interface ContractService {
             String title,
             String description,
             List<String> imageSignatures,
-            boolean verifyIdentity);
+            boolean verifyIdentity,
+            boolean lightDeployment);
 
     SimplePromise<ITradeContract> deployRentContract(
             BigInteger price,
@@ -33,14 +35,15 @@ public interface ContractService {
             String title,
             String description,
             List<String> imageSignatures,
-            boolean verifyIdentity);
+            boolean verifyIdentity,
+            boolean lightDeployment);
 
     SimplePromise<ITradeContract> loadContract(ContractType contractType, String contractAddress, String account);
     void saveContract(ITradeContract contract, String account);
     void removeContract(ITradeContract contract, String account);
-    void saveContract(String contractAddress, ContractType contractType,  String account);
+    void saveContract(ContractInfo info, String account);
     void removeContract(String contractAddress, String account);
     SimplePromise<List<ITradeContract>> loadContracts(String account);
-    SimplePromise<Boolean> isContract(String address);
+    SimplePromise<Boolean> verifyContractCode(String address, String code);
 
 }

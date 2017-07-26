@@ -44,14 +44,6 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
         // Required empty public constructor
     }
 
-    public static ContractDetailFragment newInstance(String param1, String param2) {
-        ContractDetailFragment fragment = new PurchaseContractDetailFragment();
-        Bundle args = new Bundle();
-        fragment.setArguments(args);
-
-        return fragment;
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -201,7 +193,7 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                priceView.setText(result.toString());
+                                priceView.setText(result.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString());
                             }
                         });
                     }

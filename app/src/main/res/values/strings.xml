@@ -58,10 +58,13 @@
     <string name="hint_mail">E-Mail</string>
     <string name="hint_pictures">Pictures</string>
     <string name="hint_identity_management">Identity Management</string>
+    <string name="hint_deployment">Deployment Options</string>
     <string name="hint_search_text">Search text</string>
     <string name="option_verify">Verify identity</string>
     <string name="option_anonymous">Anonymous contract</string>
     <string name="option_create_account">Create new Account</string>
     <string name="option_import_account">Import account from wallet file</string>
+    <string name="option_deploy_full">Full deployment</string>
+    <string name="option_deploy_light">Light deployment</string>
     <string name="hint_wallet_file">Wallet file</string>
 </resources>

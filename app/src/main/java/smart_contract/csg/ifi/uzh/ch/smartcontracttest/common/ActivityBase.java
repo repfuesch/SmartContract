@@ -72,7 +72,8 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
         getSupportActionBar().setDisplayUseLogoEnabled(true);
 
         accountBalanceView = (LinearLayout) findViewById(R.id.account_balance_view);
-        accountBalanceField = (TextView) accountBalanceView.findViewById(R.id.account_balance_field);
+        if(accountBalanceView != null)
+            accountBalanceField = (TextView) accountBalanceView.findViewById(R.id.account_balance_field);
 
         if (getIntent().getSerializableExtra("from") != null)
             callingActivityClass = (Class) getIntent().getSerializableExtra("from");
@@ -183,7 +184,8 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                accountBalanceField.setText(Web3Util.toEther(resolved).round(MathContext.DECIMAL32).toString());
+                                if(accountBalanceField != null)
+                                    accountBalanceField.setText(Web3Util.toEther(resolved).round(MathContext.DECIMAL32).toString());
                             }
                         });
                     }
@@ -231,7 +233,8 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
             broadcastReceiverRegistered = true;
         }
 
-        updateAccountBalance();
+        if(accountBalanceView != null)
+            updateAccountBalance();
 
         if(requestedPermission != null)
         {
@@ -285,7 +288,8 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
                 onConnectionEstablished();
             }
 
-            updateAccountBalance();
+            if(accountBalanceView != null)
+                updateAccountBalance();
         }
     }
 }

@@ -6,7 +6,6 @@ import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
 import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Uint256;
-import org.web3j.abi.datatypes.generated.Uint8;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthGetCode;
@@ -18,9 +17,8 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import ch.uzh.ifi.csg.contract.async.Async;
-import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
-import ch.uzh.ifi.csg.contract.util.HexUtil;
+import ch.uzh.ifi.csg.contract.util.BinaryUtil;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.contract.PurchaseContract;
@@ -68,10 +66,22 @@ public class Web3jContractService implements ContractService
      * @return  a promise representing the result of the call.
      */
     @Override
-    public SimplePromise<ITradeContract> deployPurchaseContract(final BigInteger value, final String title, final String description, final List<String> imageSignatures, final boolean verifyIdentity)
+    public SimplePromise<ITradeContract> deployPurchaseContract(final BigInteger value, final String title, final String description, final List<String> imageSignatures, final boolean verifyIdentity, boolean lightDeployment)
     {
-        List<Type> typeList = buildTypeList(title, description, imageSignatures, verifyIdentity);
-        return deploy(PurchaseContract.class, PurchaseContract.BINARY, typeList, value);
+        if(lightDeployment)
+        {
+            ContractInfo info = new ContractInfo(ContractType.Purchase, "", title, description, verifyIdentity, true);
+            List<Type> typeList = new ArrayList<>();
+            byte[] bytes = BinaryUtil.hexStringToByteArray(info.getContentHash());
+            typeList.add(new Bytes32(bytes));
+            info.setLightContract(true);
+            return deploy(PurchaseContract.class, PurchaseContract.BINARY_LIGHT, info, typeList, value);
+
+        }else{
+            ContractInfo info = new ContractInfo(ContractType.Purchase, "", title, description, verifyIdentity, false);
+            List<Type> typeList = buildTypeList(title, description, imageSignatures, verifyIdentity);
+            return deploy(PurchaseContract.class, PurchaseContract.BINARY_FULL, info, typeList, value);
+        }
     }
 
     /**
@@ -83,14 +93,36 @@ public class Web3jContractService implements ContractService
      * @return  a promise representing the result of the call.
      */
     @Override
-    public SimplePromise<ITradeContract> deployRentContract(final BigInteger price, final BigInteger deposit, final TimeUnit timeUnit, final String title, final String description, final List<String> imageSignatures, final boolean verifyIdentity) {
+    public SimplePromise<ITradeContract> deployRentContract(
+            final BigInteger price,
+            final BigInteger deposit,
+            final TimeUnit timeUnit,
+            final String title,
+            final String description,
+            final List<String> imageSignatures,
+            final boolean verifyIdentity,
+            boolean lightDeployment)
+    {
 
-        List<Type> typeList = buildTypeList(title, description, imageSignatures, verifyIdentity);
-        typeList.add(new Uint256(deposit));
-        typeList.add(new Uint256(price));
-        typeList.add(new Uint8(BigInteger.valueOf(timeUnit.ordinal())));
 
-        return deploy(RentContract.class, RentContract.BINARY, typeList, BigInteger.ZERO);
+        if(lightDeployment)
+        {
+            ContractInfo contractInfo = new ContractInfo(ContractType.Rent, "", title, description, verifyIdentity, true);
+            contractInfo.setLightContract(true);
+            List<Type> typeList = new ArrayList<>();
+            typeList.add(new Uint256(deposit));
+            typeList.add(new Uint256(price));
+            byte[] bytes = BinaryUtil.hexStringToByteArray(contractInfo.getContentHash());
+            typeList.add(new Bytes32(bytes));
+            return deploy(RentContract.class, RentContract.BINARY_LIGHT, contractInfo, typeList, BigInteger.ZERO);
+
+        }else{
+            ContractInfo contractInfo = new ContractInfo(ContractType.Rent, "", title, description, verifyIdentity, false);
+            List<Type> typeList = buildTypeList(title, description, imageSignatures, verifyIdentity);
+            typeList.add(new Uint256(deposit));
+            typeList.add(new Uint256(price));
+            return deploy(RentContract.class, RentContract.BINARY_FULL, contractInfo, typeList, BigInteger.ZERO);
+        }
     }
 
     private List<Type> buildTypeList(final String title, final String description, final List<String> imageSignatures, final boolean verifyIdentity)
@@ -103,7 +135,7 @@ public class Web3jContractService implements ContractService
         final List<Bytes32> sigList = new ArrayList<>();
         for(String imgSig : imageSignatures)
         {
-            byte[] bytes = HexUtil.hexStringToByteArray(imgSig);
+            byte[] bytes = BinaryUtil.hexStringToByteArray(imgSig);
             sigList.add(new Bytes32(bytes));
         }
 
@@ -117,7 +149,7 @@ public class Web3jContractService implements ContractService
         return typeList;
     }
 
-    private SimplePromise<ITradeContract> deploy(Class<? extends TradeContract> clazz, String binary, List<Type> paramList, BigInteger value)
+    private SimplePromise<ITradeContract> deploy(Class<? extends TradeContract> clazz, String binary, ContractInfo contractInfo, List<Type> paramList, BigInteger value)
     {
         return TradeContract.deployContractAsync(
                 clazz,
@@ -125,6 +157,7 @@ public class Web3jContractService implements ContractService
                 transactionManager,
                 gasPrice,
                 gasLimit,
+                contractInfo,
                 binary,
                 value,
                 paramList.toArray(new Type[paramList.size()]));
@@ -139,68 +172,43 @@ public class Web3jContractService implements ContractService
     @Override
     public SimplePromise<ITradeContract> loadContract(final ContractType contractType, final String contractAddress, final String account)
     {
-        SimplePromise<ITradeContract> contractPromise = loadAsync(contractType, contractAddress);
-
-        contractPromise.then(new DoneCallback<ITradeContract>() {
+        return Async.toPromise(new Callable<ITradeContract>() {
             @Override
-            public void onDone(ITradeContract contract) {
+            public ITradeContract call() throws Exception {
                 ContractInfo contractInfo = contractManager.getContract(contractAddress, account);
-                if(contractInfo != null)
+                ITradeContract contract = load(contractInfo);
+                if(contractInfo.getUserProfile() != null)
                 {
-                    if(contractInfo.getUserProfile() != null)
-                    {
-                        contract.setUserProfile(contractInfo.getUserProfile());
-                    }
-
-                    if(contractInfo.getImages() != null)
-                    {
-                        for(String key : contractInfo.getImages().keySet())
-                            contract.addImage(key, contractInfo.getImages().get(key));
-                    }
-
-                }else{
-                    contractManager.saveContract(new ContractInfo(contractType, contractAddress), account);
+                    contract.setUserProfile(contractInfo.getUserProfile());
                 }
+
+                if(contractInfo.getImages() != null)
+                {
+                    for(String key : contractInfo.getImages().keySet())
+                        contract.addImage(key, contractInfo.getImages().get(key));
+                }
+
+                return contract;
             }
         });
-
-        return contractPromise;
     }
 
-    private ITradeContract load(final ContractType contractType, final String contractAddress) throws Exception
+    private ITradeContract load(final ContractInfo contractInfo) throws Exception
     {
         ITradeContract contract;
-        switch(contractType)
+        switch(contractInfo.getContractType())
         {
             case Purchase:
-                contract = TradeContract.loadContract(PurchaseContract.class, contractAddress, web3, transactionManager, gasPrice, gasLimit);
+                contract = TradeContract.loadContract(PurchaseContract.class, contractInfo.getContractAddress(), web3, transactionManager, gasPrice, gasLimit, contractInfo);
                 break;
             case Rent:
-                contract = TradeContract.loadContract(RentContract.class, contractAddress, web3, transactionManager, gasPrice, gasLimit);
+                contract = TradeContract.loadContract(RentContract.class, contractInfo.getContractAddress(), web3, transactionManager, gasPrice, gasLimit, contractInfo);
                 break;
             default:
-                throw new IllegalArgumentException("The contract type " + contractType.toString() + "is not supported!");
+                throw new IllegalArgumentException("The contract type " + contractInfo.getContractType().toString() + "is not supported!");
         }
 
         return contract;
-    }
-
-    private SimplePromise<ITradeContract> loadAsync(final ContractType contractType, final String contractAddress)
-    {
-        SimplePromise<ITradeContract> contractPromise;
-        switch(contractType)
-        {
-            case Purchase:
-                contractPromise = TradeContract.loadContractAsync(PurchaseContract.class, contractAddress, web3, transactionManager, gasPrice, gasLimit);
-                break;
-            case Rent:
-                contractPromise = TradeContract.loadContractAsync(RentContract.class, contractAddress, web3, transactionManager, gasPrice, gasLimit);
-                break;
-            default:
-                throw new IllegalArgumentException("The contract type " + contractType.toString() + "is not supported!");
-        }
-
-        return contractPromise;
     }
 
     /**
@@ -211,7 +219,10 @@ public class Web3jContractService implements ContractService
      */
     @Override
     public void saveContract(ITradeContract contract, String account) {
-        ContractInfo info = new ContractInfo(contract.getContractType(), contract.getContractAddress(), contract.getUserProfile(), contract.getImages());
+        ContractInfo info = new ContractInfo(contract.getContractType(), contract.getContractAddress(), contract.getTitle().get(), contract.getDescription().get(), contract.getVerifyIdentity().get(), contract.isLightContract());
+        info.setUserProfile(contract.getUserProfile());
+        info.setImages(contract.getImages());
+
         contractManager.saveContract(
                 info,
                 account);
@@ -220,14 +231,13 @@ public class Web3jContractService implements ContractService
     /**
      * Persists a contract for an account with the provided ContractManager.
      *
-     * @param contractAddress
-     * @param contractType
+     * @param contractInfo
      * @param account
      */
     @Override
-    public void saveContract(String contractAddress, ContractType contractType,  String account) {
+    public void saveContract(ContractInfo contractInfo,  String account) {
         contractManager.saveContract(
-                new ContractInfo(contractType,  contractAddress),
+                contractInfo,
                 account);
     }
 
@@ -273,7 +283,7 @@ public class Web3jContractService implements ContractService
                 final List<ITradeContract> contractList = new ArrayList(contractInfos.size());
                 for(ContractInfo info : contractInfos)
                 {
-                    contractList.add(load(info.getContractType(), info.getContractAddress()));
+                    contractList.add(load(info));
                 }
                 return contractList;
             }
@@ -281,7 +291,7 @@ public class Web3jContractService implements ContractService
     }
 
     @Override
-    public SimplePromise<Boolean> isContract(final String address) {
+    public SimplePromise<Boolean> verifyContractCode(final String address, final String binary) {
         return Async.toPromise(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
@@ -289,7 +299,7 @@ public class Web3jContractService implements ContractService
                 if(response.hasError())
                     return false;
 
-                return response.getCode().length() > 0;
+                return response.getCode().equals(binary);
             }
         });
     }

@@ -165,7 +165,7 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
             case R.id.contract_qr_image:
                 DialogFragment imageDialog = new ImageDialogFragment();
                 Bundle args = new Bundle();
-                args.putString(ImageDialogFragment.MESSAGE_IMAGE_SOURCE, contract.getContractAddress() + "," + contract.getContractType());
+                args.putString(ImageDialogFragment.MESSAGE_IMAGE_SOURCE, contract.toJson());
                 args.putBoolean(ImageDialogFragment.MESSAGE_DISPLAY_QRCODE, true);
                 imageDialog.setArguments(args);
                 imageDialog.show(getFragmentManager(), "QrImageDialog");
@@ -196,10 +196,12 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
             @Override
             public Void call() throws Exception {
 
+
                 ContractDetailFragment.this.contract = contract;
                 verifyIdentity = contract.getVerifyIdentity().get();
                 state = contract.getState().get();
                 seller = contract.getSeller().get();
+                final boolean contentVerified = contract.verifyContent().get();
                 final String description = contract.getDescription().get();
                 final String title = contract.getTitle().get();
                 final List<String> imageSignatures = contract.getImageSignatures().get();
@@ -211,10 +213,18 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
                         if(verifyIdentity && contract.getUserProfile().getVCard() == null)
                         {
                             contractInteractionView.setVisibility(View.GONE);
+                            appContext.getMessageService().showMessage("You must first scan the user profile of the other party to interact with this contract!");
                         }
 
-                        //create a bitmap image containing the qr code of the address and type of the contract
-                        Bitmap bitmap = QRCode.from(contract.getContractAddress() + "," + contract.getContractType()).bitmap();
+                        if(!contentVerified)
+                        {
+                            contractInteractionView.setVisibility(View.GONE);
+                            appContext.getMessageService().showMessage("The content for this local contract could not be verified. \n Please try to import the contract again.");
+                        }
+
+                        //create a bitmap image that contains a QR code with all the details of the contract
+                        Bitmap bitmap = QRCode.from(contract.toJson()).bitmap();
+
                         qrImageView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, 125, 125, false));
 
                         stateView.setText(state.toString());

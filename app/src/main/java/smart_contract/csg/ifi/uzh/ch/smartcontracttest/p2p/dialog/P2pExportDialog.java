@@ -17,6 +17,8 @@ import java.util.concurrent.Callable;
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
+import ch.uzh.ifi.csg.contract.service.serialization.GsonSerializationService;
+import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
 import ch.uzh.ifi.csg.contract.util.ImageHelper;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
@@ -29,14 +31,11 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.ContractInfoL
 
 public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
 {
-    public static String MESSAGE_IDENTIFICATION_USED = "ch.uzh.ifi.csg.smart_contract.exchange.identification";
     public static String MESSAGE_CONTRACT_DATA = "ch.uzh.ifi.csg.smart_contract.exchange.contract_data";
 
     private P2pExportListener exportListener;
 
     private ContractInfo contractInfo;
-    private boolean useIdentification;
-
     private List<String> deviceList;
     private Spinner deviceListSpinner;
     private String selectedDevice;
@@ -52,8 +51,9 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
     public void setArguments(Bundle args) {
         super.setArguments(args);
 
-        useIdentification = args.getBoolean(MESSAGE_IDENTIFICATION_USED);
-        contractInfo = (ContractInfo) args.getSerializable(MESSAGE_CONTRACT_DATA);
+        String json = args.getString(MESSAGE_CONTRACT_DATA);
+        SerializationService serializationService = new GsonSerializationService();
+        contractInfo = serializationService.deserialize(json, ContractInfo.class);
     }
 
     @Override
@@ -139,7 +139,7 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
         contractInfo.getUserProfile().setVCard(null);
         contractInfo.getUserProfile().setProfileImagePath(null);
 
-        if(useIdentification)
+        if(contractInfo.isVerifyIdentity())
         {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
