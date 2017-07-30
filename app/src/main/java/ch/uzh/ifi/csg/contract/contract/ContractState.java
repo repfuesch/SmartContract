@@ -3,6 +3,10 @@ package ch.uzh.ifi.csg.contract.contract;
 import java.util.HashMap;
 import java.util.Map;
 
+/*
+ * Enum that contains all states that a contract implementation can be in. A contract must
+ * not necessarily account for all declared states.
+ */
 public enum ContractState {
 	Created(0), Locked(1), Inactive(2), AwaitPayment(3);
 
@@ -24,6 +28,12 @@ public enum ContractState {
         return hmap;
     }
 
+    /**
+     * Method that returns the ContractState value for a given integer
+     *
+     * @param state
+     * @return a ContractState or a KeyNotFoundException in case the given state does not exist
+     */
     public static ContractState valueOf(int state) {
         return map.get(state);
     }

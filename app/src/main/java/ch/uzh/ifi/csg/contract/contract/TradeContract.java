@@ -46,7 +46,8 @@ import rx.Subscription;
 import rx.functions.Action1;
 
 /**
- * Created by flo on 03.06.17.
+ * This class implements the ITradeContract interface and is derived rom the Contract base class
+ * of Web3j.
  */
 
 public abstract class TradeContract extends Contract implements ITradeContract
@@ -69,6 +70,12 @@ public abstract class TradeContract extends Contract implements ITradeContract
         images = new HashMap<>();
     }
 
+    /**
+     * Setts the ContractInfo object for this contract.
+     * This method is always called after the constructor.
+     *
+     * @param contractInfo
+     */
     public void initContract(ContractInfo contractInfo)
     {
         this.contractInfo = contractInfo;
@@ -93,6 +100,25 @@ public abstract class TradeContract extends Contract implements ITradeContract
         });
     }
 
+    /**
+     *  Creates a smart contract with the provided binary code, arguments and value on the blockchain.
+     *  If the creation succeeds, a Java wrapper class instance is created that implements all
+     *  interaction logic to access smart contract fields and execute transactions.
+     *
+     * @param clazz The java wrapper class for this contract. Must be derived from TradeContract.
+     * @param web3j The Web3j client object
+     * @param transactionManager The TransactionHandler used for signing and executing transactions
+     *                           on the contract on the blockchain.
+     * @param gasPrice  The gas price used by the TransactionHandler when executing transactions
+     * @param gasLimit The gas limit used by the TransactionHandler when executing transactions
+     * @param contractInfo Object that contains all information that is stored locally
+     * @param binary The binary contract code of the smart contract deployed on the blockchain
+     * @param value The value in wei that is sent in the transaction that creates this contract
+     * @param args Web3j Type array that contains all arguments of the smart contract constructor
+     * @param <T> The concrete java wrapper class
+     * @return The Java wrapper class that
+     * @throws Exception
+     */
     public static <T extends TradeContract>  ITradeContract deployContract(
             final Class<T> clazz,
             final Web3j web3j,
@@ -110,6 +136,22 @@ public abstract class TradeContract extends Contract implements ITradeContract
             return contract;
     }
 
+    /**
+     * Creates and initializes a Java wrapper class derived from TradeContract that contains
+     * the interaction logic for the smart contract on the provided contract address.
+     *
+     * @param clazz The java wrapper class for this contract. Must be derived from TradeContract.
+     * @param contractAddress The Ethereum address that contains the smart contract code
+     * @param web3j The Web3j client object
+     * @param transactionManager The TransactionHandler used for signing and executing transactions
+     *                           on the contract on the blockchain.
+     * @param gasPrice  The gas price used by the TransactionHandler when executing transactions
+     * @param gasLimit The gas limit used by the TransactionHandler when executing transactions
+     * @param contractInfo Object that contains all information of a contract that is stored locally
+     * @param <T>
+     * @return
+     * @throws Exception
+     */
     public static <T extends TradeContract> ITradeContract loadContract(
             final Class<T> clazz,
             final String contractAddress,
@@ -146,20 +188,22 @@ public abstract class TradeContract extends Contract implements ITradeContract
                 });
     }
 
-    protected TransactionReceipt executeTransaction(Function function, BigInteger value) throws InterruptedException, ExecutionException, TransactionTimeoutException, IOException {
-        return executeTransaction(FunctionEncoder.encode(function), value);
-    }
-
     protected List<IContractObserver> getObservers() {
         return observers;
     }
 
+    /**
+     * Registers the aborted event of the contract
+     */
     protected void registerContractEvents()
     {
         Event event = new Event("aborted", new ArrayList<TypeReference<?>>(), new ArrayList<TypeReference<?>>());
         registerEvent(event);
     }
 
+    /**
+     * Unregisters all events that are registered for this contract
+     */
     protected void unregisterContractEvents()
     {
         for(final Subscription subscription : subscriptions)
@@ -176,6 +220,11 @@ public abstract class TradeContract extends Contract implements ITradeContract
         subscriptions.clear();
     }
 
+    /**
+     * Registers the provided event.
+     *
+     * @param event the Event to register
+     */
     protected void registerEvent(final Event event)
     {
         String encodedEventSignature = EventEncoder.encode(event);

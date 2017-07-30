@@ -2,6 +2,7 @@ package ch.uzh.ifi.csg.contract.util;
 
 import org.spongycastle.jcajce.provider.digest.Keccak;
 import org.spongycastle.util.encoders.Hex;
+import org.web3j.utils.Numeric;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -74,5 +75,17 @@ public class Web3Util {
 
         return true;
 
+    }
+
+    public static byte[] normalizeAddress(String address)
+    {
+        address = Numeric.cleanHexPrefix(address);
+        byte[] decodedAddress = Hex.decode(address);
+        byte[] result = new byte[20];
+        for(int i=0; i<20; i++)
+        {
+            result[i] = decodedAddress[i];
+        }
+        return result;
     }
 }

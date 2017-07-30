@@ -27,8 +27,8 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.Permiss
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.setting.SettingProviderImpl;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManager;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManagerImpl;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionHandler;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionHandlerImpl;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
@@ -205,7 +205,7 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
 
     private void initIntentFilters() {
         contractIntentFilter = new IntentFilter();
-        contractIntentFilter.addAction(TransactionManager.ACTION_CREATE_TRANSACTION);
+        contractIntentFilter.addAction(TransactionHandler.ACTION_TRANSACTION_CREATED);
         contractIntentFilter.addAction(SettingProviderImpl.ACTION_SETTINGS_CHANGED);
         contractIntentFilter.addAction(AccountActivity.ACTION_ACCOUNT_CHANGED);
         contractIntentFilter.addAction(EthConnectionService.ACTION_HANDLE_CONNECTION_DOWN);
@@ -268,9 +268,9 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
     private class ContractBroadcastReceiver extends android.content.BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(TransactionManagerImpl.ACTION_CREATE_TRANSACTION)) {
-                final String contractAddress = intent.getStringExtra(TransactionManager.CONTRACT_ADDRESS);
-                final ContractType contractType = (ContractType) intent.getSerializableExtra(TransactionManager.CONTRACT_TYPE);
+            if (intent.getAction().equals(TransactionHandlerImpl.ACTION_TRANSACTION_CREATED)) {
+                final String contractAddress = intent.getStringExtra(TransactionHandler.CONTRACT_ADDRESS);
+                final ContractType contractType = (ContractType) intent.getSerializableExtra(TransactionHandler.CONTRACT_TYPE);
                 onContractCreated(contractAddress, contractType);
                 return;
             } else if (intent.getAction().equals(SettingProviderImpl.ACTION_SETTINGS_CHANGED)) {

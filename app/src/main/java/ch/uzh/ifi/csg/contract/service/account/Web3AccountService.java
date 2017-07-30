@@ -52,7 +52,10 @@ public abstract class Web3AccountService implements AccountService
     {
         UserProfile profile = accountManager.getAccount(accountId).getProfile();
         if (profile == null)
-            return  new UserProfile();
+        {
+            return new UserProfile();
+        }
+
 
         return profile;
     }

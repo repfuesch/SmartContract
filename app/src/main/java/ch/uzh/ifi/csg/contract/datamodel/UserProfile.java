@@ -1,6 +1,8 @@
 package ch.uzh.ifi.csg.contract.datamodel;
 
 
+import java.math.BigInteger;
+
 import ezvcard.VCard;
 
 /**

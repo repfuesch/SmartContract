@@ -99,7 +99,7 @@ public class FileManager implements ContractManager, AccountManager {
             new File(path).delete();
         }
 
-        if(toDelete.getUserProfile().getProfileImagePath() != null)
+        if(toDelete.getUserProfile() != null && toDelete.getUserProfile().getProfileImagePath() != null)
             new File(toDelete.getUserProfile().getProfileImagePath()).delete();
 
         accountMap.get(account).getContracts().remove(contractAddress);

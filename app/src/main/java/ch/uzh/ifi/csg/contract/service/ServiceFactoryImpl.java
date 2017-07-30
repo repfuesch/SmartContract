@@ -1,7 +1,5 @@
 package ch.uzh.ifi.csg.contract.service;
 
-import android.support.v4.content.LocalBroadcastManager;
-
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.protocol.parity.Parity;
@@ -27,10 +25,11 @@ import ch.uzh.ifi.csg.contract.service.contract.Web3jContractService;
 import ch.uzh.ifi.csg.contract.service.exchange.CryptoCompareDeserializer;
 import ch.uzh.ifi.csg.contract.service.exchange.EthConvertService;
 import ch.uzh.ifi.csg.contract.service.exchange.JsonHttpConvertService;
+import cz.msebera.android.httpclient.client.config.RequestConfig;
 import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
 import cz.msebera.android.httpclient.impl.client.HttpClients;
-import cz.msebera.android.httpclient.params.HttpConnectionParams;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.AppContext;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 
 /**
  * Created by flo on 16.03.17.
@@ -40,7 +39,7 @@ public class ServiceFactoryImpl implements EthServiceFactory
 {
     private final CredentialProvider credentialProvider;
     private final FileManager fileManager;
-    private final AppContext appContext;
+    private final ApplicationContext appContext;
 
     public ServiceFactoryImpl(String accountDirectory, AppContext context)
     {
@@ -77,10 +76,10 @@ public class ServiceFactoryImpl implements EthServiceFactory
             int transactionSleepDuration)
     {
         String endpoint = "http://" + host + ":" + port + "/";
-        Web3j web3j = ParityFactory.build(new HttpService(endpoint));
+        Web3j web3j = ParityFactory.build(new HttpService(endpoint, buildHttpClient(1000)));
         TransactionManager transactionManager = new RawTransactionManager(web3j, credentialProvider.getCredentials(), transactionAttempts, transactionSleepDuration);
 
-        return new Web3jContractService(web3j, transactionManager, fileManager, gasPrice, gasLimit);
+        return new Web3jContractService(web3j, transactionManager, fileManager, appContext.getTransactionManager(), gasPrice, gasLimit, credentialProvider.getCredentials().getAddress());
     }
 
     @Override
@@ -95,7 +94,7 @@ public class ServiceFactoryImpl implements EthServiceFactory
     {
         String endpoint = "http://" + host + ":" + port + "/";
 
-        Parity parity = ParityFactory.build(new HttpService(endpoint));
+        Parity parity = ParityFactory.build(new HttpService(endpoint, buildHttpClient(1000)));
 
         TransactionManager transactionManager =
                 new ClientTransactionManager(
@@ -104,32 +103,29 @@ public class ServiceFactoryImpl implements EthServiceFactory
                         transactionAttempts,
                         transactionSleepDuration);
 
-        return new Web3jContractService(parity, transactionManager, fileManager, gasPrice, gasLimit);
+        return new Web3jContractService(parity, transactionManager, fileManager, appContext.getTransactionManager(), gasPrice, gasLimit, selectedAccount);
     }
 
     @Override
     public EthConvertService createHttpExchangeService()
     {
         String url = "https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=BTC,USD,EUR";
-        CloseableHttpClient client = HttpClients.custom().setConnectionManagerShared(true).build();
-        return new JsonHttpConvertService(client, url, new CryptoCompareDeserializer());
+        return new JsonHttpConvertService(buildHttpClient(1000), url, new CryptoCompareDeserializer());
     }
 
     @Override
-    public EthConnectionService createConnectionService(String host, int port, int pollingInterval)
+    public EthConnectionService createConnectionService(String host, int port)
     {
         String endpoint = "http://" + host + ":" + port + "/";
-        CloseableHttpClient client = HttpClients.custom().setConnectionManagerShared(true).build();
-        Parity parity = ParityFactory.build(new HttpService(endpoint, client));
+        Parity parity = ParityFactory.build(new HttpService(endpoint, buildHttpClient(1000)));
 
-        return new Web3ConnectionService(parity, Async.getScheduledExecutorService(), LocalBroadcastManager.getInstance(appContext), pollingInterval);
+        return new Web3ConnectionService(parity, Async.getScheduledExecutorService(), appContext.getBroadCastService(), 1000);
     }
 
     private CloseableHttpClient buildHttpClient(int timeout)
     {
-        //todo:set connection timeout
-        CloseableHttpClient client =  HttpClients.custom().setConnectionManagerShared(true).build();
-        HttpConnectionParams.setConnectionTimeout(client.getParams(), timeout);
+        RequestConfig.Builder requestConfigBuilder = RequestConfig.custom().setConnectionRequestTimeout(timeout).setConnectTimeout(timeout).setSocketTimeout(timeout);
+        CloseableHttpClient client = HttpClients.custom().setConnectionManagerShared(true).setDefaultRequestConfig(requestConfigBuilder.build()).build();
         return client;
     }
 }

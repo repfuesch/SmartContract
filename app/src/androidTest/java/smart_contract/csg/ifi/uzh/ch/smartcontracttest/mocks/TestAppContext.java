@@ -10,7 +10,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.Permiss
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ServiceProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.setting.SettingProvider;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManager;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PBuyerService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PSellerService;
 
@@ -24,7 +24,7 @@ public class TestAppContext extends Application implements ApplicationContext
 {
     private static ServiceProvider serviceProvider = new TestServiceProvider();
     public static SettingProvider SettingProvider = mock(SettingProvider.class);
-    public static TransactionManager TransactionManager = mock(TransactionManager.class);
+    public static TransactionHandler TransactionHandler = mock(TransactionHandler.class);
     public static P2PSellerService SellerService = mock(P2PSellerService.class);
     public static P2PBuyerService BuyerService = mock(P2PBuyerService.class);
     public static PermissionProvider PermissionProvider = mock(PermissionProvider.class);
@@ -40,8 +40,8 @@ public class TestAppContext extends Application implements ApplicationContext
     public SettingProvider getSettingProvider() { return SettingProvider; }
 
     @Override
-    public TransactionManager getTransactionManager() {
-        return TransactionManager;
+    public TransactionHandler getTransactionManager() {
+        return TransactionHandler;
     }
 
     @Override

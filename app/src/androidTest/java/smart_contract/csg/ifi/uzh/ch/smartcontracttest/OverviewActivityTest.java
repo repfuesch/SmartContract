@@ -7,7 +7,6 @@ import android.support.test.filters.MediumTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -18,16 +17,13 @@ import java.util.concurrent.Callable;
 
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
-import ch.uzh.ifi.csg.contract.contract.IContractObservable;
-import ch.uzh.ifi.csg.contract.contract.IContractObserver;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.ViewHelper.CustomViewActions;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.ViewHelper.RecyclerViewItemCountAssertion;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.broadcast.LocalBroadcastService;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManager;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionHandler;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create.ContractCreateActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display.ContractDetailActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.mocks.TestAppContext;
@@ -49,7 +45,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static smart_contract.csg.ifi.uzh.ch.smartcontracttest.ViewHelper.RecyclerViewMatcher.withRecyclerView;
@@ -268,9 +263,9 @@ public class OverviewActivityTest extends InstrumentedTestBase {
                 }));
 
         TestAppContext.BroadCastService = new LocalBroadcastService(context.getContext());
-        Intent createIntent = new Intent(TransactionManager.ACTION_CREATE_TRANSACTION);
-        createIntent.putExtra(TransactionManager.CONTRACT_TYPE, ContractType.Purchase);
-        createIntent.putExtra(TransactionManager.CONTRACT_ADDRESS, "new_contract_address");
+        Intent createIntent = new Intent(TransactionHandler.ACTION_TRANSACTION_CREATED);
+        createIntent.putExtra(TransactionHandler.CONTRACT_TYPE, ContractType.Purchase);
+        createIntent.putExtra(TransactionHandler.CONTRACT_ADDRESS, "new_contract_address");
 
         //act
         rule.launchActivity(new Intent());

@@ -21,7 +21,7 @@ public class PurchaseContractDeployFragment extends ContractDeployFragment
     }
 
     @Override
-    protected SimplePromise<ITradeContract> deployContract(BigInteger priceWei, String title, String description, final boolean needsVerification, final Map<String, File> imageSignatures)
+    protected SimplePromise<ITradeContract> deployContract(BigInteger priceWei, String title, String description, final boolean needsVerification, final Map<String, String> imageSignatures)
     {
         if(!(priceWei.mod(BigInteger.valueOf(2))).equals(BigInteger.ZERO))
         {
@@ -36,7 +36,7 @@ public class PurchaseContractDeployFragment extends ContractDeployFragment
                 priceWithDeposit,
                 title,
                 description,
-                new ArrayList(imageSignatures.keySet()),
+                imageSignatures,
                 needsVerification,
                 !deployFull);
     }

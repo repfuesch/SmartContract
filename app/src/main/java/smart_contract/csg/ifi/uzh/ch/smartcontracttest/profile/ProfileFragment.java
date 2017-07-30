@@ -266,14 +266,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
         qrImageView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, 125, 125, false));
     }
 
-    public void loadAccountProfileInformation()
-    {
-        String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
-        UserProfile userProfile = appContext.getServiceProvider().getAccountService().getAccountProfile(selectedAccount);
-        if(userProfile.getVCard() != null)
-            setProfileInformation(userProfile);
-    }
-
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
     {

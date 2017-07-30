@@ -2,6 +2,9 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider;
 
 import android.os.Environment;
 
+import java.util.List;
+
+import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.service.account.AccountService;
 import ch.uzh.ifi.csg.contract.service.connection.EthConnectionService;
 import ch.uzh.ifi.csg.contract.service.contract.ContractService;
@@ -70,10 +73,10 @@ public class EthServiceProvider implements ServiceProvider
 */
         exchangeService = serviceFactory.createHttpExchangeService();
 
-        connectionService = serviceFactory.createConnectionService(settingsProvider.getHost(), settingsProvider.getPort(), 5000);
+        connectionService = serviceFactory.createConnectionService(settingsProvider.getHost(), settingsProvider.getPort());
         connectionService.startPolling();
 
-        if(settingsProvider.getSelectedAccount() != "")
+        if(!settingsProvider.getSelectedAccount().isEmpty())
         {
 
             contractService = serviceFactory.createClientContractService(
@@ -84,6 +87,13 @@ public class EthServiceProvider implements ServiceProvider
                     settingsProvider.getGasLimit(),
                     settingsProvider.getTransactionAttempts(),
                     settingsProvider.getTransactionSleepDuration());
+
+            /*
+            List<ITradeContract> contracts = contractService.loadContracts(settingsProvider.getSelectedAccount()).get();
+            if(contracts != null) {
+                for (ITradeContract contract : contracts)
+                    contractService.removeContract(contract, settingsProvider.getSelectedAccount());
+            }
 
 /*
             contractService = serviceFactory.createWalletContractService(
@@ -97,29 +107,5 @@ public class EthServiceProvider implements ServiceProvider
 */
 
         }
-
-        //connectionService.startPolling();
-
-        /*
-        accountService = serviceFactory.createWalletAccountService(
-                settingsProvider.getHost(),
-                settingsProvider.getPort(),
-                AppContext.getContext().getApplicationContext().getFilesDir() + "/accounts",
-                Environment.getExternalStorageDirectory() + "/Ethereum/keystore",
-                false);
-
-        if(settingsProvider.getSelectedAccount() != null)
-        {
-            contractService = serviceFactory.createWalletContractService(
-                    settingsProvider.getHost(),
-                    settingsProvider.getPort(),
-                    settingsProvider.getSelectedAccount(),
-                    settingsProvider.getGasPrice(),
-                    settingsProvider.getGasLimit(),
-                    settingsProvider.getTransactionAttempts(),
-                    settingsProvider.getTransactionSleepDuration(),
-                    AppContext.getContext().getApplicationContext().getFilesDir() + "/contracts");
-        }
-    */
     }
 }

@@ -1,7 +1,7 @@
 package ch.uzh.ifi.csg.contract.contract;
 
 /**
- * Created by flo on 03.06.17.
+ * Enum that contains all contract types
  */
 
 public enum ContractType {

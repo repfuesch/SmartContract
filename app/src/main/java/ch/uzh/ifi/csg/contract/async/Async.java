@@ -24,14 +24,12 @@ import ch.uzh.ifi.csg.contract.async.promise.SimplePromiseAdapter;
 public class Async {
 
     private static DeferredManager deferredManager;
-    private static Map<UUID, SimplePromise> promiseMap;
     private static ScheduledExecutorService scheduledExecutorService;
 
     static {
         scheduledExecutorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 4);
         ExecutorService executorService =  Executors.newCachedThreadPool();
         deferredManager = new DefaultDeferredManager(executorService);
-        promiseMap = new HashMap<>();
     }
 
     public static <T> SimplePromise<T> toPromise(Callable<T> callable)
@@ -50,21 +48,7 @@ public class Async {
     {
         final UUID id = UUID.randomUUID();
         SimplePromise<T> simplePromise = new SimplePromiseAdapter<>(promise, id);
-        promiseMap.put(id, simplePromise);
-
-        simplePromise.always(new AlwaysCallback<T>() {
-            @Override
-            public void onAlways(Promise.State state, T resolved, Throwable rejected) {
-                promiseMap.remove(id);
-            }
-        });
-
         return simplePromise;
-    }
-
-    public static boolean hasPendingTransactions()
-    {
-        return !promiseMap.isEmpty();
     }
 
     public static ScheduledExecutorService getScheduledExecutorService()

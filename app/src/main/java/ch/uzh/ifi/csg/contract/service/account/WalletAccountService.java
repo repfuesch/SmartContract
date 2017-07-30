@@ -23,8 +23,8 @@ import ch.uzh.ifi.csg.contract.datamodel.Account;
  * debugging purposes.
  */
 
-public class WalletAccountService extends Web3AccountService{
-
+public class WalletAccountService extends Web3AccountService
+{
     private AccountManager accountManager;
     private String walletDirectory;
     private boolean useFullEncryption;

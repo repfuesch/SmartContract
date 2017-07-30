@@ -8,7 +8,9 @@ import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 
 /**
- * Created by flo on 03.06.17.
+ *  Interface that declares common methods for all contract implementations.
+ *  It declares methods used to store/manipulate local contract information
+ *  and remote accessors to access information that is stored on the smart contract.
  */
 
 public interface ITradeContract extends IContractObservable
@@ -36,7 +38,6 @@ public interface ITradeContract extends IContractObservable
     SimplePromise<String> getBuyer();
     SimplePromise<ContractState> getState();
     SimplePromise<Boolean> getVerifyIdentity();
-
     SimplePromise<String> getContentHash();
     SimplePromise<Boolean> verifyContent();
 }

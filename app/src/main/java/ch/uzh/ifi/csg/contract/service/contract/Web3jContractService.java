@@ -1,19 +1,28 @@
 package ch.uzh.ifi.csg.contract.service.contract;
 
+import org.spongycastle.util.encoders.Hex;
 import org.web3j.abi.datatypes.Bool;
 import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
 import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.crypto.Hash;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthGetCode;
+import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
+import org.web3j.rlp.RlpEncoder;
+import org.web3j.rlp.RlpList;
+import org.web3j.rlp.RlpString;
 import org.web3j.tx.TransactionManager;
+import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import ch.uzh.ifi.csg.contract.async.Async;
@@ -26,6 +35,8 @@ import ch.uzh.ifi.csg.contract.contract.RentContract;
 import ch.uzh.ifi.csg.contract.contract.TimeUnit;
 import ch.uzh.ifi.csg.contract.contract.TradeContract;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
+import ch.uzh.ifi.csg.contract.util.Web3Util;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionHandler;
 
 /**
  * Web3j implementation of the ContractService.
@@ -35,9 +46,11 @@ public class Web3jContractService implements ContractService
 {
     private final Web3j web3;
     private final TransactionManager transactionManager;
+    private TransactionHandler transactionHandler;
     private final BigInteger gasPrice;
     private final BigInteger gasLimit;
     private final ContractManager contractManager;
+    private String accountAddress;
 
     /**
      *
@@ -47,13 +60,15 @@ public class Web3jContractService implements ContractService
      * @param gasPrice
      * @param gasLimit
      */
-    public Web3jContractService(Web3j web3, TransactionManager transactionManager, ContractManager contractManager, BigInteger gasPrice, BigInteger gasLimit)
+    public Web3jContractService(Web3j web3, TransactionManager transactionManager, ContractManager contractManager, TransactionHandler transactionHandler, BigInteger gasPrice, BigInteger gasLimit, String accountAddress)
     {
         this.web3 = web3;
         this.transactionManager = transactionManager;
+        this.transactionHandler = transactionHandler;
         this.gasPrice = gasPrice;
         this.gasLimit = gasLimit;
         this.contractManager = contractManager;
+        this.accountAddress = accountAddress;
     }
 
     /**
@@ -66,22 +81,34 @@ public class Web3jContractService implements ContractService
      * @return  a promise representing the result of the call.
      */
     @Override
-    public SimplePromise<ITradeContract> deployPurchaseContract(final BigInteger value, final String title, final String description, final List<String> imageSignatures, final boolean verifyIdentity, boolean lightDeployment)
+    public SimplePromise<ITradeContract> deployPurchaseContract(final BigInteger value, final String title, final String description, final Map<String, String> imageSignatures, final boolean verifyIdentity, final boolean lightDeployment)
     {
-        if(lightDeployment)
-        {
-            ContractInfo info = new ContractInfo(ContractType.Purchase, "", title, description, verifyIdentity, true);
-            List<Type> typeList = new ArrayList<>();
-            byte[] bytes = BinaryUtil.hexStringToByteArray(info.getContentHash());
-            typeList.add(new Bytes32(bytes));
-            info.setLightContract(true);
-            return deploy(PurchaseContract.class, PurchaseContract.BINARY_LIGHT, info, typeList, value);
+        final String contractAddress = calculateContractAddress(accountAddress).get();
+        final ContractInfo info = new ContractInfo(ContractType.Purchase, contractAddress, title, description, verifyIdentity, lightDeployment);
+        info.setImages(imageSignatures);
 
-        }else{
-            ContractInfo info = new ContractInfo(ContractType.Purchase, "", title, description, verifyIdentity, false);
-            List<Type> typeList = buildTypeList(title, description, imageSignatures, verifyIdentity);
-            return deploy(PurchaseContract.class, PurchaseContract.BINARY_FULL, info, typeList, value);
-        }
+        SimplePromise<ITradeContract> promise = Async.toPromise(new Callable<ITradeContract>()
+        {
+            @Override
+            public ITradeContract call() throws Exception {
+
+                if(lightDeployment)
+                {
+                    List<Type> typeList = new ArrayList<>();
+                    byte[] bytes = BinaryUtil.hexStringToByteArray(info.getContentHash());
+                    typeList.add(new Bytes32(bytes));
+                    return deploy(PurchaseContract.class, PurchaseContract.BINARY_LIGHT, info, typeList, value);
+
+                }else{
+                    List<Type> typeList = buildTypeList(title, description, imageSignatures.keySet(), verifyIdentity);
+                    ITradeContract contract = deploy(PurchaseContract.class, PurchaseContract.BINARY_FULL, info, typeList, value);
+                    return contract;
+                }
+            }
+        });
+
+        transactionHandler.toDeployTransaction(promise, info, accountAddress, this);
+        return promise;
     }
 
     /**
@@ -99,33 +126,41 @@ public class Web3jContractService implements ContractService
             final TimeUnit timeUnit,
             final String title,
             final String description,
-            final List<String> imageSignatures,
+            final Map<String, String> imageSignatures,
             final boolean verifyIdentity,
-            boolean lightDeployment)
+            final boolean lightDeployment)
     {
+        final String contractAddress = calculateContractAddress(accountAddress).get();
+        final ContractInfo contractInfo = new ContractInfo(ContractType.Rent, contractAddress, title, description, verifyIdentity, lightDeployment);
+        contractInfo.setImages(imageSignatures);
 
+        SimplePromise<ITradeContract> promise = Async.toPromise(new Callable<ITradeContract>() {
+            @Override
+            public ITradeContract call() throws Exception {
 
-        if(lightDeployment)
-        {
-            ContractInfo contractInfo = new ContractInfo(ContractType.Rent, "", title, description, verifyIdentity, true);
-            contractInfo.setLightContract(true);
-            List<Type> typeList = new ArrayList<>();
-            typeList.add(new Uint256(deposit));
-            typeList.add(new Uint256(price));
-            byte[] bytes = BinaryUtil.hexStringToByteArray(contractInfo.getContentHash());
-            typeList.add(new Bytes32(bytes));
-            return deploy(RentContract.class, RentContract.BINARY_LIGHT, contractInfo, typeList, BigInteger.ZERO);
+                if(lightDeployment)
+                {
+                    List<Type> typeList = new ArrayList<>();
+                    typeList.add(new Uint256(deposit));
+                    typeList.add(new Uint256(price));
+                    byte[] bytes = BinaryUtil.hexStringToByteArray(contractInfo.getContentHash());
+                    typeList.add(new Bytes32(bytes));
+                    return deploy(RentContract.class, RentContract.BINARY_LIGHT, contractInfo, typeList, BigInteger.ZERO);
 
-        }else{
-            ContractInfo contractInfo = new ContractInfo(ContractType.Rent, "", title, description, verifyIdentity, false);
-            List<Type> typeList = buildTypeList(title, description, imageSignatures, verifyIdentity);
-            typeList.add(new Uint256(deposit));
-            typeList.add(new Uint256(price));
-            return deploy(RentContract.class, RentContract.BINARY_FULL, contractInfo, typeList, BigInteger.ZERO);
-        }
+                }else{
+                    List<Type> typeList = buildTypeList(title, description, imageSignatures.keySet(), verifyIdentity);
+                    typeList.add(new Uint256(deposit));
+                    typeList.add(new Uint256(price));
+                    return deploy(RentContract.class, RentContract.BINARY_FULL, contractInfo, typeList, BigInteger.ZERO);
+                }
+            }
+        });
+
+        transactionHandler.toDeployTransaction(promise, contractInfo, accountAddress, this);
+        return promise;
     }
 
-    private List<Type> buildTypeList(final String title, final String description, final List<String> imageSignatures, final boolean verifyIdentity)
+    private List<Type> buildTypeList(final String title, final String description, final Set<String> imageSignatures, final boolean verifyIdentity)
     {
         List<Type> typeList = new ArrayList<>();
         typeList.add(new Utf8String(title));
@@ -149,9 +184,8 @@ public class Web3jContractService implements ContractService
         return typeList;
     }
 
-    private SimplePromise<ITradeContract> deploy(Class<? extends TradeContract> clazz, String binary, ContractInfo contractInfo, List<Type> paramList, BigInteger value)
-    {
-        return TradeContract.deployContractAsync(
+    private ITradeContract deploy(Class<? extends TradeContract> clazz, String binary, ContractInfo contractInfo, List<Type> paramList, BigInteger value) throws Exception {
+        return TradeContract.deployContract(
                 clazz,
                 web3,
                 transactionManager,
@@ -164,7 +198,7 @@ public class Web3jContractService implements ContractService
     }
 
     /**
-     * Loads a contract from the blockchain specified by the provided address.
+     * Loads a contract from the blockchain specified by the provided accountAddress.
      *
      * @param contractAddress
      * @return a promise representing the result of the call.
@@ -300,6 +334,35 @@ public class Web3jContractService implements ContractService
                     return false;
 
                 return response.getCode().equals(binary);
+            }
+        });
+    }
+
+    private SimplePromise<String> calculateContractAddress(final String senderAddress)
+    {
+        return Async.toPromise(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                BigInteger nonce = getNonce(senderAddress).get();
+                RlpString rlpNonce = RlpString.create(nonce);
+                RlpString rlpAddress = RlpString.create(Web3Util.normalizeAddress(senderAddress));
+                byte[] encodedList = RlpEncoder.encode(new RlpList(rlpAddress, rlpNonce));
+                byte[] addressHash = Hash.sha3(encodedList);
+                String addressString = Hex.toHexString(addressHash);
+                return Numeric.prependHexPrefix(addressString.substring(24));
+            }
+        });
+    }
+
+    private SimplePromise<BigInteger> getNonce(final String address)
+    {
+        return Async.toPromise(new Callable<BigInteger>() {
+            @Override
+            public BigInteger call() throws Exception {
+                EthGetTransactionCount ethGetTransactionCount = web3.ethGetTransactionCount(
+                        address, DefaultBlockParameterName.PENDING).send();
+
+                return ethGetTransactionCount.getTransactionCount();
             }
         });
     }

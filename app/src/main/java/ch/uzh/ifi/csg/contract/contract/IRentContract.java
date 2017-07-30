@@ -5,7 +5,7 @@ import java.math.BigInteger;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 
 /**
- * Created by flo on 03.06.17.
+ * Interface that declares transaction methods and accessors for all rent contract implementations
  */
 
 public interface IRentContract extends ITradeContract {

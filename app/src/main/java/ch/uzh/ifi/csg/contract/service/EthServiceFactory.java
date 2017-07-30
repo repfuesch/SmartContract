@@ -40,5 +40,5 @@ public interface EthServiceFactory
 
     EthConvertService createHttpExchangeService();
 
-    EthConnectionService createConnectionService(String host, int port, int pollingInterval);
+    EthConnectionService createConnectionService(String host, int port);
 }

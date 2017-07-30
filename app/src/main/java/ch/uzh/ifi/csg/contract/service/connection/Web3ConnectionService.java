@@ -1,17 +1,16 @@
 package ch.uzh.ifi.csg.contract.service.connection;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 
-import org.web3j.abi.datatypes.Bool;
 import org.web3j.protocol.Web3j;
 
 import java.io.IOException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.broadcast.BroadCastService;
 
 /**
  * Created by flo on 10.04.17.
@@ -21,17 +20,17 @@ public class Web3ConnectionService implements EthConnectionService {
 
     private Web3j web3;
     private ScheduledExecutorService executorService;
-    private LocalBroadcastManager broadcastManager;
+    private BroadCastService broadCastService;
     private int pollingInterval;
     private ScheduledFuture future;
     private boolean connectionUp;
     private boolean connectionWasUp;
 
-    public Web3ConnectionService(Web3j web3, ScheduledExecutorService executorService, LocalBroadcastManager broadcastManager, int pollingInterval)
+    public Web3ConnectionService(Web3j web3, ScheduledExecutorService executorService, BroadCastService broadCastService, int pollingInterval)
     {
         this.web3 = web3;
         this.executorService = executorService;
-        this.broadcastManager = broadcastManager;
+        this.broadCastService = broadCastService;
         this.pollingInterval = pollingInterval;
         connectionUp = true;
     }
@@ -82,7 +81,7 @@ public class Web3ConnectionService implements EthConnectionService {
         }else{
             intent.setAction(EthConnectionService.ACTION_HANDLE_CONNECTION_DOWN);
         }
-        broadcastManager.sendBroadcast(intent);
+        broadCastService.sendBroadcast(intent);
     }
 
 }

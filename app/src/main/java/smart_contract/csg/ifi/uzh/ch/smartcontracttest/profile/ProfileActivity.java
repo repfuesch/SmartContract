@@ -26,7 +26,7 @@ public class ProfileActivity extends ActivityBase implements ProfileFragment.Pro
 
         profileFragment = (ProfileFragment) getFragmentManager().findFragmentById(R.id.profile_fragment);
         profileFragment.setMode(ProfileFragment.ProfileMode.Edit);
-        profileFragment.loadAccountProfileInformation();
+        loadAccountProfile();
     }
 
     @Override
@@ -35,8 +35,17 @@ public class ProfileActivity extends ActivityBase implements ProfileFragment.Pro
     }
 
     @Override
-    protected void onSettingsChanged() {
-        profileFragment.loadAccountProfileInformation();
+    protected void onSettingsChanged()
+    {
+        loadAccountProfile();
+    }
+
+    private void loadAccountProfile()
+    {
+        String selectedAccount = getAppContext().getSettingProvider().getSelectedAccount();
+        UserProfile userProfile = getAppContext().getServiceProvider().getAccountService().getAccountProfile(selectedAccount);
+
+        profileFragment.setProfileInformation(userProfile);
     }
 
     @Override

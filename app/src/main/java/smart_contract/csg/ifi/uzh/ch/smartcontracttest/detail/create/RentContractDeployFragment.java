@@ -74,7 +74,7 @@ public class RentContractDeployFragment extends ContractDeployFragment
     }
 
     @Override
-    protected SimplePromise<ITradeContract> deployContract(BigInteger priceWei, String title, String description, boolean needsVerification, final Map<String, File> imageSignatures)
+    protected SimplePromise<ITradeContract> deployContract(BigInteger priceWei, String title, String description, boolean needsVerification, final Map<String, String> imageSignatures)
     {
         BigDecimal deposit = new BigDecimal(depositField.getText().toString());
         BigDecimal depositEther = appContext.getServiceProvider().getExchangeService().convertToEther(deposit, selectedCurrency).get();
@@ -99,7 +99,7 @@ public class RentContractDeployFragment extends ContractDeployFragment
                 selectedTimeUnit,
                 title,
                 description,
-                new ArrayList(imageSignatures.keySet()),
+                imageSignatures,
                 needsVerification,
                 !deployFull);
     }

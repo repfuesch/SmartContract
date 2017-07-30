@@ -1,12 +1,15 @@
 package ch.uzh.ifi.csg.contract.service.account;
 
 
+import org.web3j.crypto.ECKeyPair;
+import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.parity.Parity;
 import org.web3j.protocol.parity.methods.response.NewAccountIdentifier;
 import org.web3j.protocol.parity.methods.response.PersonalListAccounts;
 import org.web3j.protocol.parity.methods.response.PersonalUnlockAccount;
 
 import java.math.BigInteger;
+import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -31,6 +34,7 @@ public class ParityAccountService extends Web3AccountService{
         super(parity, accountManager);
         this.parity = parity;
         this.accountManager = accountManager;
+
     }
 
     @Override

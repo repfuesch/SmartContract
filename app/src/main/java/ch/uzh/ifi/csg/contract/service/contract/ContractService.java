@@ -5,6 +5,7 @@ import org.web3j.tx.Contract;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
@@ -24,7 +25,7 @@ public interface ContractService {
             BigInteger price,
             String title,
             String description,
-            List<String> imageSignatures,
+            Map<String, String> imageSignatures,
             boolean verifyIdentity,
             boolean lightDeployment);
 
@@ -34,7 +35,7 @@ public interface ContractService {
             TimeUnit timeUnit,
             String title,
             String description,
-            List<String> imageSignatures,
+            Map<String, String> imageSignatures,
             boolean verifyIdentity,
             boolean lightDeployment);
 

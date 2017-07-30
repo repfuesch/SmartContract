@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.p2p.WifiP2pManager;
-import android.os.Message;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,8 +20,8 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.Applicati
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ServiceProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.setting.SettingProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.setting.SettingProviderImpl;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManager;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionManagerImpl;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionHandler;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionHandlerImpl;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.EthServiceProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.connection.WifiConnectionManager;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PBuyerService;
@@ -38,7 +37,7 @@ public class AppContext extends Application implements ApplicationContext
 {
     private SettingProviderImpl settingsProvider;
     private EthServiceProvider ethServiceProvider;
-    private TransactionManagerImpl transactionManager;
+    private TransactionHandlerImpl transactionManager;
     private BroadcastReceiver broadcastReceiver;
     private P2PSellerServiceImpl p2PSellerService;
     private P2PBuyerServiceImpl p2PBuyerService;
@@ -58,11 +57,11 @@ public class AppContext extends Application implements ApplicationContext
         messageService = new MessageServiceImpl();
         permissionProvider = PermissionProviderImpl.create();
         broadCastService = LocalBroadcastService.create(this);
-        transactionManager = TransactionManagerImpl.create(broadCastService, messageService);
         broadCastService.registerReceiver(broadcastReceiver, new IntentFilter(SettingProviderImpl.ACTION_SETTINGS_CHANGED));
         settingsProvider = SettingProviderImpl.create(this);
         ethServiceProvider = EthServiceProvider.create(this);
         ethServiceProvider.initServices(settingsProvider);
+        transactionManager = TransactionHandlerImpl.create(this);
 
         WifiP2pManager p2pManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         WifiP2pManager.Channel p2pChannel = p2pManager.initialize(this, getMainLooper(), null);
@@ -89,7 +88,7 @@ public class AppContext extends Application implements ApplicationContext
     }
 
     @Override
-    public TransactionManager getTransactionManager()
+    public TransactionHandler getTransactionManager()
     {
         return transactionManager;
     }

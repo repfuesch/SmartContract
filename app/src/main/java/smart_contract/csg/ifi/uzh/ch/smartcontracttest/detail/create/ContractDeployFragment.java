@@ -215,13 +215,13 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         final String title = titleField.getText().toString();
         final String desc = descriptionField.getText().toString();
 
-        final Map<String, File> imageSignatures = new HashMap<>();
+        final Map<String, String> imageSignatures = new HashMap<>();
 
         for(Bitmap bmp : images.values())
         {
             File imgFile = ImageHelper.saveBitmap(bmp, appContext.getSettingProvider().getImageDirectory());
             String hashSig = ImageHelper.getImageHash(bmp);
-            imageSignatures.put(hashSig, imgFile);
+            imageSignatures.put(hashSig, imgFile.getAbsolutePath());
         }
 
         final BigDecimal price = new BigDecimal(priceField.getText().toString());
@@ -236,27 +236,11 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         if(promise == null)
             return;
 
-        promise.done(new DoneCallback<ITradeContract>() {
-            @Override
-            public void onDone(ITradeContract result) {
-                //add image paths to contract after creation
-                for(String sig : imageSignatures.keySet())
-                {
-                    result.getImages().put(sig, imageSignatures.get(sig).getAbsolutePath());
-                }
-
-                //persist contract on the file system
-                appContext.getServiceProvider().getContractService().saveContract(result, appContext.getSettingProvider().getSelectedAccount());
-            }
-        });
-
-        appContext.getTransactionManager().toTransaction(promise);
-
         Intent intent = new Intent(getActivity(), ContractOverviewActivity.class);
         startActivity(intent);
     }
 
-    protected abstract SimplePromise<ITradeContract> deployContract(BigInteger priceWei, String title, String description, boolean needsVerification, Map<String, File> imageSignatures);
+    protected abstract SimplePromise<ITradeContract> deployContract(BigInteger priceWei, String title, String description, boolean needsVerification, Map<String, String> imageSignatures);
 
     @Override
     public void onAttach(Context context) {

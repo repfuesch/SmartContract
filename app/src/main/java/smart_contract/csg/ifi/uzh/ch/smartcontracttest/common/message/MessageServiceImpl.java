@@ -39,6 +39,9 @@ public class MessageServiceImpl implements MessageService, ActivityChangedListen
 
     @Override
     public void showSnackBarMessage(final String message, final int length) {
+        if(activity == null)
+            return;
+
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -50,6 +53,10 @@ public class MessageServiceImpl implements MessageService, ActivityChangedListen
     }
 
     private void showMessageDialog(final Bundle bundle) {
+
+        if(activity == null)
+            return;
+
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -67,5 +74,6 @@ public class MessageServiceImpl implements MessageService, ActivityChangedListen
 
     @Override
     public void onActivityStopped(ActivityBase activity) {
+        this.activity = null;
     }
 }
