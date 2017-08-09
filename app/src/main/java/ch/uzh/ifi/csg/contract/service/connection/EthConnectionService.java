@@ -1,15 +1,12 @@
 package ch.uzh.ifi.csg.contract.service.connection;
 
-import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
-
 /**
- * Created by flo on 10.04.17.
+ * Service interface to start- and stop checking the connection status to the Ethereum client.
  */
-
 public interface EthConnectionService
 {
-    public static String ACTION_HANDLE_CONNECTION_DOWN= "ch.uzh.ifi.csg.smart_contract.connection.down";
-    public static String ACTION_HANDLE_CONNECTION_UP = "ch.uzh.ifi.csg.smart_contract.connection.up";
+    String ACTION_HANDLE_CONNECTION_DOWN= "ch.uzh.ifi.csg.smart_contract.connection.down";
+    String ACTION_HANDLE_CONNECTION_UP = "ch.uzh.ifi.csg.smart_contract.connection.up";
 
     void startPolling();
     void stopPolling();

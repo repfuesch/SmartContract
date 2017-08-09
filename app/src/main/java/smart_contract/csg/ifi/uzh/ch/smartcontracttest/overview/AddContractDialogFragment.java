@@ -31,7 +31,8 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountDialogFrag
 import static android.app.Activity.RESULT_OK;
 
 /**
- *
+ * Dialog Fragment that allows the user to select a {@link ContractType} to create a new contract
+ * or to import a contract by its address.
  */
 public class AddContractDialogFragment extends DialogFragment implements RadioGroup.OnCheckedChangeListener {
 
@@ -47,11 +48,24 @@ public class AddContractDialogFragment extends DialogFragment implements RadioGr
 
     private AddContractDialogListener dialogListener;
 
-    /* The activity that creates an instance of this dialog fragment must
-     * implement this interface in order to receive event callbacks.
-     * Each method passes the DialogFragment in case the host needs to query it. */
+
+    /**
+     * Callback interface to notify observers about the choice of the user
+     */
     public interface AddContractDialogListener {
+        /**
+         * Invoked when the user wants to add an existing contract of the specified type and
+         * with the specified address.
+         *
+         * @param contractAddress
+         * @param type
+         */
         void onAddContract(String contractAddress, ContractType type);
+
+        /**
+         * Invoked when the user wants to create a new contract of the specified type.
+         * @param type
+         */
         void onCreateContract(ContractType type);
     }
 
@@ -103,8 +117,10 @@ public class AddContractDialogFragment extends DialogFragment implements RadioGr
         // Create the AlertDialog object and return it
         Dialog diag = builder.create();
 
+        //Find and init the UI components
         contractAddressField = (EditText) contentView.findViewById(R.id.contract_address_field);
         contractAddressSection = (LinearLayout)contentView.findViewById(R.id.manual_contract_address_section);
+
         optionAddContract = (RadioButton) contentView.findViewById(R.id.option_add_contract);
         optionCreateContract = (RadioButton) contentView.findViewById(R.id.option_create_contract);
         radioGroup = (RadioGroup) contentView.findViewById(R.id.account_radio_group);

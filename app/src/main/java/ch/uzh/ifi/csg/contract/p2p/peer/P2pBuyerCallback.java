@@ -2,14 +2,31 @@ package ch.uzh.ifi.csg.contract.p2p.peer;
 
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.dialog.P2pImportDialog;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.UserProfileListener;
 
 /**
- * Created by flo on 16.06.17.
+ * Buyer/import interface that is implemented by UI components that receive contract information over
+ * a wireless channel.
+ *
+ * See {@link P2pImportDialog}
+ * See {@link BuyerPeer}
  */
-
 public interface P2pBuyerCallback extends P2pCallback
 {
+    /**
+     * Callback method that is executed by the {@link BuyerPeer} after it received the contract info
+     * from the seller.
+     *
+     * @param contractInfo: object that stores the contract details
+     */
     void onContractInfoReceived(ContractInfo contractInfo);
+
+    /**
+     * Callback method executed by the {@link BuyerPeer} when the UserProfile of the unlocked
+     * account is requested by the seller.
+     *
+     * @param listener: Callback invoked when the UserProfile is ready to be sent.
+     */
     void onUserProfileRequested(UserProfileListener listener);
 }

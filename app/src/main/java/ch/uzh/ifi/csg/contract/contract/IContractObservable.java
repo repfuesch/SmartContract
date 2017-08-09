@@ -1,11 +1,21 @@
 package ch.uzh.ifi.csg.contract.contract;
 
 /**
- * Interface implemented by all TradeContract implementations that contain events.
- * It declares methods to add and remove an IContractObserver to/from a contract
+ * Interface to subscribe and unsubscribe observers to events of a contract
  */
 public interface IContractObservable 
 {
+    /**
+     * Adds a contract observer
+     *
+     * @param observer
+     */
 	void addObserver(IContractObserver observer);
+
+    /**
+     * Removed a contract observer
+     *
+     * @param observer
+     */
 	void removeObserver(IContractObserver observer);
 }

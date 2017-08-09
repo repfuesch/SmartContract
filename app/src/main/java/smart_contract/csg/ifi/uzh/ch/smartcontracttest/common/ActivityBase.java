@@ -36,12 +36,17 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsActivity;
 
 /**
- * Base class for all Activities
- *
- * Created by flo on 13.03.17.
+ * Base class for all Activities.
+ * Implements the {@link ApplicationContextProvider} interface to
+ * provide the {@link ApplicationContext} to derived classes and their fragments.
+ * The class also handles the result of Permission requests at runtime, contains the toolbar
+ * interaction logic and handles global Messages in its {@link ContractBroadcastReceiver}. It
+ * declares abstract methods that derived classes have to override in order to react to the creation
+ * of contracts, to the change of settings or to granted/denied permission requests.
  *
  */
-public abstract class ActivityBase extends AppCompatActivity implements ApplicationContextProvider {
+public abstract class ActivityBase extends AppCompatActivity implements ApplicationContextProvider
+{
     private Toolbar toolbar;
     private LinearLayout accountBalanceView;
     private TextView accountBalanceField;
@@ -79,14 +84,20 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
             callingActivityClass = (Class) getIntent().getSerializableExtra("from");
     }
 
-    protected final LinearLayout getBalanceView() {
-        return this.accountBalanceView;
-    }
-
+    /**
+     * accessor to retrieve the LayoutResourceId from derived classes
+     * @return
+     */
     protected abstract int getLayoutResourceId();
 
     public ApplicationContext getAppContext() { return appContext; }
 
+    /**
+     * Prepares the Menu items for the toolbar
+     *
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onPrepareOptionsMenu(final Menu menu) {
         menu.clear();
@@ -111,6 +122,12 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
         }
     }
 
+    /**
+     * Menu interaction logic for a MenuItem
+     *
+     * @param item
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -145,6 +162,13 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
         }
     }
 
+    /**
+     * Handles the result of a Permission request
+     *
+     * @param requestCode
+     * @param permissions
+     * @param grantResults
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -201,6 +225,9 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
         appContext.getMessageService().showSnackBarMessage("Established connection to host", Snackbar.LENGTH_LONG);
     }
 
+    /**
+     * Called every time the settings or the selected account have changed
+     */
     protected abstract void onSettingsChanged();
 
     private void initIntentFilters() {
@@ -217,6 +244,7 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
         super.onPause();
 
         appContext.onActivityStopped(this);
+
         if (broadcastReceiverRegistered) {
             appContext.getBroadCastService().unregisterReceiver(broadcastReceiver);
             broadcastReceiverRegistered = false;
@@ -236,6 +264,7 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
         if(accountBalanceView != null)
             updateAccountBalance();
 
+        //check if there are pending permission requests and notify the derived Activity
         if(requestedPermission != null)
         {
             if(permissionGranted)
@@ -250,20 +279,38 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
         }
     }
 
+    /**
+     * Invoked after a permission was granted by the user at runtime
+     *
+     * @param permission
+     */
     protected void onPermissionGranted(String permission) {}
 
+
+    /**
+     * Invoked after a permission was denied by the user at runtime
+     *
+     * @param permission
+     */
     protected void onPermissionDenied(String permission)
     {
+        //show permission rationale to the user
         if(permissionRationale != null)
             appContext.getMessageService().showSnackBarMessage(permissionRationale, Snackbar.LENGTH_LONG);
     }
 
+    /**
+     * Invoked every time a contract has been created
+     *
+     * @param contractAddress
+     * @param type
+     */
     protected void onContractCreated(String contractAddress, ContractType type) {
         appContext.getMessageService().showSnackBarMessage(getString(R.string.contract_created), Snackbar.LENGTH_LONG);
     }
 
     /**
-     * Inner class for receiving broadcast messages upon contract transactions
+     * Inner class for receiving broadcast messages
      */
     private class ContractBroadcastReceiver extends android.content.BroadcastReceiver {
         @Override

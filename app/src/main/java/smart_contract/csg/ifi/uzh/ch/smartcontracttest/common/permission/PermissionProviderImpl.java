@@ -11,20 +11,11 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityChangedLis
 
 
 /**
- * Created by flo on 09.07.17.
+ * {@link PermissionProvider} implementation. Implements the {@link ActivityChangedListener} to keep
+ * track of the active Activity and uses it to check and request Android permissions.
  */
-
 public class PermissionProviderImpl implements PermissionProvider, ActivityChangedListener
 {
-    private static PermissionProviderImpl instance;
-
-    public static PermissionProviderImpl create()
-    {
-        if(instance == null)
-            instance = new PermissionProviderImpl();
-        return instance;
-    }
-
     private ActivityBase activity;
     private final int permissionRequestCode = 200;
 

@@ -9,19 +9,12 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityChangedLis
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.MessageDialogFragment;
 
 /**
- * Created by flo on 13.07.17.
+ * {@link MessageService} implementations that implements the {@link ActivityChangedListener} to
+ * keep track of the active Activity. It displays the messages using a {@link MessageDialogFragment}
  */
-
 public class MessageServiceImpl implements MessageService, ActivityChangedListener
 {
     private ActivityBase activity;
-
-    @Override
-    public void handleError(Throwable exception) {
-        Bundle bundle = new Bundle();
-        bundle.putSerializable(MessageDialogFragment.EXCEPTION_MESSAGE, exception);
-        showMessageDialog(bundle);
-    }
 
     @Override
     public void showErrorMessage(String message) {

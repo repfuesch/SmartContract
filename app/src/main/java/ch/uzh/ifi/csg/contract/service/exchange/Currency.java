@@ -1,9 +1,8 @@
 package ch.uzh.ifi.csg.contract.service.exchange;
 
 /**
- * Created by flo on 07.04.17.
+ * Enum containing all available currencies
  */
-
 public enum Currency
 {
     USD,

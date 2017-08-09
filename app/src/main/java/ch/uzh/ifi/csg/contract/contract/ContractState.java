@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /*
- * Enum that contains all states that a contract implementation can be in. A contract must
+ * Enum that contains all states that a contract implementation can be in. A contract does
  * not necessarily account for all declared states.
  */
 public enum ContractState {

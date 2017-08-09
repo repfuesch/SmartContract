@@ -5,9 +5,8 @@ import android.text.TextWatcher;
 import android.widget.TextView;
 
 /**
- * Validator base class for validation of TextView controls
+ * Validator base class for validation of {@link TextView} controls
  */
-
 public abstract class TextFieldValidator implements TextWatcher {
 
     private TextView textView;

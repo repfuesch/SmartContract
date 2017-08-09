@@ -30,23 +30,26 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PSellerServ
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PSellerServiceImpl;
 
 /**
- * Custom application class for holding and accessing the EthServiceProvider and SettingProviderImpl instances
+ * Custom application class that initializes, manages and provides all globally accessible
+ * Service- and Provider objects.
  */
-
 public class AppContext extends Application implements ApplicationContext
 {
-    private SettingProviderImpl settingsProvider;
+    private SettingProvider settingsProvider;
     private EthServiceProvider ethServiceProvider;
-    private TransactionHandlerImpl transactionManager;
+    private TransactionHandler transactionManager;
     private BroadcastReceiver broadcastReceiver;
-    private P2PSellerServiceImpl p2PSellerService;
-    private P2PBuyerServiceImpl p2PBuyerService;
+    private P2PSellerService p2PSellerService;
+    private P2PBuyerService p2PBuyerService;
     private WifiConnectionManager wifiManager;
-    private PermissionProviderImpl permissionProvider;
+    private PermissionProvider permissionProvider;
     private BroadCastService broadCastService;
-    private MessageServiceImpl messageService;
+    private MessageService messageService;
     private List<ActivityChangedListener> activityChangedListeners;
 
+    /**
+     * Initializes objects when Application is created
+     */
     @Override
     public void onCreate() {
         super.onCreate();
@@ -55,17 +58,17 @@ public class AppContext extends Application implements ApplicationContext
         broadcastReceiver = new BroadCastReceiver();
 
         messageService = new MessageServiceImpl();
-        permissionProvider = PermissionProviderImpl.create();
-        broadCastService = LocalBroadcastService.create(this);
+        permissionProvider = new PermissionProviderImpl();
+        broadCastService = new LocalBroadcastService(this);
         broadCastService.registerReceiver(broadcastReceiver, new IntentFilter(SettingProviderImpl.ACTION_SETTINGS_CHANGED));
-        settingsProvider = SettingProviderImpl.create(this);
-        ethServiceProvider = EthServiceProvider.create(this);
+        settingsProvider = new SettingProviderImpl(this);
+        ethServiceProvider = new EthServiceProvider(this);
         ethServiceProvider.initServices(settingsProvider);
-        transactionManager = TransactionHandlerImpl.create(this);
+        transactionManager = new TransactionHandlerImpl(this);
 
         WifiP2pManager p2pManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         WifiP2pManager.Channel p2pChannel = p2pManager.initialize(this, getMainLooper(), null);
-        wifiManager = WifiConnectionManager.create(p2pManager, p2pChannel);
+        wifiManager = new WifiConnectionManager(p2pManager, p2pChannel);
 
         p2PBuyerService = new P2PBuyerServiceImpl(wifiManager);
         p2PSellerService = new P2PSellerServiceImpl(wifiManager);
@@ -144,6 +147,7 @@ public class AppContext extends Application implements ApplicationContext
         {
             if(intent.getAction().equals(SettingProviderImpl.ACTION_SETTINGS_CHANGED))
             {
+                //re-initialize all Ethereum services when the settings have changed
                 ethServiceProvider.initServices(settingsProvider);
             }
         }

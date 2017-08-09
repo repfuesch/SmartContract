@@ -34,18 +34,8 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityChangedLis
 /**
  * Created by flo on 23.06.17.
  */
-
 public class WifiConnectionManager extends BroadcastReceiver implements P2PConnectionManager, WifiP2pManager.PeerListListener, WifiP2pManager.ConnectionInfoListener, ActivityChangedListener
 {
-    private static WifiConnectionManager instance;
-
-    public static WifiConnectionManager create(WifiP2pManager manager, WifiP2pManager.Channel channel)
-    {
-        if(instance == null)
-            instance = new WifiConnectionManager(manager, channel);
-        return instance;
-    }
-
     private final WifiP2pManager p2pManager;
     private final WifiP2pManager.Channel p2pChannel;
     private IntentFilter intentFilter;

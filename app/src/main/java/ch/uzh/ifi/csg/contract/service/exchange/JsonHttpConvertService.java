@@ -26,15 +26,22 @@ import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
 import cz.msebera.android.httpclient.message.BasicHeader;
 
 /**
- * Created by flo on 07.04.17.
+ * {@link EthConvertService} implementation that uses an online exchange service to retrieve
+ * real-time ether exchange rates.
  */
-
 public class JsonHttpConvertService implements EthConvertService
 {
     private final CloseableHttpClient httpClient;
     private final Gson gson;
     private final String url;
 
+    /**
+     *
+     * @param httpClient
+     * @param url: A url pointing to an ether exchange service
+     * @param deserializer: A {@link JsonDeserializer} used to deserilaize the results retrieved
+     *                    from the exchange service
+     */
     public JsonHttpConvertService(CloseableHttpClient httpClient, String url, JsonDeserializer<Map<Currency, BigDecimal>> deserializer)
     {
         this.url = url;

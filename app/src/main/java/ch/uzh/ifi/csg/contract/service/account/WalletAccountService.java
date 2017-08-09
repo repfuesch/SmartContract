@@ -15,14 +15,14 @@ import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.datamodel.Account;
 
 /**
- * Wallet implementation of the AccountService.
- * This implementation uses the WalletUtil of web3j to decrypt a local wallet file to obtain the
- * private key of an account. This service is secure and should be used in a non-debug
- * environment.
- * Note: Decryption of wallet file is very slow and therefore, this service should not be used for
+ * Wallet implementation of the AccountService. It manages local account with the
+ * {@link AccountManager}.
+ * It uses the {@link WalletUtils} of web3j to decrypt a local wallet file to obtain the
+ * {@link Credentials} for an account and stores them in the {@link CredentialProvider}.
+ * This service is secure and should be used in a non-debug environment.
+ * Note: Decryption of the wallet file is very slow and therefore, this service should not be used for
  * debugging purposes.
  */
-
 public class WalletAccountService extends Web3AccountService
 {
     private AccountManager accountManager;
@@ -30,7 +30,6 @@ public class WalletAccountService extends Web3AccountService
     private boolean useFullEncryption;
     private CredentialProvider credentialProvider;
     private WalletWrapper walletWrapper;
-    private Account unlockedAccount;
 
     public WalletAccountService(Web3j web3, AccountManager accountManager, CredentialProvider credentialProvider, String walletDirectory, boolean useFullEncryption, WalletWrapper walletWrapper)
     {
@@ -64,7 +63,6 @@ public class WalletAccountService extends Web3AccountService
                 Account newAccount = new Account(credentials.getAddress(), alias, walletFile);
                 accountManager.addAccount(newAccount);
                 credentialProvider.setCredentials(credentials);
-                unlockedAccount = newAccount;
                 return newAccount;
             }
         });
@@ -79,7 +77,6 @@ public class WalletAccountService extends Web3AccountService
                 Account newAccount = new Account(credentials.getAddress(), alias, walletFile);
                 accountManager.addAccount(newAccount);
                 credentialProvider.setCredentials(credentials);
-                unlockedAccount = newAccount;
                 return newAccount;
             }
         });
@@ -100,7 +97,6 @@ public class WalletAccountService extends Web3AccountService
                     return false;
                 }
 
-                unlockedAccount = account;
                 return true;
             }
         });
@@ -109,6 +105,5 @@ public class WalletAccountService extends Web3AccountService
     @Override
     public void lockAccount() {
         credentialProvider.setCredentials(null);
-        unlockedAccount = null;
     }
 }

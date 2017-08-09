@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Class representing an ETH account with its associated contracts
+ * Class that represents an Ethereum account
+ *
  */
-
 public class Account implements Serializable
 {
     private String id;

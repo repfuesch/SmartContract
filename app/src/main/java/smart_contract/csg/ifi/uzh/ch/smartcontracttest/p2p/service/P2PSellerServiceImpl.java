@@ -10,25 +10,13 @@ import ch.uzh.ifi.csg.contract.p2p.peer.SellerPeer;
 import ch.uzh.ifi.csg.contract.p2p.peer.P2pSellerCallback;
 
 /**
- * Created by flo on 23.06.17.
+ * Seller implementation of the {@link P2PService}.
  */
-
-public class P2PSellerServiceImpl implements P2PSellerService, P2PConnectionListener {
-
-    private final P2PConnectionManager connectionManager;
-    private P2pSellerCallback callback;
-    private Peer sellerPeer;
+public class P2PSellerServiceImpl extends P2PServiceBase<P2pSellerCallback> implements P2PSellerService {
 
     public P2PSellerServiceImpl(P2PConnectionManager connectionManager)
     {
-        this.connectionManager = connectionManager;
-    }
-
-    @Override
-    public void onConnectionLost() {
-
-        if(callback != null)
-            callback.onP2pErrorMessage("Connection to other Peer lost");
+        super(connectionManager);
     }
 
     @Override
@@ -37,18 +25,19 @@ public class P2PSellerServiceImpl implements P2PSellerService, P2PConnectionList
         if(callback == null)
             return;
 
-        if(sellerPeer != null)
+        if(peer != null)
             return;
 
         callback.onPeersChanged(deviceList);
     }
 
     @Override
-    public void onConnectionEstablished(ConnectionInfo connectionInfo) {
+    public void connect(String deviceName) {
+        connectionManager.connect(deviceName);
+    }
 
-        if(callback == null)
-            return;
-
+    protected void startPeer(ConnectionInfo connectionInfo)
+    {
         if(connectionInfo.isGroupOwner())
         {
             startSellerPeer(connectionInfo.getGroupOwnerPort(), null);
@@ -60,42 +49,12 @@ public class P2PSellerServiceImpl implements P2PSellerService, P2PConnectionList
 
     private void startSellerPeer(Integer port, String hostname)
     {
-        sellerPeer = new SellerPeer(
+        peer = new SellerPeer(
                 new GsonSerializationService(),
                 callback,
                 port,
                 hostname);
 
-        sellerPeer.start();
-    }
-
-    @Override
-    public void onConnectionError(String message) {
-        if(callback != null)
-            callback.onP2pErrorMessage("Can not connect to the other peer");
-    }
-
-    @Override
-    public void requestConnection(P2pSellerCallback callback)
-    {
-        this.callback = callback;
-        connectionManager.startListening(this);
-    }
-
-    @Override
-    public void connect(String deviceName) {
-        connectionManager.connect(deviceName);
-    }
-
-    @Override
-    public void disconnect()
-    {
-        callback = null;
-        if(sellerPeer != null)
-            sellerPeer.stop();
-
-        sellerPeer = null;
-        connectionManager.stopListening();
-        connectionManager.disconnect();
+        peer.start();
     }
 }

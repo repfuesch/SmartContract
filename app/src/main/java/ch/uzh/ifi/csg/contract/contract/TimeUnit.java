@@ -4,9 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by flo on 03.06.17.
+ *Enum that stores the TimeUnits that can be used in a rent contract
  */
-
 public enum TimeUnit {
     Hours(0), Days(1);
 

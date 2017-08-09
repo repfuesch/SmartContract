@@ -14,9 +14,10 @@ import ch.uzh.ifi.csg.contract.datamodel.Account;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 
 /**
- * Created by flo on 30.03.17.
+ * Base class for all {@link AccountService} implementations. It uses the {@link Web3j} client
+ * to obtain the account balance for an account and the {@link AccountManager} to set and retrieve
+ * the profile of an account.
  */
-
 public abstract class Web3AccountService implements AccountService
 {
     private Web3j web3;
@@ -28,12 +29,6 @@ public abstract class Web3AccountService implements AccountService
         this.accountManager = accountManager;
     }
 
-    /**
-     * Returns the account balance in ether for the specified account
-     *
-     * @param account: the account id
-     * @return the amount of ether for this account
-     */
     @Override
     public SimplePromise<BigInteger> getAccountBalance(final String account)
     {

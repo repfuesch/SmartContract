@@ -20,6 +20,7 @@ import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ch.uzh.ifi.csg.contract.service.serialization.GsonSerializationService;
 import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
 import ch.uzh.ifi.csg.contract.util.ImageHelper;
+import ezvcard.VCard;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
 import ch.uzh.ifi.csg.contract.p2p.peer.P2pSellerCallback;
@@ -136,8 +137,8 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
     public void onContractInfoRequested(final ContractInfoListener listener)
     {
         //make sure that no profile info is set
-        contractInfo.getUserProfile().setVCard(null);
-        contractInfo.getUserProfile().setProfileImagePath(null);
+        contractInfo.getUserProfile().setVCard(new VCard());
+        contractInfo.getUserProfile().setProfileImagePath("");
 
         if(contractInfo.isVerifyIdentity())
         {
@@ -240,7 +241,7 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
                 okButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        contextProvider.getP2PBuyerService().disconnect();
+                        contextProvider.getP2PSellerService().disconnect();
                         if(exportListener != null)
                             exportListener.onContractDataExchanged(userProfile);
 

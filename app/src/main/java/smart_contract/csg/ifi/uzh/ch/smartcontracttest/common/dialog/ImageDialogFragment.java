@@ -21,9 +21,8 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView;
 
 /**
- * Created by flo on 31.03.17.
+ * A DialogFragment that can display images from different sources.
  */
-
 public class ImageDialogFragment extends DialogFragment implements View.OnTouchListener {
     public static final String MESSAGE_IMAGE_SOURCE = "ch.uzh.ifi.csg.smart_contract.image.src";
     public static final String MESSAGE_IMAGE_BMPS = "ch.uzh.ifi.csg.smart_contract.image.uris";
@@ -31,8 +30,8 @@ public class ImageDialogFragment extends DialogFragment implements View.OnTouchL
     public static final String MESSAGE_DISPLAY_QRCODE = "ch.uzh.ifi.csg.smart_contract.image.qrcode";
 
     private static final int MIN_DISTANCE = 150;
-
     private float x1,x2;
+
     private ProportionalImageView imageView;
     private String imgSrc;
     private boolean displayQrCode;
@@ -43,6 +42,11 @@ public class ImageDialogFragment extends DialogFragment implements View.OnTouchL
     {
     }
 
+    /**
+     * Specifies the image source as string or a List of Bitmaps to display
+     *
+     * @param args
+     */
     @Override
     public void setArguments(Bundle args) {
         super.setArguments(args);
@@ -67,6 +71,7 @@ public class ImageDialogFragment extends DialogFragment implements View.OnTouchL
 
         imageView = (ProportionalImageView) contentView.findViewById(R.id.image_view);
 
+        //Set the image source based on the arguments supplied.
         if(displayQrCode)
         {
             Bitmap bitmap = QRCode.from(imgSrc).bitmap();
@@ -90,6 +95,13 @@ public class ImageDialogFragment extends DialogFragment implements View.OnTouchL
     }
 
 
+    /**
+     * Calculates the index of the current image to display based on touch events.
+     *
+     * @param view
+     * @param motionEvent
+     * @return
+     */
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent)
     {

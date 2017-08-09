@@ -20,26 +20,18 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.Applicati
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsActivity;
 
 /**
- * Created by flo on 20.03.17.
+ * Implementation of the {@link SettingProvider} interface. Initializes settings from
+ * the SharedPreferences of the application. Updates settings when the SharedPreferences change
+ * or when the unlocked account changes.
  */
-
 public class SettingProviderImpl extends BroadcastReceiver implements SettingProvider, SharedPreferences.OnSharedPreferenceChangeListener
 {
     public static final String ACTION_SETTINGS_CHANGED = "ch.uzh.ifi.csg.smart_contract.settings";
-
-    private static SettingProviderImpl instance;
-
-    public static SettingProviderImpl create(ApplicationContext context)
-    {
-        instance = new SettingProviderImpl(context);
-        return instance;
-    }
 
     private final ApplicationContext appContext;
     private String host;
     private int port;
     private String selectedAccount = "";
-    private int accountUnlockTime;
     private BigInteger gasPrice;
     private BigInteger gasLimit;
     private int transactionAttempts;
@@ -58,6 +50,7 @@ public class SettingProviderImpl extends BroadcastReceiver implements SettingPro
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(appContext.getContext());
         sharedPref.registerOnSharedPreferenceChangeListener(this);
 
+        //Init from SharedPreferences
         setSetting(sharedPref, SettingsActivity.KEY_PREF_CLIENT_HOST);
         setSetting(sharedPref, SettingsActivity.KEY_PREF_CLIENT_PORT);
         setSetting(sharedPref, SettingsActivity.KEY_PREF_ACCOUNT_WALLET_ENCRYPTION_STRENGTH);
@@ -67,6 +60,7 @@ public class SettingProviderImpl extends BroadcastReceiver implements SettingPro
         setSetting(sharedPref, SettingsActivity.KEY_PREF_TRANSACTION_ATTEMPTS);
         setSetting(sharedPref, SettingsActivity.KEY_PREF_TRANSACTION_SLEEP_DURATION);
 
+        //Init static settings
         accountDirectory = appContext.getContext().getFilesDir().getAbsolutePath() + File.separator + "accounts_remote";
         ensureDirectory(accountDirectory);
         imageDirectory = appContext.getContext().getFilesDir().getAbsolutePath() + File.separator + "images";
@@ -81,6 +75,7 @@ public class SettingProviderImpl extends BroadcastReceiver implements SettingPro
         if(!dir.exists())
             dir.mkdir();
     }
+
     @Override
     public void onReceive(Context context, Intent intent)
     {
@@ -133,11 +128,12 @@ public class SettingProviderImpl extends BroadcastReceiver implements SettingPro
         }
     }
 
-    public String getWalletFileEncryptionStrength() {
-        return walletFileEncryptionStrength;
-    }
-
     public String getWalletFileDirectory(){return walletFileDirectory; }
+
+    @Override
+    public boolean useStrongWalletFileEncryption() {
+        return walletFileEncryptionStrength.equalsIgnoreCase("strong");
+    }
 
     public String getHost() {
         return host;

@@ -1,26 +1,18 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview;
 
-import android.app.SearchManager;
-import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.DialogFragment;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SearchView;
 import android.widget.TextView;
-
 import org.jdeferred.Promise;
-
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
-import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
@@ -37,6 +29,14 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display.ContractDetailActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.dialog.P2pImportDialog;
 
+/**
+ * Activity that display a list of {@link ITradeContract} instances in its
+ * {@link ContractListFragment}.
+ * It contains logic to import contracts by scanning of QR-codes
+ * ({@link #onScanButtonClick} and through Wi-Fi direct ({@link #onImportFromDeviceButtonClick}.
+ * It also reacts to created contracts ({@link #onContractCreated} and adds them to the list.
+ *
+ */
 public class ContractOverviewActivity extends ActivityBase implements AddContractDialogFragment.AddContractDialogListener, P2pImportDialog.P2pImportListener
 {
     private static final int SCAN_CONTRACT_ADDRESS_REQUEST = 1;
@@ -79,6 +79,12 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
         }
     }
 
+    /**
+     * Makes the searchItem visible in the Menu and initializes the {@link SearchView}
+     *
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         boolean result = super.onPrepareOptionsMenu(menu);
@@ -113,6 +119,7 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
         return R.layout.activity_contract_overview;
     }
 
+
     public void onImportFromDeviceButtonClick(View view)
     {
         DialogFragment importFragment = new P2pImportDialog();
@@ -143,10 +150,12 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
                 if(intent == null)
                     return;
 
+                //deserialize scaned contract and store it
                 SerializationService serializationService = new GsonSerializationService();
                 final ContractInfo contractInfo = serializationService.deserialize(intent.getStringExtra(QrScanningActivity.MESSAGE_CONTRACT_DATA), ContractInfo.class);
                 getAppContext().getServiceProvider().getContractService().saveContract(contractInfo, getAppContext().getSettingProvider().getSelectedAccount());
 
+                //open the DetailActivity for the new contract
                 Intent detailIntent = new Intent(ContractOverviewActivity.this, ContractDetailActivity.class);
                 detailIntent.putExtra(ContractDetailActivity.EXTRA_CONTRACT_ADDRESS, contractInfo.getContractAddress());
                 detailIntent.putExtra(ContractDetailActivity.EXTRA_CONTRACT_TYPE, contractInfo.getContractType());
@@ -163,6 +172,14 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
         listFragment.loadContract(type, contractAddress);
     }
 
+    /**
+     * checks that the Ethereum contract code at the specified address matches the binary for the
+     * contract type.
+     *
+     * @param address
+     * @param contractType
+     * @return
+     */
     private SimplePromise<Boolean> ensureContract(final String address, final ContractType contractType)
     {
         String code = null;
@@ -230,12 +247,14 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
     @Override
     protected void onConnectionLost() {
         super.onConnectionLost();
+
         this.recreate();
     }
 
     @Override
     protected void onConnectionEstablished() {
         super.onConnectionEstablished();
+
         this.recreate();
     }
 
@@ -251,7 +270,8 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
         //store the contract before loading it
         getAppContext().getServiceProvider().getContractService().saveContract(contractInfo, getAppContext().getSettingProvider().getSelectedAccount());
 
-        listFragment.loadContract(contractInfo.getContractType(), contractInfo.getContractAddress())
+        listFragment.loadContract(contractInfo.getContractType(), contractInfo.getContractAddress());
+                /*
                 .always(new AlwaysCallback<ITradeContract>() {
                     @Override
                     public void onAlways(Promise.State state, ITradeContract resolved, Throwable rejected) {
@@ -266,7 +286,7 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
                             getAppContext().getServiceProvider().getContractService().saveContract(resolved, getAppContext().getSettingProvider().getSelectedAccount());
                         }
                     }
-                });
+                });*/
     }
 
     @Override

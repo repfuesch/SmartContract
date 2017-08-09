@@ -15,6 +15,8 @@
             android:layout_width="match_parent"
             android:layout_below="@+id/contract_info_header"
             android:layout_height="0dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
             android:layout_weight="1">
 
             <LinearLayout
@@ -196,8 +198,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
             android:orientation="horizontal"
+            android:background="@color/cardview_shadow_start_color"
             android:id="@+id/contract_interactions">
 
             <Button
@@ -205,26 +207,33 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="buy"
-                android:background="@drawable/button_selector"
-                android:layout_margin="3dp"
+                android:background="@null"
                 android:id="@+id/buy_button" />
 
-            <Button
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:layout_margin="3dp"
-                android:text="abort"
-                android:background="@drawable/button_selector"
-                android:id="@+id/abort_button" />
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/cardview_light_background"/>
 
             <Button
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:layout_margin="3dp"
+                android:text="abort"
+                android:background="@null"
+                android:id="@+id/abort_button" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/cardview_light_background"/>
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
                 android:text="confirm"
-                android:background="@drawable/button_selector"
+                android:background="@null"
                 android:id="@+id/confirm_button"/>
 
         </LinearLayout>

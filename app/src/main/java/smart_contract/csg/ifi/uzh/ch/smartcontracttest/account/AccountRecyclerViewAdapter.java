@@ -15,7 +15,10 @@ import ch.uzh.ifi.csg.contract.datamodel.Account;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.setting.SettingProvider;
 
-
+/**
+ * Android {@link RecyclerView.Adapter} that manages a list of {@link Account} objects. Its {@link
+ * ViewHolder} items contain the UI logic to lock/unlock a specific account
+ */
 public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecyclerViewAdapter.ViewHolder> {
 
     private final List<Account> accounts;
@@ -89,6 +92,7 @@ public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecy
             idView.setText(account.getId());
             if(settingProvider.getSelectedAccount().equals(account.getId()))
             {
+                //highlight the selected account
                 accountView.setBackgroundResource(R.drawable.card_selected_background);
                 loginButton.setImageResource(R.drawable.ic_action_lock);
 
@@ -155,12 +159,32 @@ public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecy
         }
     }
 
+    /**
+     * Callback interface that a {@link ViewHolder} uses when the user wants to lock or unlock an
+     * account.
+     *
+     * Implemented by the {@link AccountFragment}
+     */
     public interface OnAccountListener
     {
+        /**
+         * Handles a login request for the specified account and password
+         *
+         * @param account
+         * @param password
+         * @param resultListener
+         */
         void onAccountLogin(Account account, String password, OnAccountLoginResultListener resultListener);
+
+        /**
+         * locks the currently unlocked account
+         */
         void onAccountLock();
     }
 
+    /**
+     * Implemented by the {@link ViewHolder} to get notified about the result of an unlock attempt
+     */
     public interface OnAccountLoginResultListener
     {
         void onLoginResult(boolean success);

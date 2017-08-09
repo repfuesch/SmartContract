@@ -12,6 +12,7 @@ import android.media.ExifInterface;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
@@ -26,9 +27,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * This class provides auxiliary functions for working with image Uri's and files
+ * This class provides helper methods for working with image Uri's and files
  */
-
 public final class ImageHelper {
 
     public static final int PICK_FILE_REQUEST_CODE = 54654;
@@ -53,7 +53,7 @@ public final class ImageHelper {
             outStream.flush();
             outStream.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e("file", "Cannot save bitmap image in file", e);
         }
 
         return file;
@@ -74,7 +74,7 @@ public final class ImageHelper {
             FileUtil.copyFile(new File(filepath), file);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e("file", "Cannot save image file", e);
         }
 
         return file;
@@ -264,8 +264,7 @@ public final class ImageHelper {
         try {
             digest = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e1) {
-            // todo:log
-            //Log.d(TAG, "getImageHash: ");
+            Log.d("file", "SHA-256 digest not found", e1);
         }
 
         digest.reset();

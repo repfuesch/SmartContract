@@ -20,8 +20,8 @@ import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 
 /**
- * This class implements the IPurchaseContract interface and is derived from the TradeContract base
- * class.
+ *
+ * {@link IPurchaseContract} implementation
  */
 public class PurchaseContract extends TradeContract implements IPurchaseContract {
 

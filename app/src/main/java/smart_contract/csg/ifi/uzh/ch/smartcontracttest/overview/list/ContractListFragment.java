@@ -9,6 +9,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -34,10 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A fragment representing a list of Items.
- * <p/>
- * Activities containing this fragment MUST implement the {@link MessageService}
- * interface.
+ * A fragment representing a list of {@link ITradeContract} items.
  */
 public class ContractListFragment extends Fragment
 {
@@ -56,15 +54,6 @@ public class ContractListFragment extends Fragment
      * fragment (e.g. upon screen orientation changes).
      */
     public ContractListFragment() {
-    }
-
-    @SuppressWarnings("unused")
-    public static ContractListFragment newInstance(int columnCount) {
-        ContractListFragment fragment = new ContractListFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_COLUMN_COUNT, columnCount);
-        fragment.setArguments(args);
-        return fragment;
     }
 
     public Filter getListFilter()
@@ -99,6 +88,7 @@ public class ContractListFragment extends Fragment
         View view = inflater.inflate(R.layout.fragment_purchasecontract_list, container, false);
 
         contentView = (LinearLayout) view.findViewById(R.id.contract_list_content);
+
         // Set the adapter
         purchaseList = (RecyclerView) view.findViewById(R.id.purchase_list);
         Context context = view.getContext();
@@ -142,6 +132,11 @@ public class ContractListFragment extends Fragment
         super.onDetach();
     }
 
+    /**Loads all contracts for an account and adds them to the list
+     *
+     * @param account
+     * @return
+     */
     public SimplePromise<List<ITradeContract>> loadContractsForAccount(String account)
     {
         BusyIndicator.show(contentView);
@@ -154,8 +149,7 @@ public class ContractListFragment extends Fragment
                             public void run() {
                                 if(rejected != null)
                                 {
-                                    //todo:log
-                                    //errorHandler.handleError(rejected);
+                                    Log.e("overview", "Cannot load contracts", rejected);
                                 }else{
                                     adapter.setContracts(resolved);
                                 }
@@ -168,6 +162,13 @@ public class ContractListFragment extends Fragment
                 });
     }
 
+    /**
+     * Loads a contract with the specified type and address and adds it to the list.
+     *
+     * @param type
+     * @param contractAddress
+     * @return
+     */
     public SimplePromise<ITradeContract> loadContract(ContractType type, String contractAddress)
     {
         BusyIndicator.show(contentView);
@@ -180,8 +181,7 @@ public class ContractListFragment extends Fragment
                             public void run() {
                                 if(rejected != null)
                                 {
-                                    //todo:log
-                                    //errorHandler.handleError(rejected);
+                                    Log.e("overview", "Cannot load contract", rejected);
                                 }else{
                                     adapter.addContract(resolved);
                                     adapter.notifyItemInserted(adapter.getItemCount() - 1);
@@ -203,6 +203,7 @@ public class ContractListFragment extends Fragment
 
         if(item.getTitle().equals("remove"))
         {
+            //remove contract from the file system and reload list
             String selectedAccount = contextProvider.getSettingProvider().getSelectedAccount();
             contextProvider.getServiceProvider().getContractService().removeContract(selectedContract, selectedAccount);
             loadContractsForAccount(selectedAccount);

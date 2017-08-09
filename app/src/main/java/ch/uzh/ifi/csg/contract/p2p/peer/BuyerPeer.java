@@ -15,9 +15,9 @@ import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.UserProfileListener;
 
 /**
- * Created by flo on 30.06.17.
+ * Buyer implementation of the {@link Peer} interface. Waits for the contract details of the seller
+ * and returns the local UserProfile if requested.
  */
-
 public class BuyerPeer extends PeerBase implements UserProfileListener {
 
     private P2pBuyerCallback callback;
@@ -53,7 +53,8 @@ public class BuyerPeer extends PeerBase implements UserProfileListener {
                 callback.onP2pInfoMessage("Receiving contract images");
                 for(String sig : contractInfo.getImages().keySet())
                 {
-                    //We receive additional image files belonging to the contract and save them in a temporary file
+                    //We receive additional image files belonging to the contract and save them
+                    //first in a temporary file
                     File tempFile = FileUtil.createTemporaryFile("image", "jpg");
                     readFile(inputStream, tempFile);
                     contractInfo.getImages().put(sig, tempFile.getAbsolutePath());
@@ -64,7 +65,7 @@ public class BuyerPeer extends PeerBase implements UserProfileListener {
             {
                 callback.onP2pInfoMessage("Receiving profile image");
 
-                //receive profile image
+                //receive and store profile image
                 File tempFile = FileUtil.createTemporaryFile("image", "jpg");
                 readFile(inputStream, tempFile);
                 contractInfo.getUserProfile().setProfileImagePath(tempFile.getAbsolutePath());
@@ -78,6 +79,7 @@ public class BuyerPeer extends PeerBase implements UserProfileListener {
                 callback.onP2pInfoMessage("Transmission complete");
                 callback.onTransmissionComplete();
             }else{
+                //request and wait for the UserProfile from the callback
                 callback.onUserProfileRequested(this);
             }
         }
@@ -88,8 +90,9 @@ public class BuyerPeer extends PeerBase implements UserProfileListener {
     }
 
     @Override
-    public void onUserProfileReceived(final UserProfile profile) {
-
+    public void onUserProfileReceived(final UserProfile profile)
+    {
+        //run in background thread because it would otherwise block the UI thread
         Async.run(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
@@ -112,21 +115,4 @@ public class BuyerPeer extends PeerBase implements UserProfileListener {
             }
         });
     }
-
-    /*
-    private void awaitTransmissionConfirmed()
-    {
-        try {
-            callback.onP2pInfoMessage("Waiting for transmission acknowledgement");
-            String jsonString = readString(inputStream);
-            serializationService.deserialize(jsonString, new TypeToken<TransmissionConfirmedResponse>() {}.getType());
-            callback.onTransmissionConfirmed();
-            stop();
-        }catch(IOException ex)
-        {
-            callback.onP2pErrorMessage("An error occurred during communication with the other peer");
-            //todo:log
-        }
-    }
-    */
 }

@@ -19,24 +19,14 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.broadcast.BroadCas
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 
 /**
- * Created by flo on 18.03.17.
+ * Implementation of the {@link TransactionHandler} interface.
  */
-
 public class TransactionHandlerImpl implements TransactionHandler
 {
-    private static TransactionHandlerImpl instance;
-
-    public static TransactionHandlerImpl create(ApplicationContext appContext)
-    {
-        if(instance == null)
-            instance = new TransactionHandlerImpl(appContext);
-        return instance;
-    }
-
     private final ApplicationContext applicationContext;
     private List<ContractInfo> contractList;
 
-    private TransactionHandlerImpl(ApplicationContext applicationContext)
+    public TransactionHandlerImpl(ApplicationContext applicationContext)
     {
         this.applicationContext = applicationContext;
         this.contractList = new ArrayList<>();
@@ -77,11 +67,11 @@ public class TransactionHandlerImpl implements TransactionHandler
         });
     }
 
-    public void toDeployTransaction(SimplePromise<ITradeContract> deployPromise, final ContractInfo contractInfo, final String account, final ContractService contractService)
+    public <T extends ITradeContract> void toDeployTransaction(SimplePromise<T> deployPromise, final ContractInfo contractInfo, final String account, final ContractService contractService)
     {
         contractList.add(contractInfo);
 
-        deployPromise.always(new AlwaysCallback<ITradeContract>()
+        deployPromise.always(new AlwaysCallback<T>()
         {
             @Override
             public void onAlways(Promise.State state, ITradeContract resolved, Throwable rejected) {

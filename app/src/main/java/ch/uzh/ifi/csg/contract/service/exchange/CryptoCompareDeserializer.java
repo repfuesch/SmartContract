@@ -12,9 +12,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by flo on 10.04.17.
+ * {@link JsonDeserializer} implementation that can deserilize JSON results from the API of
+ * "https://min-api.cryptocompare.com"
  */
-
 public class CryptoCompareDeserializer implements JsonDeserializer<Map<Currency, BigDecimal>>
 {
         @Override

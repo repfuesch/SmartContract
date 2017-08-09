@@ -10,11 +10,29 @@ import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 
 public interface IRentContract extends ITradeContract {
 
-    //transaction methods
+
+    /**
+     * Executes the "returnItem" transaction function of the smart contract
+     * @return
+     */
     SimplePromise<String> returnItem();
+    /**
+     * Executes the "reclaimItem" transaction function of the smart contract
+     * @return
+     */
     SimplePromise<String> reclaimItem();
+    /**
+     * Executes the "rentItem" transaction function of the smart contract
+     * @return
+     */
     SimplePromise<String> rentItem();
 
-    //accessors for remote fields
+
+
+    /**
+     * Returns the current renting fee for the item
+     *
+     * @return
+     */
     SimplePromise<BigInteger> getRentingFee();
 }

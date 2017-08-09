@@ -7,20 +7,11 @@ import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
 
 /**
- * Created by flo on 13.07.17.
+ * {@link BroadCastService} implementation
  */
-
 public class LocalBroadcastService implements BroadCastService
 {
-    private static LocalBroadcastService instance;
     private Context context;
-
-    public static LocalBroadcastService create(Context context)
-    {
-        if(instance == null)
-            instance = new LocalBroadcastService(context);
-        return instance;
-    }
 
     public LocalBroadcastService(Context context)
     {

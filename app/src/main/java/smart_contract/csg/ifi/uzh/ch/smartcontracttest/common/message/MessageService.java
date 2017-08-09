@@ -1,13 +1,31 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.message;
 
-/**
- * Created by flo on 16.03.17.
- */
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityChangedListener;
 
-public interface MessageService
+/**
+ * Interface to show error- and info messages to the user
+ *
+ */
+public interface MessageService extends ActivityChangedListener
 {
-    void handleError(Throwable exception);
+    /**
+     * Displays the specified error message in a Dialog
+     *
+     * @param message
+     */
     void showErrorMessage(String message);
+    /**
+     * Displays the specified info message in a Dialog
+     *
+     * @param message
+     */
     void showMessage(String message);
+
+    /**
+     * Displays the specified message in a SnackBar for the specified time
+     *
+     * @param message
+     * @param length
+     */
     void showSnackBarMessage(String message, int length);
 }

@@ -1,8 +1,6 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog;
 
-import android.app.Activity;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -11,9 +9,8 @@ import android.support.v7.app.AlertDialog;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 
 /**
- * Created by flo on 16.03.17.
+ * A DialogFragment that is used to display error- and info messages to the user
  */
-
 public class MessageDialogFragment extends DialogFragment
 {
     public static final String ERROR_MESSAGE = "ERROR_MESSAGE";
@@ -60,7 +57,6 @@ public class MessageDialogFragment extends DialogFragment
 
         builder.setMessage(message);
 
-        // Create the AlertDialog object and return it
         final AlertDialog diag = builder.create();
 
         return diag;

@@ -32,9 +32,8 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.AppContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 
 /**
- * Created by flo on 16.03.17.
+ * Implementation of the {@link EthServiceFactory}
  */
-
 public class ServiceFactoryImpl implements EthServiceFactory
 {
     private final CredentialProvider credentialProvider;
@@ -93,9 +92,7 @@ public class ServiceFactoryImpl implements EthServiceFactory
             int transactionSleepDuration)
     {
         String endpoint = "http://" + host + ":" + port + "/";
-
         Parity parity = ParityFactory.build(new HttpService(endpoint, buildHttpClient(1000)));
-
         TransactionManager transactionManager =
                 new ClientTransactionManager(
                         parity,
@@ -122,6 +119,11 @@ public class ServiceFactoryImpl implements EthServiceFactory
         return new Web3ConnectionService(parity, Async.getScheduledExecutorService(), appContext.getBroadCastService(), 1000);
     }
 
+    /**
+     * Creates a {@link CloseableHttpClient} with a specific connection timeout
+     * @param timeout
+     * @return
+     */
     private CloseableHttpClient buildHttpClient(int timeout)
     {
         RequestConfig.Builder requestConfigBuilder = RequestConfig.custom().setConnectionRequestTimeout(timeout).setConnectTimeout(timeout).setSocketTimeout(timeout);

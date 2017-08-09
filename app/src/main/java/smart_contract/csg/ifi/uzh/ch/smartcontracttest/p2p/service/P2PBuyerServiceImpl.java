@@ -11,62 +11,20 @@ import ch.uzh.ifi.csg.contract.p2p.peer.Peer;
 import ch.uzh.ifi.csg.contract.p2p.peer.P2pBuyerCallback;
 
 /**
- * Created by flo on 23.06.17.
+ * Buyer implementation of the {@link P2PService}.
  */
-
-public class P2PBuyerServiceImpl implements P2PBuyerService, P2PConnectionListener {
-
-    private final P2PConnectionManager connectionManager;
-    private P2pBuyerCallback callback;
-    private Peer buyerPeer;
+public class P2PBuyerServiceImpl extends P2PServiceBase<P2pBuyerCallback> implements P2PBuyerService {
 
     public P2PBuyerServiceImpl(P2PConnectionManager connectionManager)
     {
-        this.connectionManager = connectionManager;
-    }
-
-    @Override
-    public void requestConnection(P2pBuyerCallback callback) {
-        this.callback = callback;
-        connectionManager.startListening(this);
-        callback.onP2pInfoMessage("Waiting for connection request");
-    }
-
-    @Override
-    public void disconnect()
-    {
-        callback = null;
-        if(buyerPeer != null)
-            buyerPeer.stop();
-
-        buyerPeer = null;
-        connectionManager.stopListening();
-        connectionManager.disconnect();
-    }
-
-    @Override
-    public void onConnectionLost() {
-        if(callback != null)
-            callback.onP2pErrorMessage("Connection to other Peer lost");
+        super(connectionManager);
     }
 
     @Override
     public void onPeersChanged(List<String> deviceList) {
     }
 
-    @Override
-    public void onConnectionEstablished(ConnectionInfo connectionInfo) {
-
-        if(callback == null)
-            return;
-
-        if(buyerPeer != null)
-            return;
-
-        startPeer(connectionInfo);
-    }
-
-    private void startPeer(ConnectionInfo connectionInfo)
+    protected void startPeer(ConnectionInfo connectionInfo)
     {
         if(connectionInfo.isGroupOwner())
         {
@@ -80,18 +38,12 @@ public class P2PBuyerServiceImpl implements P2PBuyerService, P2PConnectionListen
 
     private void startBuyerPeer(Integer port, String hostname)
     {
-        buyerPeer = new BuyerPeer(
+        peer = new BuyerPeer(
                 new GsonSerializationService(),
                 callback,
                 port,
                 hostname);
 
-        buyerPeer.start();
-    }
-
-    @Override
-    public void onConnectionError(String message) {
-        if(callback != null)
-            callback.onP2pErrorMessage("Cannot connect to the other peer");
+        peer.start();
     }
 }

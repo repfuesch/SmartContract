@@ -18,10 +18,13 @@ public class ProfileActivity extends ActivityBase implements ProfileFragment.Pro
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        getSupportActionBar().setTitle(R.string.title_profile);
+
         if(getAppContext().getSettingProvider().getSelectedAccount().isEmpty())
         {
             Intent intent = new Intent(this, AccountActivity.class);
             startActivity(intent);
+            return;
         }
 
         profileFragment = (ProfileFragment) getFragmentManager().findFragmentById(R.id.profile_fragment);

@@ -18,7 +18,7 @@ import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromiseAdapter;
 
 /**
- * Created by flo on 23.02.17.
+ * Helper class that provides static methods to create Promise objects from a Callable object
  */
 
 public class Async {

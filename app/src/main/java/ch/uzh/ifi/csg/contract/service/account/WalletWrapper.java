@@ -9,9 +9,8 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Wrapper class for WalletUtil functionality (used for testing)
+ * Wrapper class that encapsulates the WalletUtil functionality.
  */
-
 public class WalletWrapper {
 
     public String generateNewWalletFile(String password, String walletDirectory, boolean useFullEncryption) throws Exception

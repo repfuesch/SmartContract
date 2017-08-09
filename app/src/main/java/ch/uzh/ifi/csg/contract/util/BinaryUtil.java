@@ -1,18 +1,22 @@
 package ch.uzh.ifi.csg.contract.util;
 
-import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by flo on 29.05.17.
+ * Utility class that provides helper methods for working with binary strings and byte lists
  */
-
 public final class BinaryUtil {
 
     public static char[] hexArray = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
 
+    /**
+     * Converts the provided hexadecimal string to a byte array
+     *
+     * @param s
+     * @return
+     */
     public static byte[] hexStringToByteArray(String s) {
         int len = s.length();
         byte[] data = new byte[len/2];
@@ -25,6 +29,12 @@ public final class BinaryUtil {
     }
 
 
+    /**
+     * Generates and returns a hexadecimal string from a byte array
+     *
+     * @param bytes
+     * @return
+     */
     public static String byteArrayToHexString(byte[] bytes) {
         char[] hexChars = new char[bytes.length*2];
         int v;
@@ -42,6 +52,12 @@ public final class BinaryUtil {
         return String.format("%0" + (data.length*2) + "X", new BigInteger(1, data));
     }
 
+    /**
+     * Returns a byte array from list of Bytes
+     *
+     * @param byteList
+     * @return
+     */
     public static byte[] toByteArray(List<Byte> byteList)
     {
         byte[] bytes = new byte[byteList.size()];
@@ -52,6 +68,11 @@ public final class BinaryUtil {
         return bytes;
     }
 
+    /**
+     * Returns a list of Byte from a byte array
+     * @param bytes
+     * @return
+     */
     public static List<Byte> toByteList(byte[] bytes)
     {
         List<Byte> byteList = new ArrayList<>();

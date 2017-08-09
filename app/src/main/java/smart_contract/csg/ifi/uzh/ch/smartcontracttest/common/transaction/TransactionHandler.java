@@ -6,17 +6,43 @@ import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.service.contract.ContractService;
 
 /**
- * Created by flo on 27.04.17.
+ * Inerface for handling the result of contract transactions beyond Activity boundaries.
  */
-
 public interface TransactionHandler
 {
-    public static final String ACTION_TRANSACTION_CREATED = "ch.uzh.ifi.csg.smart_contract.transaction.create";
-    public static final String ACTION_TRANSACTION_UPDATED = "ch.uzh.ifi.csg.smart_contract.transaction.update";
-    public static final String CONTRACT_ADDRESS = "ch.uzh.ifi.csg.smart_contract.contract_address";
-    public static final String CONTRACT_TYPE = "ch.uzh.ifi.csg.smart_contract.contract_type";
+    String ACTION_TRANSACTION_CREATED = "ch.uzh.ifi.csg.smart_contract.transaction.create";
+    String ACTION_TRANSACTION_UPDATED = "ch.uzh.ifi.csg.smart_contract.transaction.update";
+    String CONTRACT_ADDRESS = "ch.uzh.ifi.csg.smart_contract.contract_address";
+    String CONTRACT_TYPE = "ch.uzh.ifi.csg.smart_contract.contract_type";
 
+    /**
+     * Handles the contract transaction specified by the promise object. Informs observers about
+     * the success/error of the transaction when it has completed.
+     *
+     * @param promise
+     * @param contractAddress
+     * @param <T>
+     */
     <T> void toTransaction(SimplePromise<T> promise, final String contractAddress);
-    void toDeployTransaction(SimplePromise<ITradeContract> promise, ContractInfo contractInfo, String account, ContractService contractService);
+
+    /**
+     * Handles the contract deploy transaction specified by the promise object. Informs observers
+     * about the success/error of the transaction when it has completed and guarantees that the
+     * contract details are saved in case of network errors.
+     *
+     * @param promise
+     * @param contractInfo
+     * @param account
+     * @param contractService
+     * @param <T>
+     */
+    <T extends ITradeContract> void toDeployTransaction(SimplePromise<T> promise, ContractInfo contractInfo, String account, ContractService contractService);
+
+    /**
+     * Indicates whether there are open deploy transactions. Should be checked before the
+     * unlocked account or any settings can change.
+     *
+     * @return
+     */
     boolean hasOpenTransactions();
 }

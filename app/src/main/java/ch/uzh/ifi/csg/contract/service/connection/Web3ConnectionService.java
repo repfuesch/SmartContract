@@ -13,9 +13,9 @@ import java.util.concurrent.TimeUnit;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.broadcast.BroadCastService;
 
 /**
- * Created by flo on 10.04.17.
+ * Implementation of the {@link EthConnectionService} that uses the {@link Web3j#ethGasPrice()}
+ * method to check the coonnection to the Ethereum client.
  */
-
 public class Web3ConnectionService implements EthConnectionService {
 
     private Web3j web3;
@@ -24,7 +24,6 @@ public class Web3ConnectionService implements EthConnectionService {
     private int pollingInterval;
     private ScheduledFuture future;
     private boolean connectionUp;
-    private boolean connectionWasUp;
 
     public Web3ConnectionService(Web3j web3, ScheduledExecutorService executorService, BroadCastService broadCastService, int pollingInterval)
     {
@@ -38,6 +37,7 @@ public class Web3ConnectionService implements EthConnectionService {
     @Override
     public void startPolling() {
 
+        //start a new task in a given interval
         future = executorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
@@ -72,6 +72,9 @@ public class Web3ConnectionService implements EthConnectionService {
         return connectionUp;
     }
 
+    /**
+     * Broadcasts intents to interested Observers using the {@link BroadCastService}
+     */
     private void broadcastConnectionChanged()
     {
         Intent intent = new Intent();

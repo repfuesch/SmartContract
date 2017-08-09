@@ -1,5 +1,7 @@
 package ch.uzh.ifi.csg.contract.p2p.peer;
 
+import android.util.Log;
+
 import com.google.gson.reflect.TypeToken;
 
 import java.io.DataInputStream;
@@ -14,6 +16,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.util.FileUtil;
@@ -22,9 +25,11 @@ import ch.uzh.ifi.csg.contract.service.serialization.GsonSerializationService;
 import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
 
 /**
- * Created by flo on 03.07.17.
+ * Base class for all {@link Peer} implementations.
+ * Expects the port and hostname and {@link P2pCallback} in its constructor. It its "start" method,
+ * it starts a new Task and establishes a Socket connection depending on its role in the Wi-Fi P2P
+ * group.
  */
-
 public abstract class PeerBase implements Peer {
 
     private Integer port;
@@ -47,7 +52,6 @@ public abstract class PeerBase implements Peer {
         this.hostname = host;
     }
 
-
     @Override
     public void start() {
         mainTask = Async.getScheduledExecutorService().schedule(new Runnable() {
@@ -62,6 +66,9 @@ public abstract class PeerBase implements Peer {
 
     }
 
+    /**
+     * Cancels the main task when it has not already finished
+     */
     @Override
     public void stop()
     {
@@ -69,21 +76,34 @@ public abstract class PeerBase implements Peer {
             mainTask.cancel(true);
     }
 
+    /**
+     * Start the concrete protocol implementation after the Socket connection has been established.
+     *
+     * see {@link BuyerPeer#startProtocol()}
+     * see {@link SellerPeer#startProtocol()}
+     *
+     */
     protected abstract void startProtocol();
 
+    /**
+     * Tries to establish a socket connection  depending on the role in the Wi-Fi direct group.
+     * The GroupOwner always opens a ServerSocket and the non-GroupOwner always opens a client
+     * Socket.
+     */
     private void waitForSocketConnection()
     {
         if(hostname == null)
         {
             /**
-             * We are in the role of the Group Owner. We wait until the other peer connects to us
+             * We are in the role of the Group Owner. We open a the ServerSocket and
+             * wait until the other peer connects to us
              **/
 
             ServerSocket serverSocket = null;
             try{
                 //wait such that other peer can detect the free local port
                 Thread.sleep(3000);
-                boolean running = true;
+
                 serverSocket = new ServerSocket(port);
                 peerSocket = serverSocket.accept();
                 outputStream = new DataOutputStream(peerSocket.getOutputStream());
@@ -91,7 +111,7 @@ public abstract class PeerBase implements Peer {
                 client = new P2pClientImpl(new GsonSerializationService(), outputStream);
 
             }catch(Exception ex)
-            {   //todo:log
+            {
                 onError(ex, "An error occurred while opening the connection to the other peer");
             }
             finally {
@@ -99,14 +119,15 @@ public abstract class PeerBase implements Peer {
                     try {
                         serverSocket.close();
                     } catch (IOException e) {
-                        //todo:log
+                        Log.d("P2P", "IoException during socket close", e);
                     }
                 }
             }
 
         }else{
             /**
-             * We are not in the role of the Group owner. We connect to the group owner
+             * We are not in the role of the Group owner. We open a Socket and connect to the
+             * Group owner
              **/
             try
             {
@@ -125,10 +146,10 @@ public abstract class PeerBase implements Peer {
                     waitForSocketConnection();
                 }
                 catch(InterruptedException ie){
-                    //todo:log
+                    Log.d("P2P", "InterruptedException during thread sleep", e);
                 }
-            } catch (IOException e) {
-
+            } catch (IOException e)
+            {
                 onError(e, "An error occurred while opening the connection to the other peer");
             }
         }
@@ -136,7 +157,7 @@ public abstract class PeerBase implements Peer {
 
     protected void onError(Throwable exception, String message)
     {
-        //todo:log exception
+        Log.e("P2P", message, exception);
         callback.onP2pErrorMessage(message);
         stop();
     }

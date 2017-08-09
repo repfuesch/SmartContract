@@ -27,6 +27,8 @@ import java.util.concurrent.Callable;
 
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
+import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
+import ch.uzh.ifi.csg.contract.contract.IRentContract;
 import ch.uzh.ifi.csg.contract.util.BinaryUtil;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
@@ -39,9 +41,10 @@ import ch.uzh.ifi.csg.contract.util.Web3Util;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionHandler;
 
 /**
- * Web3j implementation of the ContractService.
+ * Implementation of the {@link ContractService} that uses the {@link Web3j} client to load and
+ * deploy contracts from/to the blockchain and the {@link ContractManager} to store and retrieve
+ * persisted contracts from the local file system.
  */
-
 public class Web3jContractService implements ContractService
 {
     private final Web3j web3;
@@ -54,11 +57,11 @@ public class Web3jContractService implements ContractService
 
     /**
      *
-     * @param web3: the rpc client
+     * @param web3: the RPC client
      * @param transactionManager: the transaction manager used by the deployed contracts to perform transactions
      * @param contractManager: ContractManager implementation used to persist created contracts for an account
-     * @param gasPrice
-     * @param gasLimit
+     * @param gasPrice: the gas price to use for the loaded or deployed contracts
+     * @param gasLimit: the gas limit to use for the loaded or deployed contracts
      */
     public Web3jContractService(Web3j web3, TransactionManager transactionManager, ContractManager contractManager, TransactionHandler transactionHandler, BigInteger gasPrice, BigInteger gasLimit, String accountAddress)
     {
@@ -71,56 +74,44 @@ public class Web3jContractService implements ContractService
         this.accountAddress = accountAddress;
     }
 
-    /**
-     * Deploys a purchase contract on the blockchain using the TradeContract.deployPurchaseContract
-     * factory method.
-     *
-     * @param value
-     * @param title
-     * @param description
-     * @return  a promise representing the result of the call.
-     */
     @Override
-    public SimplePromise<ITradeContract> deployPurchaseContract(final BigInteger value, final String title, final String description, final Map<String, String> imageSignatures, final boolean verifyIdentity, final boolean lightDeployment)
+    public SimplePromise<IPurchaseContract> deployPurchaseContract(final BigInteger value, final String title, final String description, final Map<String, String> imageSignatures, final boolean verifyIdentity, final boolean lightDeployment)
     {
         final String contractAddress = calculateContractAddress(accountAddress).get();
         final ContractInfo info = new ContractInfo(ContractType.Purchase, contractAddress, title, description, verifyIdentity, lightDeployment);
         info.setImages(imageSignatures);
 
-        SimplePromise<ITradeContract> promise = Async.toPromise(new Callable<ITradeContract>()
+        SimplePromise<IPurchaseContract> promise = Async.toPromise(new Callable<IPurchaseContract>()
         {
             @Override
-            public ITradeContract call() throws Exception {
+            public IPurchaseContract call() throws Exception {
 
                 if(lightDeployment)
                 {
+                    //only add deposit, price and the hashed content to the constructor list
                     List<Type> typeList = new ArrayList<>();
                     byte[] bytes = BinaryUtil.hexStringToByteArray(info.getContentHash());
                     typeList.add(new Bytes32(bytes));
+
                     return deploy(PurchaseContract.class, PurchaseContract.BINARY_LIGHT, info, typeList, value);
 
                 }else{
+                    //add all attributes of the contract to the constructor list
                     List<Type> typeList = buildTypeList(title, description, imageSignatures.keySet(), verifyIdentity);
-                    ITradeContract contract = deploy(PurchaseContract.class, PurchaseContract.BINARY_FULL, info, typeList, value);
+                    IPurchaseContract contract = deploy(PurchaseContract.class, PurchaseContract.BINARY_FULL, info, typeList, value);
+
                     return contract;
                 }
             }
         });
 
+        //Provide the promise to the TransactionHandler
         transactionHandler.toDeployTransaction(promise, info, accountAddress, this);
         return promise;
     }
 
-    /**
-     * Deploys a rent contract on the blockchain using the TradeContract.deployPurchaseContract
-     * factory method.
-     *
-     * @param title
-     * @param description
-     * @return  a promise representing the result of the call.
-     */
     @Override
-    public SimplePromise<ITradeContract> deployRentContract(
+    public SimplePromise<IRentContract> deployRentContract(
             final BigInteger price,
             final BigInteger deposit,
             final TimeUnit timeUnit,
@@ -134,32 +125,47 @@ public class Web3jContractService implements ContractService
         final ContractInfo contractInfo = new ContractInfo(ContractType.Rent, contractAddress, title, description, verifyIdentity, lightDeployment);
         contractInfo.setImages(imageSignatures);
 
-        SimplePromise<ITradeContract> promise = Async.toPromise(new Callable<ITradeContract>() {
+        SimplePromise<IRentContract> promise = Async.toPromise(new Callable<IRentContract>() {
             @Override
-            public ITradeContract call() throws Exception {
+            public IRentContract call() throws Exception {
 
                 if(lightDeployment)
                 {
+                    //only add deposit, price and the hashed content to the constructor list
                     List<Type> typeList = new ArrayList<>();
                     typeList.add(new Uint256(deposit));
                     typeList.add(new Uint256(price));
                     byte[] bytes = BinaryUtil.hexStringToByteArray(contractInfo.getContentHash());
                     typeList.add(new Bytes32(bytes));
+
                     return deploy(RentContract.class, RentContract.BINARY_LIGHT, contractInfo, typeList, BigInteger.ZERO);
 
                 }else{
+                    //add all attributes of the contract to the constructor list
                     List<Type> typeList = buildTypeList(title, description, imageSignatures.keySet(), verifyIdentity);
                     typeList.add(new Uint256(deposit));
                     typeList.add(new Uint256(price));
+
                     return deploy(RentContract.class, RentContract.BINARY_FULL, contractInfo, typeList, BigInteger.ZERO);
                 }
             }
         });
 
+        //Provide the promise to the TransactionHandler
         transactionHandler.toDeployTransaction(promise, contractInfo, accountAddress, this);
         return promise;
     }
 
+    /**
+     * Builds the {@link Type} list that is later used to create the encoded constructor of the
+     * smart contract.
+     *
+     * @param title
+     * @param description
+     * @param imageSignatures
+     * @param verifyIdentity
+     * @return
+     */
     private List<Type> buildTypeList(final String title, final String description, final Set<String> imageSignatures, final boolean verifyIdentity)
     {
         List<Type> typeList = new ArrayList<>();
@@ -184,7 +190,19 @@ public class Web3jContractService implements ContractService
         return typeList;
     }
 
-    private ITradeContract deploy(Class<? extends TradeContract> clazz, String binary, ContractInfo contractInfo, List<Type> paramList, BigInteger value) throws Exception {
+    /**
+     * Deploys a smart contract using the {@link TradeContract#deployContract} method
+     *
+     * @param clazz
+     * @param binary
+     * @param contractInfo
+     * @param paramList
+     * @param value
+     * @param <T>
+     * @return
+     * @throws Exception
+     */
+    private <T extends TradeContract> T deploy (Class<T> clazz, String binary, ContractInfo contractInfo, List<Type> paramList, BigInteger value) throws Exception {
         return TradeContract.deployContract(
                 clazz,
                 web3,
@@ -197,12 +215,6 @@ public class Web3jContractService implements ContractService
                 paramList.toArray(new Type[paramList.size()]));
     }
 
-    /**
-     * Loads a contract from the blockchain specified by the provided accountAddress.
-     *
-     * @param contractAddress
-     * @return a promise representing the result of the call.
-     */
     @Override
     public SimplePromise<ITradeContract> loadContract(final ContractType contractType, final String contractAddress, final String account)
     {
@@ -211,6 +223,7 @@ public class Web3jContractService implements ContractService
             public ITradeContract call() throws Exception {
                 ContractInfo contractInfo = contractManager.getContract(contractAddress, account);
                 ITradeContract contract = load(contractInfo);
+                /*
                 if(contractInfo.getUserProfile() != null)
                 {
                     contract.setUserProfile(contractInfo.getUserProfile());
@@ -220,13 +233,21 @@ public class Web3jContractService implements ContractService
                 {
                     for(String key : contractInfo.getImages().keySet())
                         contract.addImage(key, contractInfo.getImages().get(key));
-                }
+                }*/
 
                 return contract;
             }
         });
     }
 
+    /**
+     * Uses the {@link TradeContract#loadContract} deploy method to load the concrete
+     * {@link TradeContract} implementation based on the contract type.
+     *
+     * @param contractInfo
+     * @return
+     * @throws Exception
+     */
     private ITradeContract load(final ContractInfo contractInfo) throws Exception
     {
         ITradeContract contract;
@@ -245,12 +266,6 @@ public class Web3jContractService implements ContractService
         return contract;
     }
 
-    /**
-     * Persists a contract for an account with the provided ContractManager.
-     *
-     * @param contract
-     * @param account
-     */
     @Override
     public void saveContract(ITradeContract contract, String account) {
         ContractInfo info = new ContractInfo(contract.getContractType(), contract.getContractAddress(), contract.getTitle().get(), contract.getDescription().get(), contract.getVerifyIdentity().get(), contract.isLightContract());
@@ -262,12 +277,6 @@ public class Web3jContractService implements ContractService
                 account);
     }
 
-    /**
-     * Persists a contract for an account with the provided ContractManager.
-     *
-     * @param contractInfo
-     * @param account
-     */
     @Override
     public void saveContract(ContractInfo contractInfo,  String account) {
         contractManager.saveContract(
@@ -275,37 +284,16 @@ public class Web3jContractService implements ContractService
                 account);
     }
 
-    /**
-     * Removes a contract from a persistent storage. This method does not delete a contract from the
-     * blockchain.
-     *
-     * @param contract
-     * @param account
-     */
     @Override
     public void removeContract(ITradeContract contract, String account) {
         removeContract(contract.getContractAddress(), account);
     }
 
-
-    /**
-     * Removes a contract from a persistent storage. This method does not delete a contract from the
-     * blockchain.
-     *
-     * @param contractAddress
-     * @param account
-     */
     @Override
     public void removeContract(String contractAddress, String account) {
         contractManager.deleteContract(contractAddress, account);
     }
 
-    /**
-     * Loads all persisted contracts for the specified account.
-     *
-     * @param account
-     * @return  a promise representing the result of the call.
-     */
     @Override
     public SimplePromise<List<ITradeContract>> loadContracts(final String account) {
 
@@ -338,6 +326,15 @@ public class Web3jContractService implements ContractService
         });
     }
 
+    /**
+     * Calculates the Ethereum address of a contract to be mined based on the sender address and the
+     * nonce of the senders address.
+     *
+     * Adapted from: http://zeltsinger.com/2016/11/07/neat-ethereum-tricks-the-transaction-nonce/
+     *
+     * @param senderAddress
+     * @return the calcualted Ethereum address
+     */
     private SimplePromise<String> calculateContractAddress(final String senderAddress)
     {
         return Async.toPromise(new Callable<String>() {
@@ -354,6 +351,12 @@ public class Web3jContractService implements ContractService
         });
     }
 
+    /**
+     * Returns the nonce for a given Ethereum address
+     *
+     * @param address
+     * @return the nonce of the address
+     */
     private SimplePromise<BigInteger> getNonce(final String address)
     {
         return Async.toPromise(new Callable<BigInteger>() {

@@ -13,9 +13,7 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
 import org.jdeferred.Promise;
-
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
@@ -30,13 +28,16 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display.ContractDetailActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+/**
+ * {@link RecyclerView.Adapter} that holds a list of {@link ITradeContract} objects. It implements
+ * the {@link Filterable} interface to filter the list based on a text constraint.
+ */
 public class TradeContractRecyclerViewAdapter extends RecyclerView.Adapter<TradeContractRecyclerViewAdapter.ViewHolder> implements Filterable {
 
     private  List<ITradeContract> originalContracts;
@@ -69,6 +70,7 @@ public class TradeContractRecyclerViewAdapter extends RecyclerView.Adapter<Trade
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.fragment_contract_item, parent, false);
+        
         return new ViewHolder(view, contextProvider);
     }
 
@@ -148,6 +150,12 @@ public class TradeContractRecyclerViewAdapter extends RecyclerView.Adapter<Trade
         };
     }
 
+    /**
+     * Filters originalContracts based on text constraint.
+     *
+     * @param constraint
+     * @return
+     */
     protected List<ITradeContract> getFilteredResults(String constraint) {
         List<ITradeContract> results = new ArrayList<>();
 
@@ -163,6 +171,11 @@ public class TradeContractRecyclerViewAdapter extends RecyclerView.Adapter<Trade
         return results;
     }
 
+    /**
+     * Represents one {@link ITradeContract} in the list. Displays the most important attributes
+     * of the contract to the user and navigates her to the {@link ContractDetailActivity} when she
+     * clicks on it.
+     */
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, IContractObserver, View.OnCreateContextMenuListener {
         private final TextView titleView;
         private final TextView stateView;
@@ -175,14 +188,13 @@ public class TradeContractRecyclerViewAdapter extends RecyclerView.Adapter<Trade
         private ITradeContract contract;
         private ContractState state;
         private String title;
-        private String description;
 
         private final ApplicationContext contextProvider;
 
         public ViewHolder(View view, ApplicationContext contextProvider) {
             super(view);
-            this.contextProvider = contextProvider;
 
+            this.contextProvider = contextProvider;
             this.handler = new Handler(Looper.getMainLooper());
 
             titleView = (TextView) view.findViewById(R.id.list_detail_title);
@@ -192,6 +204,7 @@ public class TradeContractRecyclerViewAdapter extends RecyclerView.Adapter<Trade
             cardContent = (LinearLayout) view.findViewById(R.id.card_content);
             cardView = (CardView) view.findViewById(R.id.card_view);
             cardView.setOnClickListener(this);
+
             view.setOnCreateContextMenuListener(this);
         }
 
@@ -212,6 +225,9 @@ public class TradeContractRecyclerViewAdapter extends RecyclerView.Adapter<Trade
 
         public void attachContract(ITradeContract contract)
         {
+            if(this.contract != null)
+                detachContract();
+
             this.contract = contract;
             contract.addObserver(this);
             updateViewFromState();
@@ -244,6 +260,9 @@ public class TradeContractRecyclerViewAdapter extends RecyclerView.Adapter<Trade
             }
         }
 
+        /**
+         * Initializes the view from the attached contract
+         */
         private void updateViewFromState()
         {
             BusyIndicator.show(cardContent);
@@ -254,7 +273,6 @@ public class TradeContractRecyclerViewAdapter extends RecyclerView.Adapter<Trade
                     state = contract.getState().get();
                     final BigInteger price = contract.getPrice().get();
                     title = contract.getTitle().get();
-                    description = contract.getDescription().get();
                     final ContractType type = contract.getContractType();
 
                     BigDecimal amountEther;
@@ -269,6 +287,7 @@ public class TradeContractRecyclerViewAdapter extends RecyclerView.Adapter<Trade
                         contractType = "Rent Contract";
                     }
 
+                    //convert price to US-Dollar
                     contextProvider.getServiceProvider().getExchangeService().convertToCurrency(amountEther, Currency.USD)
                             .done(new DoneCallback<BigDecimal>() {
                                 @Override
@@ -279,7 +298,8 @@ public class TradeContractRecyclerViewAdapter extends RecyclerView.Adapter<Trade
                                             BigDecimal rounded = result.setScale(2, BigDecimal.ROUND_HALF_EVEN);
                                             priceView.setText(rounded.toString());
                                             titleView.setText(title);
-                                            stateView.setText(state.toString());
+                                            if(state != null)
+                                                stateView.setText(state.toString());
                                             contractTypeView.setText(contractType);
                                         }
                                     });
@@ -296,23 +316,11 @@ public class TradeContractRecyclerViewAdapter extends RecyclerView.Adapter<Trade
             });
         }
 
-        public void applySearch(ListSearch search)
-        {
-            //filter based on text search
-            if(!title.contains(search.getSearchText()) && !description.contains(search.getSearchText()))
-                this.itemView.setVisibility(View.GONE);
-        }
-
         @Override
         public void contractStateChanged(String event, Object value)
         {
-            //update the contract view
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    updateViewFromState();
-                }
-            });
+            //update the view when the contract state changes
+            updateViewFromState();
         }
 
     }

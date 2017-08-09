@@ -1,8 +1,8 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider;
 
 import android.content.Context;
-
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityChangedListener;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.AppContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.broadcast.BroadCastService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.message.MessageService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
@@ -12,9 +12,10 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PBuyerServi
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PSellerService;
 
 /**
- * Created by flo on 27.04.17.
+ * Interface that provides globally accessible objects.
+ *
+ * see {@link AppContext}
  */
-
 public interface ApplicationContext extends ActivityChangedListener
 {
     ServiceProvider getServiceProvider();
@@ -25,6 +26,5 @@ public interface ApplicationContext extends ActivityChangedListener
     PermissionProvider getPermissionProvider();
     BroadCastService getBroadCastService();
     MessageService getMessageService();
-
     Context getContext();
 }

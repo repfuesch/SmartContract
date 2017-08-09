@@ -114,22 +114,6 @@ public class QrScanningActivity extends AppCompatActivity {
         finish();
     }
 
-    private boolean validateContractAddress(String address)
-    {
-        return Web3Util.isAddress(address);
-    }
-
-    private boolean validateContractType(String value)
-    {
-        try{
-            Enum.valueOf(ContractType.class, value);
-        }catch(IllegalArgumentException ex)
-        {
-            return false;
-        }
-        return true;
-    }
-
     private boolean validateVCard(String data)
     {
         VCard card = Ezvcard.parse(data).first();

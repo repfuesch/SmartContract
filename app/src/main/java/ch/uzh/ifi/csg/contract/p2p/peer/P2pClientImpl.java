@@ -15,9 +15,11 @@ import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
 
 /**
- * Created by flo on 30.06.17.
+ * Implements the {@link P2pClient} interface.
+ * Serializes ContractInfo- and UserProfile objects and writes them to the outputStream provided in
+ * the constructor.
+ *
  */
-
 public class P2pClientImpl implements P2pClient {
 
     private SerializationService serializationService;
@@ -27,12 +29,6 @@ public class P2pClientImpl implements P2pClient {
     {
         this.outputStream = outputStream;
         this.serializationService = serializationService;
-    }
-
-    @Override
-    public void sendConnectionConfiguration(final ConnectionConfig config) throws IOException
-    {
-        sendJson(serializationService.serialize(config));
     }
 
     @Override
@@ -55,11 +51,6 @@ public class P2pClientImpl implements P2pClient {
         {
             sendFile(contractInfo.getUserProfile().getProfileImagePath());
         }
-    }
-
-    @Override
-    public void sendTransmissionConfirmed(TransmissionConfirmedResponse response) throws IOException {
-        sendJson(serializationService.serialize(response));
     }
 
     @Override
@@ -88,7 +79,9 @@ public class P2pClientImpl implements P2pClient {
         int buflen;
         byte buf[] = new byte[1024];
 
+        //first write length of the inputStream that the receivers knows how many bytes to read
         outputStream.writeLong(len);
+
         while ((buflen = inputStream.read(buf)) != -1) {
             outputStream.write(buf, 0, buflen);
         }

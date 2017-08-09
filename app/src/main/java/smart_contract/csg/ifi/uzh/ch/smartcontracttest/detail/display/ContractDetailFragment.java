@@ -196,7 +196,6 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
             @Override
             public Void call() throws Exception {
 
-
                 ContractDetailFragment.this.contract = contract;
                 verifyIdentity = contract.getVerifyIdentity().get();
                 state = contract.getState().get();

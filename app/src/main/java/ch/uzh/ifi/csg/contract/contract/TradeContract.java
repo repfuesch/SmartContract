@@ -46,32 +46,25 @@ import rx.Subscription;
 import rx.functions.Action1;
 
 /**
- * This class implements the ITradeContract interface and is derived rom the Contract base class
- * of Web3j.
+ * This class implements the ITradeContract interface and is derived rom the {@link Contract} base
+ * class of Web3j.
  */
-
 public abstract class TradeContract extends Contract implements ITradeContract
 {
     private List<IContractObserver> observers;
     private List<Subscription> subscriptions;
-    private UserProfile userProfile;
-    private Map<String, String> images;
     private ContractInfo contractInfo;
-    private BigInteger deposit;
-    private BigInteger price;
 
     protected TradeContract(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit)
     {
-        super(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
+        super("", contractAddress, web3j, transactionManager, gasPrice, gasLimit);
 
         observers = new ArrayList<>();
         subscriptions = new ArrayList<>();
-        userProfile = new UserProfile();
-        images = new HashMap<>();
     }
 
     /**
-     * Setts the ContractInfo object for this contract.
+     * Sets the ContractInfo object containing the content details for this contract.
      * This method is always called after the constructor.
      *
      * @param contractInfo
@@ -111,15 +104,16 @@ public abstract class TradeContract extends Contract implements ITradeContract
      *                           on the contract on the blockchain.
      * @param gasPrice  The gas price used by the TransactionHandler when executing transactions
      * @param gasLimit The gas limit used by the TransactionHandler when executing transactions
-     * @param contractInfo Object that contains all information that is stored locally
+     * @param contractInfo Object that contains all information of the contract that is stored
+     *                     locally
      * @param binary The binary contract code of the smart contract deployed on the blockchain
      * @param value The value in wei that is sent in the transaction that creates this contract
      * @param args Web3j Type array that contains all arguments of the smart contract constructor
-     * @param <T> The concrete java wrapper class
-     * @return The Java wrapper class that
+     * @param <T> The type of the concrete java wrapper class
+     * @return The Java wrapper class instance
      * @throws Exception
      */
-    public static <T extends TradeContract>  ITradeContract deployContract(
+    public static <T extends TradeContract>  T deployContract(
             final Class<T> clazz,
             final Web3j web3j,
             final TransactionManager transactionManager,
@@ -131,14 +125,14 @@ public abstract class TradeContract extends Contract implements ITradeContract
             final Type... args) throws Exception
     {
             String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.asList(args));
-            TradeContract contract = deploy(clazz, web3j, transactionManager, gasPrice, gasLimit, binary, encodedConstructor, value);
+            T contract = deploy(clazz, web3j, transactionManager, gasPrice, gasLimit, binary, encodedConstructor, value);
             contract.initContract(contractInfo);
             return contract;
     }
 
     /**
      * Creates and initializes a Java wrapper class derived from TradeContract that contains
-     * the interaction logic for the smart contract on the provided contract address.
+     * the interaction logic for the smart contract on the specified contract address.
      *
      * @param clazz The java wrapper class for this contract. Must be derived from TradeContract.
      * @param contractAddress The Ethereum address that contains the smart contract code
@@ -147,12 +141,13 @@ public abstract class TradeContract extends Contract implements ITradeContract
      *                           on the contract on the blockchain.
      * @param gasPrice  The gas price used by the TransactionHandler when executing transactions
      * @param gasLimit The gas limit used by the TransactionHandler when executing transactions
-     * @param contractInfo Object that contains all information of a contract that is stored locally
-     * @param <T>
-     * @return
+     * @param contractInfo Object that contains all information of the contract that is stored
+     *                     locally
+     * @param <T> The type of the concrete java wrapper class
+     * @return The Java wrapper class instance
      * @throws Exception
      */
-    public static <T extends TradeContract> ITradeContract loadContract(
+    public static <T extends TradeContract> T loadContract(
             final Class<T> clazz,
             final String contractAddress,
             final Web3j web3j,
@@ -165,7 +160,7 @@ public abstract class TradeContract extends Contract implements ITradeContract
                     String.class, Web3j.class, TransactionManager.class, BigInteger.class, BigInteger.class);
             constructor.setAccessible(true);
 
-            TradeContract contract = constructor.newInstance(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
+            T contract = constructor.newInstance(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
             contract.initContract(contractInfo);
             return contract;
     }
@@ -221,9 +216,9 @@ public abstract class TradeContract extends Contract implements ITradeContract
     }
 
     /**
-     * Registers the provided event.
+     * Registers the specified event on the smart contract.
      *
-     * @param event the Event to register
+     * @param event
      */
     protected void registerEvent(final Event event)
     {
@@ -276,23 +271,12 @@ public abstract class TradeContract extends Contract implements ITradeContract
 
     @Override
     public UserProfile getUserProfile() {
-        return userProfile;
-    }
-
-    @Override
-    public void setUserProfile(UserProfile profile) {
-        userProfile = profile;
-    }
-
-    @Override
-    public void addImage(String signature, String filename)
-    {
-        images.put(signature, filename);
+        return contractInfo.getUserProfile();
     }
 
     @Override
     public Map<String, String> getImages() {
-        return images;
+        return contractInfo.getImages();
     }
 
     @Override
@@ -328,16 +312,12 @@ public abstract class TradeContract extends Contract implements ITradeContract
             @Override
             public BigInteger call() throws Exception {
 
-                if(price != null)
-                    return price;
-
                 Function function = new Function("price",
                         Arrays.<Type>asList(),
                         Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {
                         }));
                 Uint256 result = executeCallSingleValueReturn(function);
-                price = result.getValue();
-                return price;
+                return result.getValue();
             }
         });
     }
@@ -437,17 +417,12 @@ public abstract class TradeContract extends Contract implements ITradeContract
         return Async.toPromise(new Callable<BigInteger>() {
             @Override
             public BigInteger call() throws Exception {
-
-                if(deposit != null)
-                    return deposit;
-
                 Function function = new Function("deposit",
                         Arrays.<Type>asList(),
                         Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {
                         }));
                 Uint256 value = executeCallSingleValueReturn(function);
                 BigInteger bigValue = value.getValue();
-                deposit = bigValue;
                 return bigValue;
             }
         });
@@ -507,15 +482,17 @@ public abstract class TradeContract extends Contract implements ITradeContract
             @Override
             public String call() throws Exception {
 
-                if(contractInfo.isLightContract())
+                if(!contractInfo.isLightContract())
                     return contractInfo.getContentHash();
 
-                Function function = new Function("getImageSignatures",
+                Function function = new Function("contentHash",
                         Arrays.<Type>asList(),
-                        Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Bytes32>>() {
+                        Arrays.<TypeReference<?>>asList(new TypeReference<Bytes32>() {
                         }));
 
-                return null;
+                Bytes32 result = executeCallSingleValueReturn(function);
+                String hexString = BinaryUtil.bin2hex(result.getValue());
+                return hexString;
             }
         });
     }

@@ -5,6 +5,10 @@ import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
+/**
+ * An {@link ImageView} that automatically scales its dimensions based on its intrinsic
+ * width/height ratio.
+ */
 public class ProportionalImageView extends ImageView {
 
     private ScaleDimension scale = ScaleDimension.Width;
@@ -21,6 +25,11 @@ public class ProportionalImageView extends ImageView {
         super(context, attrs, defStyle);
     }
 
+    /**
+     * Determines which dimension of the image should be scaled
+     *
+     * @param dimension
+     */
     public void setScale(ScaleDimension dimension)
     {
         scale = dimension;

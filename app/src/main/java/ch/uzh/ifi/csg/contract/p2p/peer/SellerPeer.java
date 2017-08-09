@@ -17,9 +17,10 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.ContractInfoL
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.UserProfileListener;
 
 /**
- * Created by flo on 30.06.17.
+ * Seller implementation of the {@link Peer} interface. First requests the local contract details
+ * from the {@link P2pSellerCallback} and sends them over the network. If the contract details
+ * contain the UserProfile, it also waits for the profile of the buyer.
  */
-
 public class SellerPeer extends PeerBase implements ContractInfoListener
 {
     private P2pSellerCallback callback;
@@ -42,6 +43,7 @@ public class SellerPeer extends PeerBase implements ContractInfoListener
         userProfile = serializationService.deserialize(jsonString, new TypeToken<UserProfile>(){}.getType());
         if(userProfile.getProfileImagePath() != null)
         {
+            //save profile image
             callback.onP2pInfoMessage("Receiving profile image");
             File tempFile = FileUtil.createTemporaryFile("image", "jpg");
             readFile(inputStream, tempFile);
@@ -54,6 +56,7 @@ public class SellerPeer extends PeerBase implements ContractInfoListener
     @Override
     public void onContractInfoReceived(final ContractInfo contractInfo) {
 
+        //run in background thread because it is invoked from a UI component.
         Async.run(new Callable<Void>() {
             @Override
             public Void call() throws Exception {

@@ -1,29 +1,23 @@
 package ch.uzh.ifi.csg.contract.service.account;
 
 
-import org.web3j.crypto.ECKeyPair;
-import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.parity.Parity;
 import org.web3j.protocol.parity.methods.response.NewAccountIdentifier;
 import org.web3j.protocol.parity.methods.response.PersonalListAccounts;
 import org.web3j.protocol.parity.methods.response.PersonalUnlockAccount;
-
 import java.math.BigInteger;
-import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.datamodel.Account;
 
 /**
  * Parity implementation of the AccountService. To use this service, the personal interface has to
- * be exposed over http on the host eth client. This is inherently unsafe. This service should only
+ * be exposed over the RPC-HTTP API on Ethereum client. This is inherently unsafe. This service should only
  * be used for debugging purposes.
  */
-
 public class ParityAccountService extends Web3AccountService{
 
     private Parity parity;
@@ -44,7 +38,10 @@ public class ParityAccountService extends Web3AccountService{
         {
             @Override
             public List<Account> call() throws Exception {
+
+                //retrieve the accounts on the data directory of the Ethereum client
                 PersonalListAccounts listAccounts = parity.personalListAccounts().send();
+
                 List<String> remoteAccounts = listAccounts.getAccountIds();
                 List<Account> accountList = new ArrayList<Account>();
                 for(String accId : remoteAccounts)
@@ -78,8 +75,8 @@ public class ParityAccountService extends Web3AccountService{
         return Async.toPromise(new Callable<Account>() {
             @Override
             public Account call() throws Exception {
+                //create account on the remote Ethereum client
                 NewAccountIdentifier accountId = parity.personalNewAccount(password).send();
-
                 Account newAccount =  new Account(accountId.getAccountId(), alias, "");
                 accountManager.addAccount(newAccount);
                 return newAccount;
@@ -98,6 +95,7 @@ public class ParityAccountService extends Web3AccountService{
         return Async.toPromise(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
+                //unlocks the account on the Ethereum client
                 PersonalUnlockAccount unlockAcc = parity.personalUnlockAccount(account.getId(), password, BigInteger.valueOf(Integer.MAX_VALUE)).send();
                 if(unlockAcc.hasError())
                     return false;
@@ -108,7 +106,8 @@ public class ParityAccountService extends Web3AccountService{
     }
 
     /***
-     * Cannot be implemented because there does not exist a method to lock an unlocked account on the parity interface!
+     * Cannot be implemented because there does not exist a method to lock an unlocked account on
+     * the parity interface!
      */
     @Override
     public void lockAccount() {

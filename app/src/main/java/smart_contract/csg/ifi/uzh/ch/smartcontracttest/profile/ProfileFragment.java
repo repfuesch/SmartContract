@@ -60,7 +60,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
     private EditText regionField;
     private EditText emailField;
     private EditText phoneField;
-    private Button editButton;
     private Button saveButton;
     private ImageView qrImageView;
     private ImageView profileImage;
@@ -108,12 +107,10 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
         phoneField.addTextChangedListener(new RequiredTextFieldValidator(phoneField));
         phoneField.addTextChangedListener(this);
 
-        editButton = (Button) view.findViewById(R.id.action_edit_identity);
         saveButton = (Button) view.findViewById(R.id.action_save_profile);
         qrImageView = (ImageView) view.findViewById(R.id.profile_qr_image);
         profileImage = (ImageView) view.findViewById(R.id.profile_image);
 
-        editButton.setOnClickListener(this);
         saveButton.setOnClickListener(this);
         qrImageView.setOnClickListener(this);
 
@@ -231,12 +228,10 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
         if(mode == ProfileMode.Edit){
             changeLayoutRecursive(layout, ProfileMode.Edit);
             saveButton.setVisibility(View.VISIBLE);
-            editButton.setVisibility(View.GONE);
         }else
         {
             changeLayoutRecursive(layout, ProfileMode.ReadOnly);
             saveButton.setVisibility(View.GONE);
-            editButton.setVisibility(View.GONE);
         }
     }
 

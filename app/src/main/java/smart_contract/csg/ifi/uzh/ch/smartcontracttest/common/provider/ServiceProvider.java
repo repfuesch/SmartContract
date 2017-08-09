@@ -6,9 +6,8 @@ import ch.uzh.ifi.csg.contract.service.contract.ContractService;
 import ch.uzh.ifi.csg.contract.service.exchange.EthConvertService;
 
 /**
- * Created by flo on 27.04.17.
+ * Interface to access Services that depend on the application settings.
  */
-
 public interface ServiceProvider
 {
     ContractService getContractService();

@@ -1,5 +1,7 @@
 package ch.uzh.ifi.csg.contract.datamodel;
 
+import android.util.Log;
+
 import java.io.Serializable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -13,8 +15,8 @@ import ch.uzh.ifi.csg.contract.util.BinaryUtil;
 
 /**
  * Class used to represent a TradeContract for storage on the local filesystem
+ *
  */
-
 public class ContractInfo implements Serializable
 {
     private static final long serialVersionUID = 7526471155622776147L;
@@ -32,6 +34,7 @@ public class ContractInfo implements Serializable
         this.contractAddress = contractAddress;
         this.contractType = contractType;
         this.images = new LinkedHashMap<>();
+        this.userProfile = new UserProfile();
     }
 
     public ContractInfo(ContractType contractType, String contractAddress, String title, String description, boolean verifyIdentity, boolean isLightContract) {
@@ -43,6 +46,12 @@ public class ContractInfo implements Serializable
         this.isLightContract = isLightContract;
     }
 
+    /**
+     * Calculates and returns the SHA-256 hash of the title, description, verifyIdentity and image
+     * attributes of this contract.
+     *
+     * @return the SHA-256 hash of the content attributes
+     */
     public String getContentHash()
     {
         ArrayList<Byte> byteList = new ArrayList<>();
@@ -58,8 +67,7 @@ public class ContractInfo implements Serializable
         try {
             digest = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e1) {
-            // todo:log
-            //Log.d(TAG, "getImageHash: ");
+            Log.e("ContractInfo", "SHA-256 hash not found", e1);
         }
 
         digest.reset();
@@ -109,9 +117,5 @@ public class ContractInfo implements Serializable
 
     public boolean isLightContract() {
         return isLightContract;
-    }
-
-    public void setLightContract(boolean lightContract) {
-        isLightContract = lightContract;
     }
 }

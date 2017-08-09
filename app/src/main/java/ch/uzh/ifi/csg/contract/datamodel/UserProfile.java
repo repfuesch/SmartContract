@@ -6,9 +6,9 @@ import java.math.BigInteger;
 import ezvcard.VCard;
 
 /**
- * Created by flo on 31.03.17.
+ * Class that represents the UserProfile that belongs to an account or to a contract
+ *
  */
-
 public class UserProfile {
 
     private VCard vCard;

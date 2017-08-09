@@ -1,18 +1,11 @@
 package ch.uzh.ifi.csg.contract.async.promise;
 
-import org.jdeferred.Deferred;
-import org.jdeferred.DonePipe;
 import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
-import org.jdeferred.impl.DeferredPromise;
-
 import java.util.UUID;
-import java.util.concurrent.Callable;
 
-import ch.uzh.ifi.csg.contract.async.Async;
 
 /**
- * Created by flo on 24.02.17.
+ * Class that wraps a {@link Promise} object and implments the {@link SimplePromise} interface
  */
 
 public class SimplePromiseAdapter<T> implements SimplePromise<T>

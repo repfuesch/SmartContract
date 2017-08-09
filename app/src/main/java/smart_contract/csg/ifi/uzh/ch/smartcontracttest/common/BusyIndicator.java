@@ -1,28 +1,21 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common;
 
-import android.app.ActivityManager;
 import android.os.Handler;
 import android.os.Looper;
-import android.transition.Visibility;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
 
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 
 /**
- * Created by flo on 11.06.17.
+ * Helper class to show and hide {@link ProgressBar} components in specified layout containers
  */
-
 public class BusyIndicator {
 
     private static int VISIBLE_TAG = 121654435;
@@ -36,6 +29,11 @@ public class BusyIndicator {
         handler = new Handler(Looper.getMainLooper());
     }
 
+    /**
+     * Displays a ProgressBar in the center of the LinearLayout container.
+     *
+     * @param layout
+     */
     public static void show(final LinearLayout layout)
     {
         runOnUiThread(new Runnable() {
@@ -52,6 +50,8 @@ public class BusyIndicator {
                     activeIndicators.add(layout);
                 }
 
+                //hide all childs of the layout container but mark components that are not visible
+                // with the VISIBLE_TAG
                 for(int i=0;i<layout.getChildCount(); ++i)
                 {
                     View child = layout.getChildAt(i);
@@ -66,11 +66,13 @@ public class BusyIndicator {
                     child.setVisibility(View.GONE);
                 }
 
-                //layout.setGravity(Gravity.CENTER);
+                //initialize the ProgressBar
                 ProgressBar progressBar = new ProgressBar(layout.getContext());
                 LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(150, 150);
                 progressBar.setLayoutParams(layoutParams);
                 progressBar.setTag("progressbar");
+
+                //Add the ProgressBar and position it in the center of the container
                 layout.setTag(GRAVITY_TAG, getGravity(layout));
                 layout.setGravity(Gravity.CENTER);
                 layout.addView(progressBar);
@@ -94,6 +96,11 @@ public class BusyIndicator {
         return gravity;
     }
 
+    /**
+     * Removes the ProgressBar from the LinearLayout container and makes its child visible again.
+     *
+     * @param layout
+     */
     public static void hide(final LinearLayout layout)
     {
         runOnUiThread(new Runnable() {
@@ -104,7 +111,6 @@ public class BusyIndicator {
                 return;
 
             activeIndicators.remove(layout);
-
             if(activeIndicators.contains(layout))
                 return;
 
@@ -129,6 +135,6 @@ public class BusyIndicator {
 
     private static void runOnUiThread(Runnable runnable)
     {
-        new Handler(Looper.getMainLooper()).post(runnable);
+        handler.post(runnable);
     }
 }

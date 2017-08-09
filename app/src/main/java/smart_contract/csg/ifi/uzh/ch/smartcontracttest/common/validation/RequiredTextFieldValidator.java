@@ -6,7 +6,6 @@ import android.widget.TextView;
 /**
  * TextFieldValidator to validate required fields
  */
-
 public class RequiredTextFieldValidator extends TextFieldValidator implements View.OnFocusChangeListener
 {
     public RequiredTextFieldValidator(TextView textView) {

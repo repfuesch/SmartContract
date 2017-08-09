@@ -1,9 +1,12 @@
 package ch.uzh.ifi.csg.contract.async.promise;
 
-/**
- * Created by flo on 24.02.17.
- */
+import org.jdeferred.Deferred;
 
+/**
+ * @see Deferred#reject(Object)
+ * @see SimplePromise#fail(FailCallback)
+ *
+ */
 public interface FailCallback {
     void onFail(final Throwable result);
 }

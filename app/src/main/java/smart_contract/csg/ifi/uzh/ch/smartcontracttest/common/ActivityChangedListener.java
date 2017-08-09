@@ -1,13 +1,21 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common;
 
-import android.support.v7.app.AppCompatActivity;
-
 /**
- * Created by flo on 23.06.17.
+ * Interface that can be implemented to get notified when an Activity was stopped or has resumed
  */
-
 public interface ActivityChangedListener {
 
+    /**
+     * Invoked when an ActivityBase Activity is resumed
+     *
+     * @param activity
+     */
     void onActivityResumed(ActivityBase activity);
+
+    /**
+     * Invoked when an ActivityBase Activity is stopped
+     *
+     * @param activity
+     */
     void onActivityStopped(ActivityBase activity);
 }

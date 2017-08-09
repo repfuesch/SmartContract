@@ -1,5 +1,7 @@
 package ch.uzh.ifi.csg.contract.service.contract;
 
+import android.util.Log;
+
 import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
@@ -19,7 +21,11 @@ import ch.uzh.ifi.csg.contract.service.serialization.GsonSerializationService;
 import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
 
 /**
- * Class for loading, saving and deleting contract data for an account from a JSON file
+ * Class that implements the {@link ContractManager} and {@link AccountManager} interface.
+ *
+ * It stores {@link Account} and {@link ContractInfo} objects in a map and it uses the
+ * {@link GsonSerializationService} to serialize and deserialize them. The {@link FileUtil} is used
+ * to persist the data on the file system.
  */
 
 public class FileManager implements ContractManager, AccountManager {
@@ -45,8 +51,7 @@ public class FileManager implements ContractManager, AccountManager {
                 accountMap = new HashMap<>();
         }catch(IOException e)
         {
-            //todo:log
-            e.printStackTrace();
+            Log.e("service", "failed to load data from the file system", e);
         }
     }
 
@@ -85,8 +90,7 @@ public class FileManager implements ContractManager, AccountManager {
         try {
             FileUtil.writeFile(data, new File(accountDirectory));
         } catch (IOException e) {
-            //todo:log
-            e.printStackTrace();
+            Log.e("service", "failed to save data on the file system", e);
         }
     }
 
@@ -115,11 +119,9 @@ public class FileManager implements ContractManager, AccountManager {
     @Override
     public ContractInfo getContract(String address, String account)
     {
-
         if(accountMap.get(account).getContracts().containsKey(address))
             return accountMap.get(account).getContracts().get(address);
         return null;
-
     }
 
     private Map<String, Account> Deserialize(String jsonArray)
