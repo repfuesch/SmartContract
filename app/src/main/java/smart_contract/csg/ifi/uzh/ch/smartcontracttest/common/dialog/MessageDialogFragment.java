@@ -1,5 +1,6 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -7,6 +8,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.AddContractDialogFragment;
 
 /**
  * A DialogFragment that is used to display error- and info messages to the user
@@ -19,6 +21,9 @@ public class MessageDialogFragment extends DialogFragment
 
     private String message;
     private Throwable exception;
+    private AlertDialog diag;
+
+    private MessageDialogListener listener;
 
     public MessageDialogFragment()
     {
@@ -41,6 +46,16 @@ public class MessageDialogFragment extends DialogFragment
         }
     }
 
+    public void setDialogListener(MessageDialogListener listener)
+    {
+        this.listener = listener;
+    }
+
+    public String getMessage()
+    {
+        return message;
+    }
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState)
     {
@@ -52,13 +67,38 @@ public class MessageDialogFragment extends DialogFragment
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
+                diag.dismiss();
             }
         });
 
         builder.setMessage(message);
 
-        final AlertDialog diag = builder.create();
+        diag = builder.create();
 
         return diag;
+    }
+
+    @Override
+    public void onCancel(DialogInterface dialog) {
+        if(listener != null)
+            listener.onDialogClosed();
+
+        super.onCancel(dialog);
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog){
+        if(listener != null)
+            listener.onDialogClosed();
+
+        super.onDismiss(dialog);
+    }
+
+    /**
+     * Callback interface that notifies the implementing instance when this dialog is closed
+     */
+    public interface MessageDialogListener
+    {
+        void onDialogClosed();
     }
 }

@@ -23,7 +23,8 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.Proportio
 /**
  * A DialogFragment that can display images from different sources.
  */
-public class ImageDialogFragment extends DialogFragment implements View.OnTouchListener {
+public class ImageDialogFragment extends DialogFragment implements View.OnTouchListener
+{
     public static final String MESSAGE_IMAGE_SOURCE = "ch.uzh.ifi.csg.smart_contract.image.src";
     public static final String MESSAGE_IMAGE_BMPS = "ch.uzh.ifi.csg.smart_contract.image.uris";
     public static final String MESSAGE_IMAGE_INDEX = "ch.uzh.ifi.csg.smart_contract.image.index";
@@ -74,8 +75,8 @@ public class ImageDialogFragment extends DialogFragment implements View.OnTouchL
         //Set the image source based on the arguments supplied.
         if(displayQrCode)
         {
-            Bitmap bitmap = QRCode.from(imgSrc).bitmap();
-            imageView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, 250, 250, false));
+            Bitmap bm = QRCode.from(imgSrc).withSize(250, 250).bitmap();
+            imageView.setImageBitmap(bm);
         }else if(imgSrc != null){
             imageView.setImageURI(Uri.fromFile(new File(imgSrc)));
         }else{

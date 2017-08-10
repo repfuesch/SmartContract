@@ -1,18 +1,16 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create;
 
-import java.io.File;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Map;
 
-import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
+import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
+import ch.uzh.ifi.csg.contract.service.contract.ContractService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 
 /**
- * Created by flo on 05.06.17.
+ * Fragment to deploy an {@link IPurchaseContract}
  */
-
 public class PurchaseContractDeployFragment extends ContractDeployFragment
 {
     @Override
@@ -20,24 +18,31 @@ public class PurchaseContractDeployFragment extends ContractDeployFragment
         return R.layout.fragment_contract_create_purchase;
     }
 
+    /**
+     * see {@link ContractDeployFragment#deployContract}
+     * see {@link ContractService#deployPurchaseContract}
+     */
     @Override
-    protected SimplePromise<ITradeContract> deployContract(BigInteger priceWei, String title, String description, final boolean needsVerification, final Map<String, String> imageSignatures)
+    protected void deployContract(BigInteger priceWei, String title, String description, final boolean needsVerification, final Map<String, String> imageSignatures)
     {
+        //make sure that the price is dividable by 2
         if(!(priceWei.mod(BigInteger.valueOf(2))).equals(BigInteger.ZERO))
         {
             priceWei = priceWei.add(BigInteger.ONE);
         }
 
+        //ensure balance of account
         BigInteger priceWithDeposit = priceWei.multiply(BigInteger.valueOf(2));
         if(!ensureBalance(priceWithDeposit))
-            return null;
+            return;
 
-        return  appContext.getServiceProvider().getContractService().deployPurchaseContract(
+        //deploy the contract using the ContractService
+        appContext.getServiceProvider().getContractService().deployPurchaseContract(
                 priceWithDeposit,
                 title,
                 description,
                 imageSignatures,
                 needsVerification,
-                !deployFull);
+                !deployFull).get();
     }
 }

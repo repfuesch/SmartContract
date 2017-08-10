@@ -28,9 +28,8 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.Applicati
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.UserProfileListener;
 
 /**
- * Created by flo on 03.07.17.
+ * Base {@link DialogFragment} that implements the {@link P2pCallback} interface
  */
-
 public abstract class P2pDialog extends DialogFragment implements P2pCallback {
 
     protected ApplicationContext contextProvider;
@@ -51,10 +50,20 @@ public abstract class P2pDialog extends DialogFragment implements P2pCallback {
 
     }
 
+    /**
+     * Returns the LayoutId of the derived Fragment
+     * @return
+     */
     protected abstract int getLayoutId();
 
+    /**
+     * Has to be implemented by derived classes to handle dialog cancelation
+     */
     protected abstract void onDialogCanceled();
 
+    /**
+     * Executed after the DialogFragment is displayed
+     */
     protected void onShowDialog()
     {
         setCancelable(false);
@@ -75,6 +84,8 @@ public abstract class P2pDialog extends DialogFragment implements P2pCallback {
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View contentView = inflater.inflate(getLayoutId(), null);
         contentView.setBackgroundColor(Color.TRANSPARENT);
+
+        //find UI components
         verifyProfileView = (LinearLayout) contentView.findViewById(R.id.select_profile_details_view);
         dialogContent = (LinearLayout) contentView.findViewById(R.id.dialog_content);
         dialogInfo = (TextView) contentView.findViewById(R.id.dialog_info);
@@ -89,11 +100,7 @@ public abstract class P2pDialog extends DialogFragment implements P2pCallback {
             }
         });
 
-        // Inflate and set the layout for the dialog
-        // Pass null as the parent view because its going in the dialog layout
         builder.setView(contentView);
-
-        // Create the AlertDialog object and return it
         dialog = builder.create();
 
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
@@ -106,6 +113,10 @@ public abstract class P2pDialog extends DialogFragment implements P2pCallback {
         return dialog;
     }
 
+    /**
+     * see {@link P2pCallback#onP2pErrorMessage(String)}
+     * @param message
+     */
     @Override
     public void onP2pErrorMessage(final String message) {
         if(getActivity() == null)
@@ -119,6 +130,10 @@ public abstract class P2pDialog extends DialogFragment implements P2pCallback {
         });
     }
 
+    /**
+     * see {@link P2pCallback#onP2pInfoMessage(String)}
+     * @param message
+     */
     @Override
     public void onP2pInfoMessage(final String message) {
         if(getActivity() == null)

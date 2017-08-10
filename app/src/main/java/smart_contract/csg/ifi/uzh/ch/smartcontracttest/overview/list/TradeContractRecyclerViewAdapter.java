@@ -42,7 +42,9 @@ public class TradeContractRecyclerViewAdapter extends RecyclerView.Adapter<Trade
 
     private  List<ITradeContract> originalContracts;
     private  List<ITradeContract> filteredContracts;
+
     private final List<ViewHolder> boundViewHolders;
+
     private ITradeContract selectedContract;
     private ApplicationContext contextProvider;
 
@@ -151,7 +153,7 @@ public class TradeContractRecyclerViewAdapter extends RecyclerView.Adapter<Trade
     }
 
     /**
-     * Filters originalContracts based on text constraint.
+     * Filters originalContracts based on a text constraint.
      *
      * @param constraint
      * @return

@@ -9,10 +9,10 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.provider.ContactsContract;
 import android.support.design.widget.Snackbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -22,12 +22,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-
 import net.glxn.qrgen.android.QRCode;
-
 import java.io.File;
-import java.io.IOException;
 
+import ch.uzh.ifi.csg.contract.service.serialization.GsonSerializationService;
+import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
 import ch.uzh.ifi.csg.contract.util.ImageHelper;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ezvcard.VCard;
@@ -44,7 +43,11 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.validation.Require
 import static android.app.Activity.RESULT_OK;
 
 /**
- * A fragment for retrieving and displaying user information
+ * A {@link Fragment} that displays the details of a {@link UserProfile}.
+ * The {@link #mode} determines whether the Profile can be modified or if the fields are read-only.
+ *
+ * The parent Activity must implement the {@link ProfileDataChangedListener} interface to get
+ * notified when the profile data has changed.
  */
 public class ProfileFragment extends Fragment implements View.OnClickListener, TextWatcher {
 
@@ -158,6 +161,12 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
         }
     }
 
+    /**
+     * Returns a {@link UserProfile} that contains the information the user inserted in the text
+     * fields
+     *
+     * @return the modified profile
+     */
     private UserProfile getProfileInformation()
     {
         VCard card = new VCard();
@@ -178,12 +187,17 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
         card.addEmail(emailField.getText().toString());
         card.addTelephoneNumber(phoneField.getText().toString(), TelephoneType.HOME);
 
-        loadQrImage(card);
         profile.setVCard(card);
 
         return profile;
     }
 
+    /**
+     * Initializes the text fields and the image view from the user profile. Creates an image that
+     * contains the QR-code to scan this profile.
+     *
+     * @param userProfile
+     */
     public void setProfileInformation(UserProfile userProfile)
     {
         profile.setVCard(userProfile.getVCard());
@@ -210,7 +224,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
         if(card.getTelephoneNumbers().size() > 0)
             phoneField.setText(card.getTelephoneNumbers().get(0).getText());
 
-        loadQrImage(card);
+        loadQrImage(userProfile);
 
         if(profile.getProfileImagePath() != null)
             profileImage.setImageURI(Uri.fromFile(new File(profile.getProfileImagePath())));
@@ -221,6 +235,11 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
         super.onResume();
     }
 
+    /**
+     * Changes the layout of the View depending on the {@link ProfileMode}
+     *
+     * @param mode
+     */
     public void setMode(ProfileMode mode)
     {
         this.mode = mode;
@@ -255,16 +274,19 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
         }
     }
 
-    private void loadQrImage(VCard card)
+    private void loadQrImage(UserProfile profile)
     {
-        Bitmap bitmap = QRCode.from(card.write()).bitmap();
-        qrImageView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, 125, 125, false));
+        String json = new GsonSerializationService().serialize(profile);
+        Bitmap bitmap = QRCode.from(json).withSize(250, 250).bitmap();
+        qrImageView.setImageBitmap(bitmap);
     }
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
     {
         super.onCreateContextMenu(menu, v, menuInfo);
+
+        //create context menu to change the profile image
         menu.setHeaderTitle("Select and Image");
         menu.add(0, v.getId(), 0, "from file");
         menu.add(0, v.getId(), 0, "from camera");
@@ -283,6 +305,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
                 return true;
             }
 
+            //select an image from the device
             ImageHelper.openImageFile(this);
         }
         else if(item.getTitle().equals("from camera"))
@@ -293,6 +316,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
                 return true;
             }
 
+            //make a new image with the camera of the device
             ImageHelper.makePicture(this);
         }
 
@@ -301,7 +325,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        //get the new value from Intent data
         switch(requestCode) {
             case ImageHelper.PICK_FILE_REQUEST_CODE:
                 if (resultCode == RESULT_OK) {
@@ -323,16 +346,21 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
             if(profile.getProfileImagePath() != null)
                 new File(profile.getProfileImagePath()).delete();
 
+            //obtain the correctly oriented bitmap from the Uri
             Bitmap bmp = ImageHelper.getCorrectlyOrientedImage(getActivity(), uri, 1280);
+            //save profile image on the file system
             File imgFile = ImageHelper.saveBitmap(bmp, appContext.getSettingProvider().getImageDirectory());
+
             profile.setProfileImagePath(imgFile.getAbsolutePath());
             profileImage.setImageURI(Uri.fromFile(imgFile));
 
+            //notify the parent activity that the profile data changed
             dataChangedListener.onProfileDataChanged(getProfileInformation());
         }
         catch (Exception e)
         {
-            //todo:log
+            appContext.getMessageService().showErrorMessage("Could not process the provided image.");
+            Log.e("profile", "Could not process the provided image.", e);
         }
     }
 
@@ -342,14 +370,16 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
         switch(view.getId())
         {
             case R.id.action_save_profile:
+                //notify the parent activity that profile data has changed
                 this.profile = getProfileInformation();
                 dataChangedListener.onProfileDataChanged(profile);
                 appContext.getMessageService().showSnackBarMessage("Profile saved", Snackbar.LENGTH_LONG);
                 break;
             case R.id.profile_qr_image:
+                //Show QR-Code in an ImageDialogFragment
                 DialogFragment imageDialog = new ImageDialogFragment();
                 Bundle args = new Bundle();
-                args.putString(ImageDialogFragment.MESSAGE_IMAGE_SOURCE, profile.getVCard().write());
+                args.putString(ImageDialogFragment.MESSAGE_IMAGE_SOURCE, new GsonSerializationService().serialize(profile));
                 args.putBoolean(ImageDialogFragment.MESSAGE_DISPLAY_QRCODE, true);
                 imageDialog.setArguments(args);
                 imageDialog.show(getFragmentManager(), "QrImageDialog");
@@ -358,6 +388,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
                 if(profile.getProfileImagePath() == null)
                     return;
 
+                //Show profile image in an ImageDialogFragment
                 DialogFragment profileImageDialog = new ImageDialogFragment();
                 Bundle imageArgs = new Bundle();
                 imageArgs.putString(ImageDialogFragment.MESSAGE_IMAGE_SOURCE, profile.getProfileImagePath());
@@ -388,6 +419,11 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
         }
     }
 
+    /**
+     * Verifies that all mandatory fields are set
+     *
+     * @return
+     */
     private boolean verifyFields()
     {
         return firstNameField.getError() == null &&
@@ -407,6 +443,10 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
         ReadOnly,
     }
 
+    /**
+     * Callback interface that must be implemented by the parent Activity that creates this Fragment.
+     * Notifies the implementing Activity about changes in the {@link UserProfile}
+     */
     public interface ProfileDataChangedListener
     {
         void onProfileDataChanged(UserProfile profile);

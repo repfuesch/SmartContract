@@ -270,6 +270,12 @@ public abstract class TradeContract extends Contract implements ITradeContract
     }
 
     @Override
+    public void setUserProfile(UserProfile profile)
+    {
+        contractInfo.setUserProfile(profile);
+    }
+
+    @Override
     public UserProfile getUserProfile() {
         return contractInfo.getUserProfile();
     }

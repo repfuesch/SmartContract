@@ -1,9 +1,10 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.connection;
 
-/**
- * Created by flo on 23.06.17.
- */
+import ch.uzh.ifi.csg.contract.p2p.peer.Peer;
 
+/**
+ * Class that contains information about the role of a {@link Peer} in a Wi-Fi direct group
+ */
 public class ConnectionInfo
 {
     String groupOwnerAddress;

@@ -9,17 +9,13 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
-
 import org.jdeferred.Promise;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
-
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
-import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.util.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
@@ -30,9 +26,9 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
 
 /**
- * Created by flo on 05.06.17.
+ * {@link ContractDetailFragment} that displays the details and contains the interaction logic for
+ * an {@link IRentContract} instance.
  */
-
 public class RentContractDetailFragment extends ContractDetailFragment
 {
     private Button rentButton;
@@ -62,10 +58,17 @@ public class RentContractDetailFragment extends ContractDetailFragment
         currentFeeField = (EditText) view.findViewById(R.id.rent_current_fee);
         depositField = (EditText) view.findViewById(R.id.rent_deposit);
 
+        //buttons to execute transactions on the contract
         rentButton = (Button) view.findViewById(R.id.rent_button);
         abortButton = (Button) view.findViewById(R.id.abort_button);
         returnButton = (Button) view.findViewById(R.id.return_button);
         reclaimButton = (Button) view.findViewById(R.id.reclaim_button);
+
+        rentButton.setOnClickListener(this);
+        abortButton.setOnClickListener(this);
+        returnButton.setOnClickListener(this);
+        reclaimButton.setOnClickListener(this);
+
         timeUnitSpinner = (Spinner) view.findViewById(R.id.contract_time_unit_spinner);
         timeUnitSpinner.setAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, TimeUnit.values()));
         timeUnitSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -82,11 +85,6 @@ public class RentContractDetailFragment extends ContractDetailFragment
             }
         });
 
-        rentButton.setOnClickListener(this);
-        abortButton.setOnClickListener(this);
-        returnButton.setOnClickListener(this);
-        reclaimButton.setOnClickListener(this);
-
         return view;
     }
 
@@ -100,6 +98,12 @@ public class RentContractDetailFragment extends ContractDetailFragment
         return R.layout.fragment_rent_contract_detail;
     }
 
+    /**
+     * see {@link ContractDetailFragment#init(ITradeContract)}
+     *
+     * @param tradeContract
+     * @return
+     */
     public SimplePromise<Void> init(final ITradeContract tradeContract)
     {
         this.contract = (IRentContract) tradeContract;
@@ -111,6 +115,7 @@ public class RentContractDetailFragment extends ContractDetailFragment
                 Async.run(new Callable<Void>() {
                     @Override
                     public Void call() throws Exception {
+                        //retrieve the contract details
                         final ContractState state = contract.getState().get();
                         final String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
                         final String seller = contract.getSeller().get();
@@ -120,6 +125,7 @@ public class RentContractDetailFragment extends ContractDetailFragment
 
                         updateCurrencyFields();
 
+                        //Enable or disable contract interaction buttons based on the contract state and the role of the user
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -171,6 +177,9 @@ public class RentContractDetailFragment extends ContractDetailFragment
         });
     }
 
+    /**
+     * see {@link ContractDetailFragment#selectedCurrencyChanged()}
+     */
     @Override
     protected void selectedCurrencyChanged()
     {
@@ -188,16 +197,26 @@ public class RentContractDetailFragment extends ContractDetailFragment
             @Override
             public Void call() throws Exception
             {
+                //convert the fees to ether
                 final BigDecimal depositEther = Web3Util.toEther(deposit);
                 final BigDecimal feeEther = Web3Util.toEther(fee);
                 BigInteger totalFee = contract.getRentingFee().get();
                 final BigDecimal totalFeeEther = Web3Util.toEther(totalFee);
 
+                //retrieve ether exchange rate
                 BigDecimal exchangeRate = appContext.getServiceProvider().getExchangeService().getExchangeRate(selectedCurrency).get();
+                if(exchangeRate == null)
+                {
+                    appContext.getMessageService().showErrorMessage("Cannot reach the exchange service. Try again later.");
+                    return null;
+                }
 
+                //convert the fees to currency
                 final BigDecimal depositCurrency = depositEther.multiply(exchangeRate);
                 BigDecimal feeCurrency = feeEther.multiply(exchangeRate);
                 BigDecimal totalFeeCurrency = totalFeeEther.multiply(exchangeRate);
+
+                //calculate the fee per specified time unit
                 if(selectedTimeUnit == TimeUnit.Days)
                 {
                     feeCurrency = feeCurrency.multiply(BigDecimal.valueOf(3600 * 24));
@@ -211,6 +230,8 @@ public class RentContractDetailFragment extends ContractDetailFragment
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+
+                        //update currency fields
                         rentFeeField.setText(finalFeeCurrency.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString());
                         depositField.setText(depositCurrency.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString());
                         currentFeeField.setText(finalTotalFeeCurrency.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString());
@@ -227,6 +248,11 @@ public class RentContractDetailFragment extends ContractDetailFragment
         });
     }
 
+    /**
+     *Executes transactions on the smart contract
+     *
+     * @param view
+     */
     @Override
     public void onClick(View view)
     {

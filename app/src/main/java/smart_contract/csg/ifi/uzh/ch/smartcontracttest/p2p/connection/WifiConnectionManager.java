@@ -32,7 +32,9 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityChangedLis
 
 
 /**
- * Created by flo on 23.06.17.
+ * {@link P2PConnectionManager} implementation that uses the {@link WifiP2pManager} of the Android
+ * framework to discover peers and to manage Wi-Fi direct connections to other peers.
+ *
  */
 public class WifiConnectionManager extends BroadcastReceiver implements P2PConnectionManager, WifiP2pManager.PeerListListener, WifiP2pManager.ConnectionInfoListener, ActivityChangedListener
 {
@@ -56,6 +58,9 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
         initIntentFilter();
     }
 
+    /**
+     * Registers for relevant P2P broadcast intents of the framework
+     */
     private void initIntentFilter()
     {
         intentFilter = new IntentFilter();
@@ -65,6 +70,9 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
     }
 
+    /**
+     * see {@link P2PConnectionManager#startListening(P2PConnectionListener)}
+     */
     @Override
     public void startListening(P2PConnectionListener connectionListener) {
         this.connectionListener = connectionListener;
@@ -72,19 +80,29 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
 
         if(connectionInfo != null)
         {
+            //inform callback that connection has already been established
             connectionListener.onConnectionEstablished(connectionInfo);
         }
     }
 
+    /**
+     * see {@link P2PConnectionManager#stopListening()}
+     */
     @Override
     public void stopListening() {
+        //cancel the discovery task
         if(peerDiscoveryTask != null && !peerDiscoveryTask.isCancelled())
             peerDiscoveryTask.cancel(true);
     }
 
+    /**
+     *
+     *see {@link P2PConnectionManager#connect(String)}
+     */
     @Override
     public void connect(String deviceName)
     {
+        //search for device with the selected name
         WifiP2pConfig config = new WifiP2pConfig();
         WifiP2pDevice selectedDevice = null;
         for(WifiP2pDevice device : deviceList)
@@ -99,24 +117,29 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
         if(selectedDevice == null)
             return;
 
+        //try to make a connection request for the device
         config.deviceAddress = selectedDevice.deviceAddress;
         p2pManager.connect(p2pChannel, config, new WifiP2pManager.ActionListener() {
 
             @Override
             public void onSuccess() {
                 //success logic
-                System.out.println();
+                Log.d("p2p", "Connection request success");
             }
 
             @Override
             public void onFailure(int reason) {
                 //failure logic
+                Log.e("p2p", "Connection request failed: " + reason);
                 if(connectionListener != null)
                     connectionListener.onConnectionError("Cannot establish connection to peer!");
             }
         });
     }
 
+    /**
+     * Tries to remove the Wi-Fi P2P group if this device is the group owner of the group.
+     */
     public void disconnect()
     {
         if (p2pManager != null && p2pChannel != null) {
@@ -125,6 +148,7 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
                 public void onGroupInfoAvailable(WifiP2pGroup group) {
                     if (group != null && p2pManager != null && p2pChannel != null
                             && group.isGroupOwner()) {
+
                         p2pManager.removeGroup(p2pChannel, new WifiP2pManager.ActionListener() {
 
                             @Override
@@ -134,7 +158,7 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
 
                             @Override
                             public void onFailure(int reason) {
-                                Log.d("P2P", "removeGroup onFailure -" + reason);
+                                Log.e("P2P", "removeGroup onFailure -" + reason);
                             }
                         });
                     }
@@ -143,6 +167,11 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
         }
     }
 
+    /**
+     * Start a discovery task that periodically makes a {@link WifiP2pManager#discoverPeers} request
+     * and, if successful, tries to get the list of peers with the {@link WifiP2pManager#requestPeers}
+     * method.
+     */
     private void startPeerDiscovery()
     {
         if(peerDiscoveryTask == null || peerDiscoveryTask.isCancelled())
@@ -159,7 +188,7 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
 
                         @Override
                         public void onFailure(int reasonCode) {
-                            Log.d("P2P", "discoverPeers onFailure -");
+                            Log.e("P2P", "discoverPeers onFailure: " + reasonCode);
                         }
                     });
                 }
@@ -167,6 +196,9 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
         }
     }
 
+    /**
+     * Handler method to receive broadcast intents from the framework.
+     */
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
@@ -178,13 +210,19 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
 
             } else {
                 // Wi-Fi P2P is not enabled
+
                 if(peerDiscoveryTask != null && !peerDiscoveryTask.isCancelled())
                     peerDiscoveryTask.cancel(true);
+
+                if(connectionListener != null)
+                {
+                    connectionListener.onConnectionError("Please enabled the Wi-Fi and make sure that this device can be discovered in the network.");
+                }
             }
         } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
 
         } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
-            // Respond to new connection or disconnections
+            // Respond to new connections or disconnections
             if (p2pManager == null)
                 return;
 
@@ -212,6 +250,12 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
         }
     }
 
+    /**
+     *
+     * Invoked after a call to {@link WifiP2pManager#requestPeers}
+     *
+     * @param wifiP2pDeviceList: the list of available P2P devices in the environment.
+     */
     @Override
     public void onPeersAvailable(WifiP2pDeviceList wifiP2pDeviceList) {
 
@@ -234,9 +278,14 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
         }
     }
 
+    /**
+     * Invoked after a call to {@link WifiP2pManager#requestConnectionInfo}
+     *
+     * @param info: contains information about whether the connection has been established and
+     *              about the address of the group owner.
+     */
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo info) {
-        // InetAddress from WifiP2pInfo struct.
 
         String groupOwnerAddress = info.groupOwnerAddress.getHostAddress();
         isConnected = true;
@@ -249,6 +298,7 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
             // we do not know the address of the other peer and thus, we expect the connection request from the other peer
             connectionInfo.setGroupOwner(true);
 
+            //find a free port on the localhost
             findFreePort("localhost")
                     .done(new DoneCallback<Integer>() {
                         @Override
@@ -262,6 +312,7 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
         } else if (info.groupFormed) {
             connectionInfo.setGroupOwner(false);
 
+            //find a free port on the group owner
             findFreePort(connectionInfo.getGroupOwnerAddress())
                     .done(new DoneCallback<Integer>() {
                         @Override
@@ -271,22 +322,6 @@ public class WifiConnectionManager extends BroadcastReceiver implements P2PConne
                                 connectionListener.onConnectionEstablished(connectionInfo);
                         }
                     });
-        }
-    }
-
-    private void deletePersistentGroups(){
-        try {
-            Method[] methods = WifiP2pManager.class.getMethods();
-            for (int i = 0; i < methods.length; i++) {
-                if (methods[i].getName().equals("deletePersistentGroup")) {
-                    // Delete any persistent group
-                    for (int netid = 0; netid < 32; netid++) {
-                        methods[i].invoke(p2pManager, p2pChannel, netid, null);
-                    }
-                }
-            }
-        } catch(Exception e) {
-            e.printStackTrace();
         }
     }
 

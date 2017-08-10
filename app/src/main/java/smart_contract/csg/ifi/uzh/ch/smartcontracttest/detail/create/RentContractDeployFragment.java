@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
+import ch.uzh.ifi.csg.contract.service.contract.ContractService;
 import ch.uzh.ifi.csg.contract.util.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.contract.TimeUnit;
@@ -23,9 +24,8 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.validation.RequiredTextFieldValidator;
 
 /**
- * Created by flo on 05.06.17.
+ * Fragment to deploy a {@link ch.uzh.ifi.csg.contract.contract.IRentContract}
  */
-
 public class RentContractDeployFragment extends ContractDeployFragment
 {
     private EditText depositField;
@@ -73,18 +73,28 @@ public class RentContractDeployFragment extends ContractDeployFragment
         return parentValid && depositField.getError() == null;
     }
 
+    /**
+     * see {@link ContractDeployFragment#deployContract}
+     * see {@link ContractService#deployRentContract}
+     */
     @Override
-    protected SimplePromise<ITradeContract> deployContract(BigInteger priceWei, String title, String description, boolean needsVerification, final Map<String, String> imageSignatures)
+    protected void deployContract(BigInteger priceWei, String title, String description, boolean needsVerification, final Map<String, String> imageSignatures)
     {
+        //Calculate the deposit in ether
         BigDecimal deposit = new BigDecimal(depositField.getText().toString());
         BigDecimal depositEther = appContext.getServiceProvider().getExchangeService().convertToEther(deposit, selectedCurrency).get();
         if(depositEther == null)
-            return null;
+        {
+            appContext.getMessageService().showErrorMessage("Cannot reach exchange service. Try again later.");
+            return;
+        }
 
+        //ensure balance of account
         BigInteger depositWei = Web3Util.toWei(depositEther);
         if(!ensureBalance(depositWei))
-            return null;
+            return;
 
+        //Calculate renting fee in wei/second depending on the time unit
         BigInteger rentingFeePerSecond;
         if(selectedTimeUnit == TimeUnit.Days)
         {
@@ -93,7 +103,8 @@ public class RentContractDeployFragment extends ContractDeployFragment
             rentingFeePerSecond = priceWei.divide(BigInteger.valueOf(3600));
         }
 
-        return  appContext.getServiceProvider().getContractService().deployRentContract(
+        //deploy contract
+        appContext.getServiceProvider().getContractService().deployRentContract(
                 rentingFeePerSecond,
                 depositWei,
                 selectedTimeUnit,

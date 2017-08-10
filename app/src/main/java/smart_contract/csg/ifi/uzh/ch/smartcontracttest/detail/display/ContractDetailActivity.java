@@ -2,25 +2,19 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TabHost;
-import android.widget.TextView;
-
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.contract.ContractState;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
-import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.contract.IContractObserver;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
+import ch.uzh.ifi.csg.contract.service.serialization.GsonSerializationService;
 import ezvcard.Ezvcard;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
@@ -29,6 +23,20 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.dialog.P2pExportDialog;
 
+/**
+ * Activity that contains a  {@link ContractDetailFragment} instance to display the details of a
+ * {@link ITradeContract} instance. The concrete fragment type depends on the
+ * {@link #EXTRA_CONTRACT_TYPE} provided in the start intent and the {@link #EXTRA_CONTRACT_ADDRESS}
+ * references the contract to load.
+ *
+ * If the contract requires identity verification and the contract contains a {@link UserProfile},
+ * then this profile is displayed in the {@link ProfileFragment}
+ *
+ * The activity also contains provides the UI to export a contract over Wi-Fi
+ * ({@link #onExportContractClick}) and to scan the profile of another party
+ * ({@link #onScanQrImageClick}
+ *
+ */
 public class ContractDetailActivity extends ActivityBase implements IContractObserver, P2pExportDialog.P2pExportListener, ProfileFragment.ProfileDataChangedListener {
 
     public final static String EXTRA_CONTRACT_ADDRESS = "ch.uzh.ifi.csg.smart_contract.address";
@@ -44,7 +52,6 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
 
     private TabHost tabHost;
     private TabHost.TabSpec profileViewSpec;
-    private LinearLayout tabContentWrapper;
     private ImageButton exportButton;
     private ImageButton scanProfileButton;
 
@@ -71,7 +78,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
                 throw new IllegalArgumentException("No Fragment implementation for contract type '" + contractType.toString() + "' exists!");
         }
 
-        //add fragments
+        //add fragments to tab content
         fm.beginTransaction()
                 .add(android.R.id.tabcontent, profileFragment, "Profile")
                 .add(android.R.id.tabcontent, detailFragment, "Details")
@@ -90,7 +97,6 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
         super.onCreate(savedInstanceState);
         getSupportActionBar().setTitle(R.string.title_contract_detail);
 
-        tabContentWrapper = (LinearLayout)findViewById(R.id.tabcontent_wrapper);
         exportButton = (ImageButton)findViewById(R.id.action_export_contract);
         scanProfileButton = (ImageButton)findViewById(R.id.action_scan_profile);
 
@@ -103,6 +109,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
     protected void onDestroy() {
         super.onDestroy();
 
+        //unsubscribe from the contract
         if(contract != null)
             contract.removeObserver(this);
     }
@@ -110,10 +117,18 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
     @Override
     protected void onConnectionLost() {
         super.onConnectionLost();
+
+        //go back to overview when connection lost
         Intent intent = new Intent(this, ContractOverviewActivity.class);
         startActivity(intent);
     }
 
+    /**
+     * loads the contract with the details provided in the start Intent and initializes the tab host
+     *
+     * @param contractAddress
+     * @param type
+     */
     private void init(String contractAddress, ContractType type)
     {
         getAppContext().getServiceProvider().getContractService().loadContract(type, contractAddress, getAppContext().getSettingProvider().getSelectedAccount())
@@ -161,6 +176,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
+                                //only show export button when the contract is in the created state and we are the seller
                                 if(detailFragment.getSeller().equals(getAppContext().getSettingProvider().getSelectedAccount()) && detailFragment.getState().equals(ContractState.Created))
                                 {
                                     exportButton.setVisibility(View.VISIBLE);
@@ -168,6 +184,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
                                     exportButton.setVisibility(View.GONE);
                                 }
 
+                                //only show scan profile button when identity verification needed and profile of the contract is not set
                                 if(detailFragment.needsIdentityVerification() && contract.getUserProfile().getVCard() == null)
                                 {
                                     scanProfileButton.setVisibility(View.VISIBLE);
@@ -216,22 +233,23 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
 
         tabHost.setOnTabChangedListener(tabChangeListener);
 
-        //set detail tab
+        //set detail tab details
         TabHost.TabSpec spec = tabHost.newTabSpec("Details");
         spec.setContent(getFragmentManager().findFragmentByTag("Details").getId());
         spec.setIndicator("", getResources().getDrawable(R.drawable.ic_tab_general_info));
         tabHost.addTab(spec);
 
-        //set profile tab
+        //set profile tab details
         profileViewSpec = tabHost.newTabSpec("Profile");
         profileViewSpec.setContent(getFragmentManager().findFragmentByTag("Profile").getId());
         profileViewSpec.setIndicator("", getResources().getDrawable(R.drawable.ic_tab_contact_info));
         tabHost.addTab(profileViewSpec);
 
-        //hack to get details Tab loaded at the beginning
+        //hack to get the details tab loaded at the beginning
         tabHost.setCurrentTab(1);
         tabHost.setCurrentTab(0);
 
+        //remove profile tab if identity must not be verified of when the profile is not set on the contract
         if(!detailFragment.needsIdentityVerification() || contract.getUserProfile().getVCard() == null)
             removeProfileTab();
     }
@@ -247,6 +265,10 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
         return R.layout.activity_contract_detail2;
     }
 
+    /**
+     * Starts the {@link QrScanningActivity} to scan a {@link UserProfile} of another party
+     * @param view
+     */
     public void onScanQrImageClick(View view)
     {
         Intent intent = new Intent(this, QrScanningActivity.class);
@@ -265,19 +287,23 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
                 if(intent == null)
                     return;
 
-                String vCardString = intent.getStringExtra(QrScanningActivity.MESSAGE_PROFILE_DATA);
-                UserProfile profile = new UserProfile();
-                profile.setVCard(Ezvcard.parse(vCardString).first());
+                //Create a new UserProfile from the VCard received from the QrScanningActivity
+                String data = intent.getStringExtra(QrScanningActivity.MESSAGE_PROFILE_DATA);
+                UserProfile profile = new GsonSerializationService().deserialize(data, UserProfile.class);
+
+                //Add profile tab
                 tabHost.addTab(profileViewSpec);
                 tabHost.setCurrentTabByTag("Profile");
 
+                //Save the UserProfile for the contract
+                contract.setUserProfile(profile);
+                getAppContext().getServiceProvider().getContractService().saveContract(contract, getAppContext().getSettingProvider().getSelectedAccount());
+
+                //init profile fragment
                 profileFragment.setProfileInformation(profile);
                 scanProfileButton.setVisibility(View.GONE);
-                contract.setUserProfile(profile);
                 profileFragment.setMode(ProfileFragment.ProfileMode.ReadOnly);
-                getAppContext().getServiceProvider().getContractService().saveContract(contract, getAppContext().getSettingProvider().getSelectedAccount());
                 detailFragment.identityVerified();
-
                 break;
         }
         super.onActivityResult(requestCode, resultCode, intent);
@@ -294,6 +320,11 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
         detailFragment.init(contract);
     }
 
+    /**
+     * Opens the {@link P2pExportDialog} to export the contract.
+     *
+     * @param view
+     */
     public void onExportContractClick(View view)
     {
         DialogFragment exportFragment = new P2pExportDialog();
@@ -303,6 +334,11 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
         exportFragment.show(getSupportFragmentManager(), "importDialogFragment");
     }
 
+    /**
+     * see {@link P2pExportDialog.P2pExportListener}
+     *
+     * @param buyerProfile
+     */
     @Override
     public void onContractDataExchanged(UserProfile buyerProfile) {
         if(buyerProfile != null)
@@ -321,9 +357,15 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
     public void onContractDialogCanceled() {
     }
 
+    /**
+     * see {@link ProfileFragment.ProfileDataChangedListener}
+     *
+     * @param profile
+     */
     @Override
     public void onProfileDataChanged(UserProfile profile)
     {
+        //save UserProfile for contract
         String account = getAppContext().getSettingProvider().getSelectedAccount();
         contract.setUserProfile(profile);
         getAppContext().getServiceProvider().getContractService().saveContract(contract, account);

@@ -7,20 +7,18 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.widget.TextView;
-
 import java.util.HashMap;
-
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ch.uzh.ifi.csg.contract.service.serialization.GsonSerializationService;
-import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
-import ch.uzh.ifi.csg.contract.util.Web3Util;
-import ch.uzh.ifi.csg.contract.contract.ContractType;
-import ezvcard.Ezvcard;
-import ezvcard.VCard;
+import github.nisrulz.qreader.QRDataListener;
 import github.nisrulz.qreader.QREader;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 
+/**
+ * Activity that uses the {@link QREader} class to read serialized {@link ContractInfo} and
+ * {@link UserProfile} objects from QR-Codes.
+ */
 public class QrScanningActivity extends AppCompatActivity {
 
     public static final String ACTION_SCAN_CONTRACT = "ch.uzh.ifi.csg.smart_contract.contract.scan";
@@ -35,13 +33,14 @@ public class QrScanningActivity extends AppCompatActivity {
 
     // QREader
     private SurfaceView surfaceView;
-    private QReader qrEader;
+    private QREader qrEader;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_qr_scanning);
 
+        //determine if contracts or profile should be detected
         Intent intent = getIntent();
         if(intent.getAction().equals(ACTION_SCAN_CONTRACT))
         {
@@ -58,36 +57,36 @@ public class QrScanningActivity extends AppCompatActivity {
 
         // Init QREader
         // ------------
-        qrEader = new QReader.Builder(this, surfaceView, new QrDataListener() {
+        qrEader = new QREader.Builder(this, surfaceView, new QRDataListener() {
             @Override
-            public void onDetected(final String data) {
+            public void onDetected(final String data)
+            {
                 Log.d("QREader", "Value : " + data);
-                text.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        text.setText(data);
-                    }
-                });
-
                 if(scanContract)
                 {
                     try{
-                        SerializationService serializationService = new GsonSerializationService();
-                        ContractInfo info = serializationService.deserialize(data, ContractInfo.class);
+                        //deserialize contract object
+                        ContractInfo info = new GsonSerializationService().deserialize(data, ContractInfo.class);
                         info.setImages(new HashMap<String, String>());
                         info.setUserProfile(new UserProfile());
                         returnContractData(info);
                     }catch(Exception ex)
                     {
-                        return;
                     }
 
-                }else if (validateVCard(data))
+                }else
                 {
-                    returnProfile(data);
-                }else{
-                    qrEader.initAndStart(surfaceView);
+                    try{
+                        //deserialize profile
+                        UserProfile profile = new GsonSerializationService().deserialize(data, UserProfile.class);
+                        profile.setProfileImagePath(null);
+                        returnProfile(profile);
+                    }catch (Exception ex)
+                    {
+                    }
                 }
+
+                qrEader.initAndStart(surfaceView);
             }
         }).facing(QREader.BACK_CAM)
                 .enableAutofocus(true)
@@ -98,29 +97,30 @@ public class QrScanningActivity extends AppCompatActivity {
         qrEader.initAndStart(surfaceView);
     }
 
-    private void returnProfile(String data)
+    /**
+     * Serializes the detected profile and returns it as result of this Activity
+     *
+     * @param profile
+     */
+    private void returnProfile(UserProfile profile)
     {
         Intent result = new Intent();
-        result.putExtra(MESSAGE_PROFILE_DATA, data);
+        result.putExtra(MESSAGE_PROFILE_DATA, new GsonSerializationService().serialize(profile));
         setResult(Activity.RESULT_OK, result);
         finish();
     }
+
+    /**
+     * Serializes the detected contract and returns it as result of this Activity
+     *
+     * @param contractInfo
+     */
     private void returnContractData(ContractInfo contractInfo)
     {
         Intent result = new Intent();
-        SerializationService serializationService = new GsonSerializationService();
-        result.putExtra(MESSAGE_CONTRACT_DATA, serializationService.serialize(contractInfo));
+        result.putExtra(MESSAGE_CONTRACT_DATA, new GsonSerializationService().serialize(contractInfo));
         setResult(Activity.RESULT_OK, result);
         finish();
-    }
-
-    private boolean validateVCard(String data)
-    {
-        VCard card = Ezvcard.parse(data).first();
-        if(card != null)
-            return true;
-
-        return false;
     }
 
     @Override

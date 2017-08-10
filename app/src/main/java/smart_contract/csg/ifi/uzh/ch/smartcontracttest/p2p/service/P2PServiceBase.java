@@ -29,7 +29,7 @@ public abstract class P2PServiceBase<T extends P2pCallback> implements P2PServic
     @Override
     public void onConnectionError(String message) {
         if(callback != null)
-            callback.onP2pErrorMessage("Cannot connect to the other peer");
+            callback.onP2pErrorMessage(message);
     }
 
     @Override

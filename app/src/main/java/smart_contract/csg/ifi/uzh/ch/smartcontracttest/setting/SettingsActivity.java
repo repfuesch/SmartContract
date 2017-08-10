@@ -1,17 +1,25 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
 
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.setting.SettingProvider;
 
+/**
+ * Activity that contains a {@link SettingsFragment} that displays the current
+ * {@link SharedPreferences} of the application to the user and provides the interface to change
+ * them.
+ * It contains the keys of the preferences. Please refer to the {@link SettingProvider} for an
+ * explanation of the individual settings of the application.
+ */
 public class SettingsActivity extends ActivityBase
 {
+    //Preference Keys
     public static final String KEY_PREF_CLIENT_HOST = "pref_client_host_key";
     public static final String KEY_PREF_CLIENT_PORT = "pref_client_port_key";
     public static final String KEY_PREF_ACCOUNT_WALLET_ENCRYPTION_STRENGTH = "pref_account_wallet_encryption_strength";
-    public static final String KEY_PREF_ACCOUNT_WALLET_FILE_DIRECTORY = "pref_account_wallet_file_directory";
     public static final String KEY_PREF_TRANSACTION_GAS_PRICE = "pref_transaction_gas_price_key";
     public static final String KEY_PREF_TRANSACTION_GAS_LIMIT = "pref_transaction_gas_limit_key";
     public static final String KEY_PREF_TRANSACTION_ATTEMPTS = "pref_transaction_attempts_key";

@@ -24,10 +24,6 @@
         android:title="@string/pref_account_title"
         android:key="pref_account_key">
 
-        <Preference
-            android:key="pref_account_wallet_directory"
-            android:title="@string/pref_account_wallet_directory" />
-
         <ListPreference
             android:key="pref_account_wallet_encryption_strength"
             android:title="@string/pref_account_wallet_encryption_strength"

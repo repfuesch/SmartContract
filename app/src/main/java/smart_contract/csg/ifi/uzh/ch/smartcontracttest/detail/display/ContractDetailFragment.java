@@ -5,6 +5,7 @@ import android.app.DialogFragment;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.view.LayoutInflater;
@@ -15,18 +16,16 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-
 import net.glxn.qrgen.android.QRCode;
-
 import org.jdeferred.Promise;
 
+import java.io.File;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
@@ -41,6 +40,11 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialog
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContextProvider;
 
+/**
+ * {@link Fragment} that displays the details of an {@link ITradeContract} instance and provides
+ * UI-elements to execute transactions on the smart contract on the blockchain that belongs to this
+ * contract.
+ */
 public abstract class ContractDetailFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemSelectedListener {
 
     private TextView titleView;
@@ -48,7 +52,6 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
     private TextView descriptionView;
     private TextView addressView;
 
-    //private LinearLayout progressView;
     private LinearLayout contractInteractionView;
     private LinearLayout imageContainer;
 
@@ -56,7 +59,6 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
     private Map<ProportionalImageView, Bitmap> images;
 
     private Spinner currencySpinner;
-    private boolean isVerified;
     private List<String> currencyList;
 
     protected LinearLayout bodyView;
@@ -77,7 +79,6 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
     {
-        // Inflate the layout for this fragment
         View view= inflater.inflate(getLayoutId(), container, false);
 
         titleView = (TextView) view.findViewById(R.id.general_title);
@@ -85,7 +86,6 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
         descriptionView = (TextView) view.findViewById(R.id.general_description);
         addressView = (TextView) view.findViewById(R.id.general_address);
 
-        //progressView = (LinearLayout) view.findViewById(R.id.progress_view);
         bodyView = (LinearLayout) view.findViewById(R.id.contract_info_body);
         contractInteractionView = (LinearLayout) view.findViewById(R.id.contract_interactions);
 
@@ -136,15 +136,19 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
 
     protected abstract int getLayoutId();
 
-
+    /**
+     * Checks if the account balance is higher than the specified value
+     * @param value
+     * @return
+     */
     protected boolean ensureBalance(BigInteger value)
     {
         String account = appContext.getSettingProvider().getSelectedAccount();
 
-        //todo: don't use blocking wait here!
         BigInteger balance = appContext.getServiceProvider().getAccountService().getAccountBalance(account).get();
         if(balance == null)
         {
+            appContext.getMessageService().showErrorMessage("Cannot reach the exchange service. Try again later.");
             return false;
         }
 
@@ -163,6 +167,7 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
         switch(view.getId())
         {
             case R.id.contract_qr_image:
+                //display the QR-code for this contract in a Dialog
                 DialogFragment imageDialog = new ImageDialogFragment();
                 Bundle args = new Bundle();
                 args.putString(ImageDialogFragment.MESSAGE_IMAGE_SOURCE, contract.toJson());
@@ -185,10 +190,14 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
 
     public void identityVerified()
     {
-        isVerified = true;
         contractInteractionView.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Initializes the UI elements from the provided contract instance
+     * @param contract
+     * @return
+     */
     public SimplePromise<Void> init(final ITradeContract contract)
     {
         BusyIndicator.show(bodyView);
@@ -196,11 +205,15 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
             @Override
             public Void call() throws Exception {
 
+                //retrieve the details of this contract
                 ContractDetailFragment.this.contract = contract;
                 verifyIdentity = contract.getVerifyIdentity().get();
                 state = contract.getState().get();
                 seller = contract.getSeller().get();
+
+                //check if the local content matches the remote content hash (used for light contracts only)
                 final boolean contentVerified = contract.verifyContent().get();
+
                 final String description = contract.getDescription().get();
                 final String title = contract.getTitle().get();
                 final List<String> imageSignatures = contract.getImageSignatures().get();
@@ -211,24 +224,29 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
 
                         if(verifyIdentity && contract.getUserProfile().getVCard() == null)
                         {
+                            //hide interaction view and display notification if identity verification is required
                             contractInteractionView.setVisibility(View.GONE);
                             appContext.getMessageService().showMessage("You must first scan the user profile of the other party to interact with this contract!");
                         }
 
                         if(!contentVerified)
                         {
-                            contractInteractionView.setVisibility(View.GONE);
-                            appContext.getMessageService().showMessage("The content for this local contract could not be verified. \n Please try to import the contract again.");
+                            //notify the user that the local and remote content do not match (only for light contracts)
+                            //This can happen when the user scanned the contract by QR-Code and the contract contains images...
+                            appContext.getMessageService().showMessage("The content for this local contract could not be verified.\n Please try to import the contract again.");
                         }
 
                         //create a bitmap image that contains a QR code with all the details of the contract
-                        Bitmap bitmap = QRCode.from(contract.toJson()).bitmap();
+                        Bitmap bm = QRCode.from(contract.toJson()).withSize(250, 250).bitmap();
+                        qrImageView.setImageBitmap(bm);
 
-                        qrImageView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, 125, 125, false));
-
+                        //init text views
                         stateView.setText(state.toString());
                         titleView.setText(title);
                         descriptionView.setText(description);
+                        addressView.setText(contract.getContractAddress());
+
+                        //add images to container
                         imageContainer.removeAllViews();
                         images.clear();
 
@@ -239,8 +257,6 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
                                 addImage(contract.getImages().get(sig));
                             }
                         }
-
-                        addressView.setText(contract.getContractAddress());
                     }
                 });
 
@@ -254,8 +270,17 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
         });
     }
 
+    /**
+     * Invoked when the user select another currency. Must be implemented by derived Fragments
+     * to update their UI
+     */
     protected abstract void selectedCurrencyChanged();
 
+    /**
+     * Creates a {@link ProportionalImageView} from the specified path and adds it to the image container
+     *
+     * @param filepath
+     */
     private void addImage(String filepath)
     {
         final ProportionalImageView imageView = new ProportionalImageView(getActivity());
@@ -266,9 +291,11 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
         imageView.setLayoutParams(layoutParams);
         Bitmap bmp = BitmapFactory.decodeFile(filepath);
         imageView.setImageBitmap(bmp);
+
         imageContainer.addView(imageView);
         images.put(imageView, bmp);
 
+        //register clickListener to display image in Dialog
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -277,6 +304,11 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
         });
     }
 
+    /**
+     * Displays an image in an {@link ImageDialogFragment}
+     *
+     * @param imageView
+     */
     private void showImageDialog(ProportionalImageView imageView)
     {
         ArrayList<Bitmap> uris = new ArrayList<>(images.values());

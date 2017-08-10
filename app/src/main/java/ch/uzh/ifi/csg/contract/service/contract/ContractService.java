@@ -23,12 +23,15 @@ public interface ContractService {
      * an instance of {@link IPurchaseContract} that contains the logic to interact with the
      * smart contract.
      *
-     * @param price
-     * @param title
-     * @param description
-     * @param imageSignatures
-     * @param verifyIdentity
-     * @param lightDeployment
+     * @param price: The price of the contract in wei
+     * @param title: The title of the contract
+     * @param description: The textual description of the contract
+     * @param imageSignatures: A map that maps an images signature to its absolute local path
+     * @param verifyIdentity: Boolean indicating whether personal data must be exchanged for this
+     *                        contract
+     * @param lightDeployment: Boolean indicating if only the hash of the content attributes should
+     *                         be stored on the blockchain.
+     *
      * @return an instance of IPurchaseContract
      */
     SimplePromise<IPurchaseContract> deployPurchaseContract(
@@ -44,14 +47,17 @@ public interface ContractService {
      * an instance of {@link IRentContract} that contains the logic to interact with the
      * smart contract.
      *
-     * @param price
-     * @param deposit
-     * @param timeUnit
-     * @param title
-     * @param description
-     * @param imageSignatures
-     * @param verifyIdentity
-     * @param lightDeployment
+     * @param price: The price of the contract in wei/second
+     * @param deposit: The deposit in wei
+     * @param timeUnit: The {@link TimeUnit}
+     * @param title: The title of the contract
+     * @param description: The textual description of the contract
+     * @param imageSignatures: A map that maps an images signature to its absolute local path
+     * @param verifyIdentity: Boolean indicating whether personal data must be exchanged for this
+     *                        contract
+     * @param lightDeployment: Boolean indicating if only the hash of the content attributes should
+     *                         be stored on the blockchain.
+     *
      * @return an instance of IRentContract
      */
     SimplePromise<IRentContract> deployRentContract(

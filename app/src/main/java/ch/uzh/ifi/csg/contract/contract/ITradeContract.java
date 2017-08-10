@@ -31,6 +31,12 @@ public interface ITradeContract extends IContractObservable
     UserProfile getUserProfile();
 
     /**
+     * Sets the UserProfile for this contract
+     * @param profile
+     */
+    void setUserProfile(UserProfile profile);
+
+    /**
      * Returns
      * @return
      */

@@ -8,12 +8,10 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-
 import ch.uzh.ifi.csg.contract.async.Async;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
@@ -25,11 +23,14 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
 import ch.uzh.ifi.csg.contract.p2p.peer.P2pSellerCallback;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.ContractInfoListener;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PSellerService;
 
 /**
- * Created by flo on 24.06.17.
+ * Seller/export implementation of the {@link P2pDialog}. Requests a P2P connection using the
+ * {@link P2PSellerService} and implements the {@link P2pSellerCallback} interface to export the
+ * contract that is provided in the {@link #setArguments(Bundle)} method.
+ *
  */
-
 public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
 {
     public static String MESSAGE_CONTRACT_DATA = "ch.uzh.ifi.csg.smart_contract.exchange.contract_data";
@@ -48,6 +49,11 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
         deviceList = new ArrayList<>();
     }
 
+    /**
+     * Expects the serialized {@link ContractInfo} object to export in the arguments
+     *
+     * @param args: the arguments
+     */
     @Override
     public void setArguments(Bundle args) {
         super.setArguments(args);
@@ -62,25 +68,49 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
         return R.layout.fragment_p2p_export_dialog;
     }
 
+    /**
+     * see {@link P2pDialog#onDialogCanceled()}
+     */
     @Override
     protected void onDialogCanceled()
     {
+        //disconnect from the other device
         contextProvider.getP2PSellerService().disconnect();
         if(exportListener != null)
             exportListener.onContractDialogCanceled();
     }
 
+    /**
+     * see {@link P2pDialog#onShowDialog()}
+     */
     @Override
     protected void onShowDialog()
     {
         super.onShowDialog();
-        deviceListSpinner = (Spinner) dialog.findViewById(R.id.connection_list_spinner);
 
+        //init spinner containing list of device names
+        deviceListSpinner = (Spinner) dialog.findViewById(R.id.connection_list_spinner);
+        deviceListSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                selectedDevice = deviceList.get(i);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                selectedDevice = deviceList.get(0);
+            }
+        });
+
+        //requests a P2P connection and registers this object as callback
         contextProvider.getP2PSellerService().requestConnection(P2pExportDialog.this);
         dialogInfo.setText("Waiting for peer list");
         BusyIndicator.show(dialogContent);
     }
 
+    /**
+     * see {@link P2pSellerCallback#onUserProfileReceived(UserProfile)}
+     */
     @Override
     public void onUserProfileReceived(final UserProfile data) {
         userProfile = data;
@@ -92,6 +122,13 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
         }
     }
 
+    /**
+     * Checks if the device names have changed and updates the device list
+     *
+     * @param devices: the list of device names
+     *
+     * @return 'false' if the devices did not change, 'true' otherwise
+     */
     private boolean updateDeviceList(List<String> devices)
     {
         List<String> devList = new ArrayList<>();
@@ -133,6 +170,11 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
         }
     }
 
+    /**
+     * see {@link P2pSellerCallback#onContractInfoRequested(ContractInfoListener)}
+     *
+     * @param listener: callback to receive the contract details
+     */
     @Override
     public void onContractInfoRequested(final ContractInfoListener listener)
     {
@@ -142,6 +184,7 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
 
         if(contractInfo.isVerifyIdentity())
         {
+            //let the user choose which information she wants to share
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -167,6 +210,7 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
                                 contractInfo.getUserProfile().setProfileImagePath(localProfile.getProfileImagePath());
                             }
 
+                            //send the contract info to the callback
                             listener.onContractInfoReceived(contractInfo);
 
                             BusyIndicator.show(dialogContent);
@@ -175,10 +219,16 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
                 }
             });
         }else{
+            //send the contract info to the callback
             listener.onContractInfoReceived(contractInfo);
         }
     }
 
+    /**
+     * see {@link P2pSellerCallback#onPeersChanged(List)}
+     *
+     * @param deviceNames: A list of device names
+     */
     @Override
     public void onPeersChanged(final List<String> deviceNames) {
 
@@ -192,19 +242,8 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
                 if(!updateDeviceList(deviceNames))
                     return;
 
-                selectedDevice = deviceNames.get(0);
-                deviceListSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                        selectedDevice = deviceNames.get(i);
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> adapterView) {
-                        selectedDevice = deviceNames.get(0);
-                    }
-                });
-
+                //enable selection of device
+                selectedDevice = deviceList.get(0);
                 okButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -213,6 +252,7 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
                         Async.run(new Callable<Void>() {
                             @Override
                             public Void call() throws Exception {
+                                //try to connect to the selected device
                                 contextProvider.getP2PSellerService().connect(selectedDevice);
                                 return null;
                             }
@@ -230,6 +270,9 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
         });
     }
 
+    /**
+     * see {@link P2pSellerCallback#onTransmissionComplete()}
+     */
     @Override
     public void onTransmissionComplete()
     {
@@ -241,6 +284,7 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
                 okButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                        //disconnect from device and return the result to the exportListener
                         contextProvider.getP2PSellerService().disconnect();
                         if(exportListener != null)
                             exportListener.onContractDataExchanged(userProfile);
@@ -252,9 +296,22 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
         });
     }
 
+    /**
+     * Interface to retrieve the results of the {@link P2pExportDialog}
+     */
     public interface P2pExportListener
     {
+        /**
+         * Invoked after the contract is sent and the (optional) {@link UserProfile} of the buyer
+         * has been received.
+         *
+         * @param buyerProfile: the profile of the buyer (can be null)
+         */
         void onContractDataExchanged(UserProfile buyerProfile);
+
+        /**
+         * Invoked when the user canceled the dialog
+         */
         void onContractDialogCanceled();
     }
 }

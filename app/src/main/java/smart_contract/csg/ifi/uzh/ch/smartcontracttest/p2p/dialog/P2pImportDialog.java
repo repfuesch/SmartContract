@@ -1,6 +1,7 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.dialog;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.widget.Button;
@@ -8,17 +9,22 @@ import android.widget.Button;
 import java.io.File;
 
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
+import ch.uzh.ifi.csg.contract.p2p.peer.P2pSellerCallback;
 import ch.uzh.ifi.csg.contract.util.ImageHelper;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
 import ch.uzh.ifi.csg.contract.p2p.peer.P2pBuyerCallback;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PBuyerService;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PSellerService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.UserProfileListener;
 
 /**
- * Created by flo on 24.06.17.
+ * Buyer/import implementation of the {@link P2pDialog}. Requests a P2P connection using the
+ * {@link P2PBuyerService} and implements the {@link P2pBuyerCallback} interface to import a
+ * contract over a P2P connection
+ *
  */
-
 public class P2pImportDialog extends P2pDialog implements P2pBuyerCallback
 {
     private P2pImportListener importListener;
@@ -34,14 +40,21 @@ public class P2pImportDialog extends P2pDialog implements P2pBuyerCallback
         return R.layout.fragment_p2p_import_dialog;
     }
 
+    /**
+     * see {@link P2pDialog#onDialogCanceled()}
+     */
     @Override
     protected void onDialogCanceled()
     {
+        //disconnect from the other peer and inform the listener
         contextProvider.getP2PBuyerService().disconnect();
         if(importListener != null)
             importListener.onContractDialogCanceled();
     }
 
+    /**
+     * see {@link P2pDialog#onShowDialog()}
+     */
     @Override
     protected void onShowDialog()
     {
@@ -50,6 +63,11 @@ public class P2pImportDialog extends P2pDialog implements P2pBuyerCallback
         BusyIndicator.show(dialogContent);
     }
 
+    /**
+     * see {@link P2pBuyerCallback#onContractInfoReceived(ContractInfo)}
+     *
+     * @param info
+     */
     @Override
     public void onContractInfoReceived(final ContractInfo info) {
 
@@ -70,6 +88,11 @@ public class P2pImportDialog extends P2pDialog implements P2pBuyerCallback
         contractInfo = info;
     }
 
+    /**
+     * see {@link P2pBuyerCallback#onUserProfileRequested(UserProfileListener)}
+     *
+     * @param listener: Callback invoked when the UserProfile is ready to be sent.
+     */
     @Override
     public void onUserProfileRequested(final UserProfileListener listener)
     {
@@ -100,6 +123,7 @@ public class P2pImportDialog extends P2pDialog implements P2pBuyerCallback
                             profile.setProfileImagePath(localProfile.getProfileImagePath());
                         }
 
+                        //Update the listener
                         listener.onUserProfileReceived(profile);
 
                         BusyIndicator.show(dialogContent);
@@ -122,6 +146,9 @@ public class P2pImportDialog extends P2pDialog implements P2pBuyerCallback
         }
     }
 
+    /**
+     * see {@link P2pBuyerCallback#onTransmissionComplete()}
+     */
     @Override
     public void onTransmissionComplete()
     {
@@ -134,6 +161,7 @@ public class P2pImportDialog extends P2pDialog implements P2pBuyerCallback
                 okButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                        //disconnect from the other peer and inform the listener
                         contextProvider.getP2PBuyerService().disconnect();
                         if(importListener != null)
                             importListener.onContractDataReceived(contractInfo);
@@ -145,8 +173,21 @@ public class P2pImportDialog extends P2pDialog implements P2pBuyerCallback
         });
     }
 
-    public static interface P2pImportListener {
+    /**
+     * Interface that must be implemented by the parent Activity that hosts the Dialog.
+     * Provides information about the result of the {@link P2pImportDialog}
+     */
+    public interface P2pImportListener {
+        /**
+         * Returns the imported {@link ContractInfo} object
+         *
+         * @param contract
+         */
         void onContractDataReceived(ContractInfo contract);
+
+        /**
+         * Invoked when the dialog was canceled by the user.
+         */
         void onContractDialogCanceled();
     }
 }

@@ -2,8 +2,9 @@ package smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.message;
 
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.DialogFragment;
-
+import android.support.v4.app.FragmentManager;
+import java.util.ArrayList;
+import java.util.List;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityChangedListener;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.MessageDialogFragment;
@@ -15,19 +16,25 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.MessageDial
 public class MessageServiceImpl implements MessageService, ActivityChangedListener
 {
     private ActivityBase activity;
+    private List<MessageDialogFragment> dialogs;
+
+    public MessageServiceImpl()
+    {
+        dialogs = new ArrayList<>();
+    }
 
     @Override
     public void showErrorMessage(String message) {
         Bundle bundle = new Bundle();
         bundle.putString(MessageDialogFragment.ERROR_MESSAGE, message);
-        showMessageDialog(bundle);
+        showMessageDialog(bundle, message);
     }
 
     @Override
     public void showMessage(String message) {
         Bundle bundle = new Bundle();
         bundle.putString(MessageDialogFragment.MESSAGE, message);
-        showMessageDialog(bundle);
+        showMessageDialog(bundle, message);
     }
 
     @Override
@@ -45,7 +52,7 @@ public class MessageServiceImpl implements MessageService, ActivityChangedListen
         });
     }
 
-    private void showMessageDialog(final Bundle bundle) {
+    private void showMessageDialog(final Bundle bundle, final String message) {
 
         if(activity == null)
             return;
@@ -53,9 +60,27 @@ public class MessageServiceImpl implements MessageService, ActivityChangedListen
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                DialogFragment errorDialogFragment = new MessageDialogFragment();
-                errorDialogFragment.setArguments(bundle);
-                errorDialogFragment.show(activity.getSupportFragmentManager(), "messageDialogFragment");
+
+                //ensure that a specific message can not be displayed more than once
+                FragmentManager fm = activity.getSupportFragmentManager();
+                for(MessageDialogFragment dialog : dialogs)
+                {
+                    if(dialog.getMessage().equals(message))
+                        return;
+                }
+
+                //Create and display the DialogFragment
+                final MessageDialogFragment messageDialogFragment = new MessageDialogFragment();
+                messageDialogFragment.setArguments(bundle);
+                messageDialogFragment.show(fm, "messageDialogFragment");
+
+                dialogs.add(messageDialogFragment);
+                messageDialogFragment.setDialogListener(new MessageDialogFragment.MessageDialogListener() {
+                    @Override
+                    public void onDialogClosed() {
+                        dialogs.remove(messageDialogFragment);
+                    }
+                });
             }
         });
     }

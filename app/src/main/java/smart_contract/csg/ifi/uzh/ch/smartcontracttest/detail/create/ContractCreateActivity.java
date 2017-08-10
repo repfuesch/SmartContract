@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TabHost;
 
+import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.util.ImageHelper;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
@@ -14,13 +15,16 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
 
+/**
+ * Activity to define and deploy new {@link ITradeContract} instances. It creates a concrete
+ * {@link ContractDeployFragment} depending on the {@link ContractType} provided in its create
+ * Intent.
+ */
 public class ContractCreateActivity extends ActivityBase  {
 
     public static final String CONTRACT_TYPE_EXTRA = "ch.uzh.ifi.csg.smart_contract.type";
-    public static final int SCAN_CONTRACT_INFO_REQUEST = 1;
 
     private ContractDeployFragment deployFragment;
-    private TabHost tabHost;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +81,12 @@ public class ContractCreateActivity extends ActivityBase  {
         fragmentManager.executePendingTransactions();
     }
 
+    /**
+     * Executed after permissions for external storage or camera access have been granted by the
+     * user
+     *
+     * @param permission
+     */
     @Override
     protected void onPermissionGranted(String permission) {
         super.onPermissionGranted(permission);

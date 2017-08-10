@@ -26,9 +26,9 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.BusyIndicator;
 
 
 /**
- * Created by flo on 05.06.17.
+ * {@link ContractDetailFragment} that displays the details and contains the interaction logic for
+ * an {@link IPurchaseContract} instance.
  */
-
 public class PurchaseContractDetailFragment extends ContractDetailFragment {
 
     private TextView priceView;
@@ -57,6 +57,7 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
 
         priceView = (TextView) view.findViewById(R.id.general_price);
 
+        //buttons to execute transactions on the contract
         buyButton = (Button) view.findViewById(R.id.buy_button);
         abortButton = (Button) view.findViewById(R.id.abort_button);
         confirmButton = (Button) view.findViewById(R.id.confirm_button);
@@ -78,6 +79,11 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
         return R.layout.fragment_purchase_contract_detail;
     }
 
+    /**
+     * Executes transactions on the smart contract
+     *
+     * @param view
+     */
     @Override
     public void onClick(View view)
     {
@@ -95,7 +101,6 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
                     @Override
                     public void onAlways(Promise.State state, String resolved, Throwable rejected) {
                         BusyIndicator.hide(bodyView);
-
                     }
                 });
                 appContext.getTransactionManager().toTransaction(buyPromise, contract.getContractAddress());
@@ -125,6 +130,12 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
         }
     }
 
+    /**
+     * see {@link ContractDetailFragment#init(ITradeContract)}
+     *
+     * @param contract
+     * @return
+     */
     public SimplePromise<Void> init(final ITradeContract contract)
     {
         this.contract = (IPurchaseContract)contract;
@@ -137,12 +148,18 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
                 Async.run(new Callable<Void>() {
                     @Override
                     public Void call() throws Exception {
+
+                        //retrieve the details of the contract
                         final ContractState state = contract.getState().get();
                         final String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
                         final String seller = contract.getSeller().get();
                         final String buyer = contract.getBuyer().get();
                         price  = contract.getPrice().get();
 
+                        //update priceView
+                        updateCurrencyFields();
+
+                        //Enable or disable contract interaction buttons based on the contract state and the role of the user
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -180,12 +197,23 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
         });
     }
 
+    /**
+     * See {@link ContractDetailFragment#selectedCurrencyChanged()}
+     */
     @Override
     protected void selectedCurrencyChanged()
     {
         if(price == null)
             return;
 
+        updateCurrencyFields();
+    }
+
+    private void updateCurrencyFields()
+    {
+        BusyIndicator.show(bodyView);
+
+        //Use the exchangeService to convert the prive to the selected currency and init the priceView
         appContext.getServiceProvider().getExchangeService().convertToCurrency(Web3Util.toEther(price), selectedCurrency)
                 .done(new DoneCallback<BigDecimal>() {
                     @Override
@@ -201,7 +229,13 @@ public class PurchaseContractDetailFragment extends ContractDetailFragment {
                 .fail(new FailCallback() {
                     @Override
                     public void onFail(Throwable result) {
-                        //todo:log
+                        appContext.getMessageService().showErrorMessage("Cannot reach the exchange service. Try again later.");
+                    }
+                })
+                .always(new AlwaysCallback<BigDecimal>() {
+                    @Override
+                    public void onAlways(Promise.State state, BigDecimal resolved, Throwable rejected) {
+                        BusyIndicator.hide(bodyView);
                     }
                 });
     }

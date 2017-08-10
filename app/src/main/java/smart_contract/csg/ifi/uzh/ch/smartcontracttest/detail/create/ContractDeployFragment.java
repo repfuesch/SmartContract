@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -24,7 +25,6 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
-
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -34,14 +34,17 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
+import ch.uzh.ifi.csg.contract.async.Async;
+import ch.uzh.ifi.csg.contract.async.promise.FailCallback;
+import ch.uzh.ifi.csg.contract.service.contract.ContractService;
 import ch.uzh.ifi.csg.contract.util.ImageHelper;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.dialog.ImageDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
-import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.contract.util.Web3Util;
 import ch.uzh.ifi.csg.contract.service.exchange.Currency;
@@ -53,7 +56,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverview
 import static android.app.Activity.RESULT_OK;
 
 /**
- * A simple {@link Fragment} subclass.
+ * A {@link Fragment} that contains the UI elements to specify an {@link ITradeContract}.
  */
 public abstract class ContractDeployFragment extends Fragment implements TextWatcher, RadioGroup.OnCheckedChangeListener, View.OnClickListener {
 
@@ -64,6 +67,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
     private EditText descriptionField;
     private Button deployButton;
     private Button cancelButton;
+
     private RadioGroup verifyOptionsGroup;
     private RadioGroup deployOptionsGroup;
 
@@ -75,12 +79,10 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
     private LinearLayout imageContainer;
     private Map<ProportionalImageView, Bitmap> images;
     private ProportionalImageView selectedImage;
-    private Uri photoUri;
 
     private boolean needsVerification;
-    private boolean isValid;
-
     protected boolean deployFull;
+
     protected ApplicationContext appContext;
 
     public ContractDeployFragment() {
@@ -107,6 +109,8 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         if(images == null)
             return;
 
+        //Add images again to the imageContainer when the Fragment is re-created after orientation
+        // changes
         if(images.size() > 0)
         {
             List<Bitmap> bitmaps = new ArrayList<>(images.values());
@@ -127,7 +131,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+
         View view =  inflater.inflate(getLayoutId(), container, false);
 
         needsVerification = false;
@@ -182,6 +186,11 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         return view;
     }
 
+    /**
+     * Abstract getter to obtain the LayoutId of derived fragments
+     *
+     * @return
+     */
     protected abstract int getLayoutId();
 
     protected void setSelectedCurrency(Currency currency)
@@ -189,15 +198,21 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         selectedCurrency = currency;
     }
 
+    /**
+     * Checks that the account balance is higher than the specified value.
+     *
+     * @param value
+     * @return
+     */
     protected Boolean ensureBalance(final BigInteger value)
     {
         String account = appContext.getSettingProvider().getSelectedAccount();
 
-        //todo: find a way to handle exceptions here
         BigInteger balance = appContext.getServiceProvider().getAccountService().getAccountBalance(account).get();
         if(balance == null)
         {
-            //todo:cannot reach exchange service
+            //cannot reach exchange service
+            appContext.getMessageService().showErrorMessage("Cannot reach exchange service. Please try again later");
             return false;
         }
 
@@ -210,37 +225,70 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         return true;
     }
 
+    /**
+     * Deploys an {@link ITradeContract} instance with the attributes specified by the user.
+     */
     public void deploy()
     {
         final String title = titleField.getText().toString();
         final String desc = descriptionField.getText().toString();
-
-        final Map<String, String> imageSignatures = new HashMap<>();
-
-        for(Bitmap bmp : images.values())
-        {
-            File imgFile = ImageHelper.saveBitmap(bmp, appContext.getSettingProvider().getImageDirectory());
-            String hashSig = ImageHelper.getImageHash(bmp);
-            imageSignatures.put(hashSig, imgFile.getAbsolutePath());
-        }
-
         final BigDecimal price = new BigDecimal(priceField.getText().toString());
 
-        //todo:show error when service not available
-        BigDecimal priceEther = appContext.getServiceProvider().getExchangeService().convertToEther(price, selectedCurrency).get();
-        if(priceEther == null)
-            return;
+        Async.run(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
 
-        BigInteger priceWei = Web3Util.toWei(priceEther);
-        SimplePromise<ITradeContract> promise = deployContract(priceWei, title, desc, needsVerification, imageSignatures);
-        if(promise == null)
-            return;
+                final Map<String, String> imageSignatures = new HashMap<>();
+                for(Bitmap bmp : images.values())
+                {
+                    //save selected images in the image directory of the application
+                    File imgFile = ImageHelper.saveBitmap(bmp, appContext.getSettingProvider().getImageDirectory());
+                    //calculate the hash of the image
+                    String hashSig = ImageHelper.getImageHash(bmp);
+                    imageSignatures.put(hashSig, imgFile.getAbsolutePath());
+                }
 
-        Intent intent = new Intent(getActivity(), ContractOverviewActivity.class);
-        startActivity(intent);
+                //Convert currency to ether
+                BigDecimal priceEther = appContext.getServiceProvider().getExchangeService().convertToEther(price, selectedCurrency).get();
+                if(priceEther == null)
+                {
+                    appContext.getMessageService().showErrorMessage("Cannot reach the exchange service. Try again later.");
+                    return null;
+                }
+
+                BigInteger priceWei = Web3Util.toWei(priceEther);
+
+                //Deploy the contract using the concrete deploy method
+                deployContract(priceWei, title, desc, needsVerification, imageSignatures);
+                return null;
+
+            }
+        }).fail(new FailCallback() {
+            @Override
+            public void onFail(Throwable result) {
+                //notify the user that an unexpected error occurred
+                Log.e("deploy", "An unexpected error occurred during deployment", result);
+
+                appContext.getMessageService().showErrorMessage(
+                        "Cannot deploy the contract. \n An unexpected error occurred");
+            }
+        });
+
+        //return to OverviewActivity
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(getActivity(), ContractOverviewActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
-    protected abstract SimplePromise<ITradeContract> deployContract(BigInteger priceWei, String title, String description, boolean needsVerification, Map<String, String> imageSignatures);
+    /**
+     * Method that deploys a concrete instance of {@link ITradeContract}. This method must be
+     * implemented by all concrete derived fragment classes.
+     */
+    protected abstract void deployContract(BigInteger priceWei, String title, String description, boolean needsVerification, Map<String, String> imageSignatures);
 
     @Override
     public void onAttach(Context context) {
@@ -277,14 +325,17 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
 
         if(verifyFields())
         {
-            isValid = true;
             deployButton.setEnabled(true);
         }else{
-            isValid = false;
             deployButton.setEnabled(false);
         }
     }
 
+    /**
+     * Verifies that all values on the fields are set.
+     *
+     * @return
+     */
     protected boolean verifyFields()
     {
         if(titleField.getError() != null || priceField.getError() != null || descriptionField.getError() != null)
@@ -322,12 +373,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         switch(view.getId())
         {
             case R.id.action_deploy_contract:
-                if(appContext.getServiceProvider().getConnectionService().hasConnection())
-                {
-                    deploy();
-                }else{
-                    appContext.getMessageService().showErrorMessage("Cannot deploy contract when connection to host is not established!");
-                }
+                deploy();
                 break;
             case R.id.action_cancel_deploy:
                 Intent intent = new Intent(getActivity(), ContractOverviewActivity.class);
@@ -339,22 +385,37 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         }
     }
 
+    /**
+     * Creates the context menu for a {@link ProportionalImageView}
+     *
+     * @param menu
+     * @param v
+     * @param menuInfo
+     */
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
     {
         super.onCreateContextMenu(menu, v, menuInfo);
         if(v.getId() == R.id.action_add_image)
         {
+            //show image selection dialog
             menu.setHeaderTitle("Select an Image");
             menu.add(0, v.getId(), 0, "from file");
             menu.add(0, v.getId(), 0, "from camera");
         }else if (v instanceof ProportionalImageView)
         {
+            //show dialog to delete an image
             menu.setHeaderTitle("Delete image?");
             menu.add(0, v.getId(), 0, "delete");
         }
     }
 
+    /**
+     * Contains the interaction logic for the image context menu.
+     *
+     * @param item
+     * @return
+     */
     @Override
     public boolean onContextItemSelected(MenuItem item)
     {
@@ -398,6 +459,13 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         images.remove(selectedImage);
     }
 
+    /**
+     * Handles the result of Image capture and Pick file requests.
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param intent
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent)
     {
@@ -421,6 +489,12 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         super.onActivityResult(requestCode, resultCode, intent);
     }
 
+    /**
+     * Attempts to create a Bitmap image from the {@link Uri} obtained from the result of an Intent.
+     *
+     * @param uri
+     * @return
+     */
     private Bitmap getBitmap(Uri uri)
     {
         try{
@@ -428,22 +502,24 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
             return bmp;
         }catch(Exception ex)
         {
-            //todo:log
-            appContext.getMessageService().showErrorMessage("Could not save image: " + ex.getMessage());
+            Log.e("deploy", "Could not save image", ex);
+            appContext.getMessageService().showErrorMessage("Could not save image!" );
             return null;
         }
     }
 
     private void addImage(Bitmap bmp)
     {
+        //create an ImageView from a bitmap
         final ProportionalImageView imageView = new ProportionalImageView(getActivity());
         imageView.setScale(ProportionalImageView.ScaleDimension.Height);
         int heightPx = (int)ImageHelper.convertDpToPixel(new Float(64.0), this.getActivity());
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(heightPx, heightPx);
         layoutParams.setMargins(8,8,8,8);
         imageView.setLayoutParams(layoutParams);
-
         imageView.setImageBitmap(bmp);
+
+        //add image to the container
         imageContainer.addView(imageView);
         images.put(imageView, bmp);
 
@@ -455,6 +531,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
             }
         });
 
+        //register context menu on image
         imageView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
@@ -470,6 +547,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         ArrayList<Bitmap> bitmaps = new ArrayList<>(images.values());
         int startIndex = bitmaps.indexOf(images.get(imageView));
 
+        //open DialogFragment
         DialogFragment imageDialog = new ImageDialogFragment();
         Bundle imageArgs = new Bundle();
         imageArgs.putSerializable(ImageDialogFragment.MESSAGE_IMAGE_BMPS, new ArrayList<>(images.values()));
