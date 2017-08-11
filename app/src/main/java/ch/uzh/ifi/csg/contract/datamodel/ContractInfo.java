@@ -58,7 +58,7 @@ public class ContractInfo implements Serializable
         byteList.addAll(BinaryUtil.toByteList(title.getBytes()));
         byteList.addAll(BinaryUtil.toByteList(description.getBytes()));
         byteList.add((byte) (verifyIdentity ? 1 : 0 ));
-        for(String imageSig : images.values())
+        for(String imageSig : images.keySet())
         {
             byteList.addAll(BinaryUtil.toByteList(imageSig.getBytes()));
         }

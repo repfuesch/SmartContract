@@ -10,11 +10,16 @@ import org.hamcrest.Matcher;
 import static android.support.test.espresso.matcher.ViewMatchers.isRoot;
 
 /**
- * Created by flo on 13.07.17.
+ * Methods that return custom {@link ViewAction} instances
  */
-
 public class CustomViewActions {
 
+    /**
+     * {@link ViewAction} that clicks on a child view with the specified id
+     *
+     * @param id; the id of the child view
+     * @return the ViewAction
+     */
     public static ViewAction clickChildViewWithId(final int id) {
         return new ViewAction() {
             @Override
@@ -35,6 +40,13 @@ public class CustomViewActions {
         };
     }
 
+    /**
+     * {@link ViewAction} that inserts the specified text into the view with the specified id
+     *
+     * @param id; the id of the child view
+     * @param text: the text to insert
+     * @return the ViewAction
+     */
     public static ViewAction typeTextIntoChildViewWithId(final int id, final String text) {
         return new ViewAction() {
             @Override
@@ -55,6 +67,12 @@ public class CustomViewActions {
         };
     }
 
+    /**
+     * Blocks the test UI thread for a specified amount of time.
+     *
+     * @param millis: the time in milliseconds
+     * @return the ViewAction
+     */
     public static ViewAction waitFor(final long millis) {
         return new ViewAction() {
             @Override

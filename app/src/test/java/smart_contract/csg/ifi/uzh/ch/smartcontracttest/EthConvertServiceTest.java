@@ -26,11 +26,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Created by flo on 10.07.17.
+ * Unit-Tests for the {@link JsonHttpConvertService} class
  */
-
 @RunWith(MockitoJUnitRunner.class)
-public class CryptoCompareConvertServiceTest {
+public class EthConvertServiceTest {
 
     private static final String RESPONSE_CONTENT = "{\"USD\":220.3,\"EUR\":195.15}";
 
@@ -39,10 +38,16 @@ public class CryptoCompareConvertServiceTest {
 
     private JsonHttpConvertService testee;
 
+    /**
+     * Sets up a fake HTTP response that contains the {@link #RESPONSE_CONTENT} JSON string
+     */
     @Before
     public void setup() throws IOException
     {
+        //instantiate testee
         testee = new JsonHttpConvertService(httpClient, "https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD,EUR", new CryptoCompareDeserializer());
+
+        //fake HTTP respone
         CloseableHttpResponse fakeResponse= mock(CloseableHttpResponse.class);
         when(httpClient.execute(any(HttpUriRequest.class))).thenReturn(fakeResponse);
         HttpEntity fakeEntity = mock(HttpEntity.class);
@@ -50,6 +55,9 @@ public class CryptoCompareConvertServiceTest {
         when(fakeEntity.getContent()).thenReturn(new ByteArrayInputStream(RESPONSE_CONTENT.getBytes(StandardCharsets.UTF_8)));
     }
 
+    /**
+     * Checks that the correct exchange rate is returned for a given currency
+     */
     @Test
     public void getExchangeRate_WhenCalled_ThenReturnsCorrectRateForCurrency()
     {
@@ -60,6 +68,9 @@ public class CryptoCompareConvertServiceTest {
         assertThat(rate, is(new BigDecimal("220.3")));
     }
 
+    /**
+     * Checks that the amount of ether is correctly converted to the specified currency
+     */
     @Test
     public void convertToCurrency_WhenCalled_ThenReturnsCorrectValue()
     {
@@ -73,6 +84,9 @@ public class CryptoCompareConvertServiceTest {
         assertThat(amountCurrency, is(new BigDecimal("220.3").multiply(amountEther)));
     }
 
+    /**
+     * Checks that the amount of currency is correctly converted to ether
+     */
     @Test
     public void convertToEther_WhenCalled_ThenReturnsCorrectValue()
     {

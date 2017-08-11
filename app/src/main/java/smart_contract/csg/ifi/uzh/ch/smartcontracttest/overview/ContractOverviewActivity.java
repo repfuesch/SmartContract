@@ -202,6 +202,9 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
                 });
     }
 
+    /**
+     * see {@link AddContractDialogFragment.AddContractDialogListener#onAddContract(String, ContractType)}
+     */
     @Override
     public void onAddContract(final String contractAddress, final ContractType type)
     {
@@ -230,6 +233,9 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
         });
     }
 
+    /**
+     * See {@link AddContractDialogFragment.AddContractDialogListener#onCreateContract(ContractType)}
+     */
     @Override
     public void onCreateContract(ContractType type)
     {
@@ -264,31 +270,21 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
         listFragment.loadContractsForAccount(getAppContext().getSettingProvider().getSelectedAccount());
     }
 
+    /**
+     * see {@link P2pImportDialog.P2pImportListener#onContractDataReceived(ContractInfo)}
+     */
     @Override
     public void onContractDataReceived(final ContractInfo contractInfo)
     {
-        //store the contract before loading it
+        //store the contract before adding it to the list
         getAppContext().getServiceProvider().getContractService().saveContract(contractInfo, getAppContext().getSettingProvider().getSelectedAccount());
 
         listFragment.loadContract(contractInfo.getContractType(), contractInfo.getContractAddress());
-                /*
-                .always(new AlwaysCallback<ITradeContract>() {
-                    @Override
-                    public void onAlways(Promise.State state, ITradeContract resolved, Throwable rejected) {
-                        if(resolved != null)
-                        {
-                            resolved.setUserProfile(contractInfo.getUserProfile());
-                            for(String imgSig : contractInfo.getImages().keySet())
-                            {
-                                //copy the images into the correct application path
-                                resolved.addImage(imgSig, contractInfo.getImages().get(imgSig));
-                            }
-                            getAppContext().getServiceProvider().getContractService().saveContract(resolved, getAppContext().getSettingProvider().getSelectedAccount());
-                        }
-                    }
-                });*/
     }
 
+    /**
+     * see {@link P2pImportDialog.P2pImportListener#onContractDialogCanceled}
+     */
     @Override
     public void onContractDialogCanceled() {
     }

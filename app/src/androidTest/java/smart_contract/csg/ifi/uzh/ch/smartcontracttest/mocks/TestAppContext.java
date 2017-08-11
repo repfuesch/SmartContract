@@ -17,19 +17,31 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PSellerServ
 import static org.mockito.Mockito.mock;
 
 /**
- * Created by flo on 13.07.17.
+ * Android {@link Application} class that implements the {@link ApplicationContext} interface
+ * to provide mocked service objects
  */
-
 public class TestAppContext extends Application implements ApplicationContext
 {
-    private static ServiceProvider serviceProvider = new TestServiceProvider();
-    public static SettingProvider SettingProvider = mock(SettingProvider.class);
-    public static TransactionHandler TransactionHandler = mock(TransactionHandler.class);
-    public static P2PSellerService SellerService = mock(P2PSellerService.class);
-    public static P2PBuyerService BuyerService = mock(P2PBuyerService.class);
-    public static PermissionProvider PermissionProvider = mock(PermissionProvider.class);
-    public static BroadCastService BroadCastService = mock(BroadCastService.class);
-    public static MessageService MessageService = mock(MessageService.class);
+    private static ServiceProvider serviceProvider;
+    public static SettingProvider SettingProvider;
+    public static TransactionHandler TransactionHandler;
+    public static P2PSellerService SellerService;
+    public static P2PBuyerService BuyerService;
+    public static PermissionProvider PermissionProvider;
+    public static BroadCastService BroadCastService;
+    public static MessageService MessageService;
+
+    public void initMocks()
+    {
+        serviceProvider = new TestServiceProvider();
+        SettingProvider = mock(SettingProvider.class);
+        TransactionHandler = mock(TransactionHandler.class);
+        SellerService = mock(P2PSellerService.class);
+        BuyerService = mock(P2PBuyerService.class);
+        PermissionProvider = mock(PermissionProvider.class);
+        BroadCastService = mock(BroadCastService.class);
+        MessageService = mock(MessageService.class);
+    }
 
     @Override
     public ServiceProvider getServiceProvider() {

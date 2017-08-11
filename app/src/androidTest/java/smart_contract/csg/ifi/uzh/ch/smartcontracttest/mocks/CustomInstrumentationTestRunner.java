@@ -7,9 +7,9 @@ import android.support.annotation.NonNull;
 import android.support.test.runner.AndroidJUnitRunner;
 
 /**
- * Created by flo on 13.07.17.
+ * Custom {@link AndroidJUnitRunner} class that creates a new Application with the
+ * {@link TestAppContext}
  */
-
 public class CustomInstrumentationTestRunner extends AndroidJUnitRunner {
 
     @Override

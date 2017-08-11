@@ -1,6 +1,5 @@
 package smart_contract.csg.ifi.uzh.ch.smartcontracttest.mocks;
 
-import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.service.account.AccountService;
 import ch.uzh.ifi.csg.contract.service.connection.EthConnectionService;
 import ch.uzh.ifi.csg.contract.service.contract.ContractService;
@@ -10,16 +9,22 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ServicePr
 import static org.mockito.Mockito.mock;
 
 /**
- * Created by flo on 13.07.17.
+ * Test {@link ServiceProvider} that returns mocked service instances
  */
-
 public class TestServiceProvider implements ServiceProvider
 {
-    private static ContractService contractService = mock(ContractService.class);
-    private static AccountService accountService = mock(AccountService.class);
-    private static EthConvertService convertService = mock(EthConvertService.class);
-    private static EthConnectionService connectionService = mock(EthConnectionService.class);
+    private static ContractService contractService;
+    private static AccountService accountService;
+    private static EthConvertService convertService;
+    private static EthConnectionService connectionService;
 
+    public TestServiceProvider()
+    {
+        contractService = mock(ContractService.class);
+        accountService = mock(AccountService.class);
+        convertService = mock(EthConvertService.class);
+        connectionService = mock(EthConnectionService.class);
+    }
 
     @Override
     public ContractService getContractService() {

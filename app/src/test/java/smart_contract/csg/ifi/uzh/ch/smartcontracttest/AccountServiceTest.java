@@ -10,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
@@ -22,12 +23,13 @@ import java.util.List;
 
 import ch.uzh.ifi.csg.contract.datamodel.Account;
 import ch.uzh.ifi.csg.contract.service.account.AccountManager;
+import ch.uzh.ifi.csg.contract.service.account.AccountService;
 import ch.uzh.ifi.csg.contract.service.account.CredentialProvider;
 import ch.uzh.ifi.csg.contract.service.account.WalletAccountService;
 import ch.uzh.ifi.csg.contract.service.account.WalletWrapper;
 
 /**
- * Created by flo on 10.07.17.
+ * Unit-Tests for the {@link WalletAccountService} class
  */
 @RunWith(MockitoJUnitRunner.class)
 public class AccountServiceTest {
@@ -36,6 +38,7 @@ public class AccountServiceTest {
     private static final String walletFile = "walletFile";
     private static final String testAccountPassword = "password";
 
+    //mocks
     @Mock
     private Web3j web3;
     @Mock
@@ -48,6 +51,7 @@ public class AccountServiceTest {
     private WalletAccountService testee;
 
     private Account testAccount;
+
     @Before
     public void setup()
     {
@@ -56,6 +60,10 @@ public class AccountServiceTest {
         testAccount.setWalletFile(walletFile);
     }
 
+    /**
+     * Checks that the specified accounts are returned by a call to
+     * {@link AccountService#getAccounts()}
+     */
     @Test
     public void getAccounts_whenCalled_thenAccountListReturned()
     {
@@ -73,8 +81,12 @@ public class AccountServiceTest {
         assertThat(result, is(accountList));
     }
 
+    /**
+     * Checks that the Account is created and added to the accountManager
+     * when calling {@link AccountService#createAccount}
+     */
     @Test
-    public void createAccount_whenCalled_thenAccountCreatedAndSet() throws Exception
+    public void createAccount_whenCalled_thenAccountCreatedAndAdded() throws Exception
     {
         //arrange
         Credentials credentials = Mockito.mock(Credentials.class);
@@ -94,8 +106,12 @@ public class AccountServiceTest {
         verify(accountManager, times(1)).addAccount(createdAccount);
     }
 
+    /**
+     * Checks that a call to {@link AccountService#unlockAccount} sets the credentials when the
+     * password for the account matches
+     */
     @Test
-    public void unlockAccount_whenCalled_thenAccountUnlockedAndCredentialsProvided() throws Exception
+    public void unlockAccount_whenCalledWithCorrectPassword_thenAccountUnlockedAndCredentialsProvided() throws Exception
     {
         //arrange
         Credentials credentials = Mockito.mock(Credentials.class);
@@ -109,6 +125,28 @@ public class AccountServiceTest {
         verify(credentialProvider, times(1)).setCredentials(credentials);
     }
 
+    /**
+     * Checks that a call to {@link AccountService#unlockAccount} returns 'false' when the password
+     * for the account does not match
+     */
+    @Test
+    public void unlockAccount_whenCalledWithWrongPassword_thenReturnFalse() throws Exception
+    {
+        //arrange
+        Credentials credentials = Mockito.mock(Credentials.class);
+        when(walletWrapper.loadCredentials(testAccountPassword, walletDir + "/" + walletFile)).thenThrow(new CipherException("error"));
+
+        //act
+        Boolean result = testee.unlockAccount(testAccount, testAccountPassword).get();
+
+        //assert
+        assertThat(result, is(false));
+    }
+
+    /**
+     * Checks that the account balance for an account is returned when
+     * {@link AccountService#getAccountBalance} is called
+     */
     @Test
     public void getAccountBalance_whenCalled_thenReturnsAccountBalance() throws Exception
     {

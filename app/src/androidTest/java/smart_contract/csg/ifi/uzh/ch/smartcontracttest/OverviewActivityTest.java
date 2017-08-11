@@ -20,6 +20,7 @@ import ch.uzh.ifi.csg.contract.contract.ContractType;
 import ch.uzh.ifi.csg.contract.contract.IPurchaseContract;
 import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
+import ch.uzh.ifi.csg.contract.service.serialization.GsonSerializationService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.ViewHelper.CustomViewActions;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.ViewHelper.RecyclerViewItemCountAssertion;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.broadcast.LocalBroadcastService;
@@ -27,7 +28,10 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.Transa
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create.ContractCreateActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.display.ContractDetailActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.mocks.TestAppContext;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.AddContractDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.list.TradeContractRecyclerViewAdapter;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.dialog.P2pImportDialog;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
 
 import static android.support.test.InstrumentationRegistry.getInstrumentation;
@@ -50,9 +54,8 @@ import static org.mockito.Mockito.when;
 import static smart_contract.csg.ifi.uzh.ch.smartcontracttest.ViewHelper.RecyclerViewMatcher.withRecyclerView;
 
 /**
- * Created by flo on 14.07.17.
+ * Instrumented tests for the {@link ContractOverviewActivity}
  */
-
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class OverviewActivityTest extends InstrumentedTestBase {
@@ -63,15 +66,16 @@ public class OverviewActivityTest extends InstrumentedTestBase {
     @Before
     public void setup() throws Exception {
         super.setup();
+
+        //setup service call to load contract list
         when(context.getServiceProvider().getContractService().loadContracts(selectedAccount))
-                .thenReturn(Async.toPromise(new Callable<List<ITradeContract>>() {
-                    @Override
-                    public List<ITradeContract> call() throws Exception {
-                        return contractList;
-                    }
-                }));
+                .thenReturn(promise(contractList));
     }
 
+    /**
+     * Check that the {@link TradeContractRecyclerViewAdapter} is initialized correctly after the
+     * creation of the activity
+     */
     @Test
     public void onCreate_WhenCreated_ThenContractsLoadedAndDisplayedAndEventsRegistered() throws Throwable {
         //arrange
@@ -87,21 +91,24 @@ public class OverviewActivityTest extends InstrumentedTestBase {
                 .check(matches(withText("Purchase Contract")));
 
         onView(withRecyclerView(R.id.purchase_list).atPositionOnView(0, R.id.list_detail_title))
-                .check(matches(withText(purchaseContract.getTitle())));
+                .check(matches(withText(purchaseContract.getTitle().get())));
 
         onView(withRecyclerView(R.id.purchase_list).atPositionOnView(0, R.id.list_detail_state))
-                .check(matches(withText(purchaseContract.getState().toString())));
+                .check(matches(withText(purchaseContract.getState().get().toString())));
 
         onView(withRecyclerView(R.id.purchase_list).atPositionOnView(1, R.id.list_detail_contract_type))
                 .check(matches(withText("Rent Contract")));
 
         onView(withRecyclerView(R.id.purchase_list).atPositionOnView(1, R.id.list_detail_title))
-                .check(matches(withText(rentContract.getTitle())));
+                .check(matches(withText(rentContract.getTitle().get())));
 
         onView(withRecyclerView(R.id.purchase_list).atPositionOnView(1, R.id.list_detail_state))
-                .check(matches(withText(rentContract.getState().toString())));
+                .check(matches(withText(rentContract.getState().get().toString())));
     }
 
+    /**
+     * checks that the account balance is set after the creation of the activity
+     */
     @Test
     public void onCreate_WhenCreated_ThenAccountBalanceUpdated()
     {
@@ -115,18 +122,21 @@ public class OverviewActivityTest extends InstrumentedTestBase {
         onView(withId(R.id.account_balance_field)).check(matches(withText("1000")));
     }
 
+    /**
+     * Checks that the {@link ContractDetailActivity} is started when the user clicks on a {@link TradeContractRecyclerViewAdapter.ViewHolder}
+     * item.
+     */
     @Test
     public void listItem_WhenClicked_ThenDetailActivityForContractOpened()
     {
         //arrange
+
+        //setup monitor for DetailActivity
         Instrumentation.ActivityMonitor activityMonitor = getInstrumentation().addMonitor(ContractDetailActivity.class.getName(), null, false);
+
+        //setup service call to retrieve the contract
         when(context.getServiceProvider().getContractService().loadContract(purchaseContract.getContractType(), purchaseContract.getContractAddress(), selectedAccount))
-                .thenReturn(Async.toPromise(new Callable<ITradeContract>() {
-                    @Override
-                    public ITradeContract call() throws Exception {
-                        return purchaseContract;
-                    }
-                }));
+                .thenReturn(promise((ITradeContract)purchaseContract));
 
         //act
         rule.launchActivity(new Intent());
@@ -137,23 +147,23 @@ public class OverviewActivityTest extends InstrumentedTestBase {
 
         // next activity is opened and captured.
         assertNotNull(nextActivity);
+
+        //verify start intent of activity
         Intent intent = nextActivity.getIntent();
         assertThat(intent.getStringExtra(ContractDetailActivity.EXTRA_CONTRACT_ADDRESS), is(purchaseContract.getContractAddress()));
         assertThat((ContractType)intent.getSerializableExtra(ContractDetailActivity.EXTRA_CONTRACT_TYPE), is(purchaseContract.getContractType()));
         nextActivity .finish();
     }
 
+    /**
+     * Checks that that a contract that is manually added in the {@link AddContractDialogFragment} is saved and added to the list
+     */
     @Test
     public void onAddContract_WhenContractAddedManually_ThenContractAdded()
     {
         //arrange
         when(context.getServiceProvider().getContractService().loadContract(ContractType.Purchase, "account_address", selectedAccount))
-                .thenReturn(Async.toPromise(new Callable<ITradeContract>() {
-                    @Override
-                    public ITradeContract call() throws Exception {
-                        return mock(IPurchaseContract.class);
-                    }
-                }));
+                .thenReturn(promise((ITradeContract)purchaseContract));
 
         rule.launchActivity(new Intent());
 
@@ -166,10 +176,14 @@ public class OverviewActivityTest extends InstrumentedTestBase {
         onView(withText(R.string.ok)).inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
 
         //assert call
+        verify(context.getServiceProvider().getContractService()).saveContract(any(ContractInfo.class), any(String.class));
         verify(context.getServiceProvider().getContractService()).loadContract(ContractType.Purchase, "account_address", selectedAccount);
         onView(withId(R.id.purchase_list)).check(new RecyclerViewItemCountAssertion(3));
     }
 
+    /**
+     * Checks that the {@link ContractCreateActivity} is started when a user wants to create a contract in the {@link AddContractDialogFragment}
+     */
     @Test
     public void onCreateContract_WhenContractCreateOptionSelected_ThenContractCreateActivityStarted()
     {
@@ -193,27 +207,26 @@ public class OverviewActivityTest extends InstrumentedTestBase {
         assertThat((ContractType)intent.getSerializableExtra(ContractCreateActivity.CONTRACT_TYPE_EXTRA), is(ContractType.Purchase));
     }
 
+    /**
+     * Checks that a contract scanned by the {@link QrScanningActivity} is saved and that the {@link ContractDetailActivity} is
+     * started.
+     */
     @Test
     public void onScanContract_WhenScanResultReturned_ThenContractSavedAndDetailActivityStarted()
     {
         //arrange
         String contractAddress = "contract_address";
         ContractType contractType = ContractType.Purchase;
+        ContractInfo info = new ContractInfo(contractType, contractAddress);
 
+        //setup result of scanning activity
         Intent resultIntent = new Intent();
-        resultIntent.putExtra(QrScanningActivity.MESSAGE_CONTRACT_ADDRESS, contractAddress);
-        resultIntent.putExtra(QrScanningActivity.MESSAGE_CONTRACT_TYPE, contractType);
+        resultIntent.putExtra(QrScanningActivity.MESSAGE_CONTRACT_DATA, new GsonSerializationService().serialize(info));
         Instrumentation.ActivityResult activityResult = new Instrumentation.ActivityResult(Activity.RESULT_OK, resultIntent);
         Instrumentation.ActivityMonitor scanActivityMonitor = getInstrumentation().addMonitor(QrScanningActivity.class.getName(), activityResult, true);
 
-        Instrumentation.ActivityMonitor detailMonitor = getInstrumentation().addMonitor(ContractDetailActivity.class.getName(), null, false);
-        when(context.getServiceProvider().getContractService().loadContract(contractType, contractAddress, selectedAccount))
-                .thenReturn(Async.toPromise(new Callable<ITradeContract>() {
-                    @Override
-                    public ITradeContract call() throws Exception {
-                        return purchaseContract;
-                    }
-                }));
+        //add monitor for detail activity
+        Instrumentation.ActivityMonitor detailMonitor = getInstrumentation().addMonitor(ContractDetailActivity.class.getName(), null, true);
 
         //act
         rule.launchActivity(new Intent());
@@ -221,14 +234,12 @@ public class OverviewActivityTest extends InstrumentedTestBase {
 
         //assert
         getInstrumentation().waitForMonitorWithTimeout(scanActivityMonitor, 5);
-        verify(context.getServiceProvider().getContractService()).saveContract(contractAddress, contractType, selectedAccount);
-
-        ContractDetailActivity detailActivity = (ContractDetailActivity)getInstrumentation().waitForMonitorWithTimeout(detailMonitor, 5);
-        Intent intent = detailActivity.getIntent();
-        assertThat(intent.getStringExtra(ContractDetailActivity.EXTRA_CONTRACT_ADDRESS), is(contractAddress));
-        assertThat((ContractType)intent.getSerializableExtra(ContractDetailActivity.EXTRA_CONTRACT_TYPE), is(contractType));
+        verify(context.getServiceProvider().getContractService()).saveContract(any(ContractInfo.class), any(String.class));
     }
 
+    /**
+     * Checks that a contract that is imported with the {@link P2pImportDialog} is saved and added to the list
+     */
     @Test
     public void onImportContract_WhenImportResultReturned_ThenContractLoaded()
     {
@@ -247,13 +258,19 @@ public class OverviewActivityTest extends InstrumentedTestBase {
         rule.getActivity().onContractDataReceived(importedContract);
 
         //assert
+        verify(context.getServiceProvider().getContractService()).saveContract(any(ContractInfo.class), any(String.class));
         verify(context.getServiceProvider().getContractService()).loadContract(ContractType.Purchase, "contract_address", selectedAccount);
     }
 
+    /**
+     * Checks that a newly created contract is added to the list
+     */
     @Test
     public void onContractCreated_WhenContractCreateTransactionCompleted_ThenContractAddedToList()
     {
         //arrange
+
+        //setup service call to load the new contract
         when(context.getServiceProvider().getContractService().loadContract(ContractType.Purchase, "new_contract_address", selectedAccount))
                 .thenReturn(Async.toPromise(new Callable<ITradeContract>() {
                     @Override
@@ -262,6 +279,7 @@ public class OverviewActivityTest extends InstrumentedTestBase {
                     }
                 }));
 
+        //initialize the BroadCastService with the actual context and set the corrent intents
         TestAppContext.BroadCastService = new LocalBroadcastService(context.getContext());
         Intent createIntent = new Intent(TransactionHandler.ACTION_TRANSACTION_CREATED);
         createIntent.putExtra(TransactionHandler.CONTRACT_TYPE, ContractType.Purchase);
@@ -269,6 +287,8 @@ public class OverviewActivityTest extends InstrumentedTestBase {
 
         //act
         rule.launchActivity(new Intent());
+
+        //broadcast intent
         context.getBroadCastService().sendBroadcast(createIntent);
         onView(isRoot()).perform(CustomViewActions.waitFor(200));
 

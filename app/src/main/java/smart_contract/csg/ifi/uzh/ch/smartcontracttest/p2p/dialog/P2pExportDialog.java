@@ -179,8 +179,8 @@ public class P2pExportDialog extends P2pDialog implements P2pSellerCallback
     public void onContractInfoRequested(final ContractInfoListener listener)
     {
         //make sure that no profile info is set
-        contractInfo.getUserProfile().setVCard(new VCard());
-        contractInfo.getUserProfile().setProfileImagePath("");
+        contractInfo.getUserProfile().setVCard(null);
+        contractInfo.getUserProfile().setProfileImagePath(null);
 
         if(contractInfo.isVerifyIdentity())
         {

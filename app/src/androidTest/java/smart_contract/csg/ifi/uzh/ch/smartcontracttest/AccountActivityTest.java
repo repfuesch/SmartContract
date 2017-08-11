@@ -22,6 +22,7 @@ import ch.uzh.ifi.csg.contract.datamodel.Account;
 import ch.uzh.ifi.csg.contract.service.account.AccountService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.ViewHelper.CustomViewActions;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountDialogFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountRecyclerViewAdapter;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
@@ -42,12 +43,13 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static smart_contract.csg.ifi.uzh.ch.smartcontracttest.InstrumentedTestBase.promise;
 
 /**
- * Created by flo on 13.07.17.
+ * Instrumented tests for the {@link AccountActivity} code
  */
-
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class AccountActivityTest {
@@ -61,7 +63,10 @@ public class AccountActivityTest {
     @Before
     public void setup()
     {
+        //set the ApplicationContext
         context = (ApplicationContext)InstrumentationRegistry.getInstrumentation().getTargetContext().getApplicationContext();
+
+        //setup account list
         AccountService accountService = context.getServiceProvider().getAccountService();
         Account[] accounts = new Account[]{ new Account("id1", "label1", "walletFile1"), new Account("id2", "label2", "walletFile2") };
         accountList = Arrays.asList(accounts);
@@ -72,12 +77,16 @@ public class AccountActivityTest {
             }
         }));
 
+        //make sure selected account is not set
         SettingProvider settingProvider = context.getSettingProvider();
         when(settingProvider.getSelectedAccount()).thenReturn("");
 
         rule.launchActivity(new Intent());
     }
 
+    /**
+     * Checks that the account list is shown after the Activity has been created
+     */
     @Test
     public void Created_WhenCreated_ThenAccountListLoaded()
     {
@@ -89,16 +98,14 @@ public class AccountActivityTest {
         assertThat(listAdapter.getItemCount(), is(2));
     }
 
+    /**
+     * Tests that the account is changed when an account is unlocked with the correct credentials
+     */
     @Test
     public void Login_WhenPasswordMatches_ThenAccountChanged()
     {
         //arrange
-        when(context.getServiceProvider().getAccountService().unlockAccount(any(Account.class), any(String.class))).thenReturn(Async.toPromise(new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                return true;
-            }
-        }));
+        when(context.getServiceProvider().getAccountService().unlockAccount(any(Account.class), any(String.class))).thenReturn(promise(true));
 
         //act
         onView(withId(R.id.account_list)).perform(actionOnItemAtPosition(0, click()));
@@ -107,11 +114,16 @@ public class AccountActivityTest {
 
         //assert
         ArgumentCaptor<Intent> argument1 = ArgumentCaptor.forClass(Intent.class);
-        verify(context.getBroadCastService(), times(1)).sendBroadcast(argument1.capture());
+
+        //check that account change is broadcasted with correct intent
+        verify(context.getBroadCastService()).sendBroadcast(argument1.capture());
         assertThat(argument1.getValue().getAction(), is(AccountActivity.ACTION_ACCOUNT_CHANGED));
         assertThat(argument1.getValue().getStringExtra(AccountActivity. MESSAGE_ACCOUNT_CHANGED), is("id1"));
     }
 
+    /**
+     * Tests that an error message is shown when the user attempts to unlock an account with the wrong password
+     */
     @Test
     public void Login_WhenPasswordDoesNotMatch_ThenErrorShown()
     {
@@ -129,9 +141,13 @@ public class AccountActivityTest {
         onView(withId(R.id.account_list)).perform(actionOnItemAtPosition(0, CustomViewActions.clickChildViewWithId(R.id.account_login_button)));
 
         //assert
-        verify(context.getMessageService(), times(1)).showErrorMessage("Unlocking account failed. Wrong password");
+        verify(context.getMessageService(), times(1)).showErrorMessage(any(String.class));
+        verifyNoMoreInteractions(context.getBroadCastService());
     }
 
+    /**
+     * Verifies that a new account is created and selected when the user fills out the {@link AccountDialogFragment}
+     */
     @Test
     public void CreateAccount_WhenClicked_ThenDialogOpensAndAccountAdded() throws Throwable {
         //arrange
@@ -147,7 +163,7 @@ public class AccountActivityTest {
         onView(withId(R.id.account_add_button)).perform(click());
         onView(withId(R.id.field_account_name)).perform(typeText("account"));
         onView(withId(R.id.field_password)).perform(typeText("password")).perform(closeSoftKeyboard());
-        onView(withText("create")).inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
+        onView(withText("OK")).inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
 
         //assert
         verify(context.getServiceProvider().getAccountService()).createAccount("account", "password");

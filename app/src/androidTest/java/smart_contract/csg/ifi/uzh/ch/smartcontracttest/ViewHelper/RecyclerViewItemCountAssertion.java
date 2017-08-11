@@ -11,9 +11,8 @@ import static android.support.test.espresso.matcher.ViewMatchers.assertThat;
 import static org.hamcrest.Matchers.is;
 
 /**
- * Created by flo on 14.07.17.
+ * Helper to assert items inside a {@link RecyclerView.Adapter}
  */
-
 public class RecyclerViewItemCountAssertion implements ViewAssertion {
 
     private final Matcher<Integer> matcher;
@@ -26,6 +25,12 @@ public class RecyclerViewItemCountAssertion implements ViewAssertion {
         this.matcher = matcher;
     }
 
+    /**
+     * checks that the specified {@link RecyclerView} contains the specified amount of items
+     *
+     * @param view: the RecyclerView
+     * @param noViewFoundException
+     */
     @Override
     public void check(View view, NoMatchingViewException noViewFoundException) {
         if (noViewFoundException != null) {
