@@ -26,9 +26,9 @@ public interface TransactionHandler
     <T> void toTransaction(SimplePromise<T> promise, final String contractAddress);
 
     /**
-     * Handles the contract deploy transaction specified by the promise object. Informs observers
-     * about the success/error of the transaction when it has completed and guarantees that the
-     * contract details are saved in case of network errors.
+     * Handles the contract deploy transaction specified by the promise that wraps the deployment
+     * operation. Informs observers about the success/error of the transaction when it has completed
+     * and guarantees that the contract details are saved in case of network errors.
      *
      * @param promise
      * @param contractInfo
@@ -37,12 +37,4 @@ public interface TransactionHandler
      * @param <T>
      */
     <T extends ITradeContract> void toDeployTransaction(SimplePromise<T> promise, ContractInfo contractInfo, String account, ContractService contractService);
-
-    /**
-     * Indicates whether there are open deploy transactions. Should be checked before the
-     * unlocked account or any settings can change.
-     *
-     * @return
-     */
-    boolean hasOpenTransactions();
 }

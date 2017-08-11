@@ -183,8 +183,11 @@ public class ContractListFragment extends Fragment
                                 {
                                     Log.e("overview", "Cannot load contract", rejected);
                                 }else{
-                                    adapter.addContract(resolved);
-                                    adapter.notifyItemInserted(adapter.getItemCount() - 1);
+                                    if(resolved != null)
+                                    {
+                                        adapter.addContract(resolved);
+                                        adapter.notifyItemInserted(adapter.getItemCount() - 1);
+                                    }
                                 }
 
                                 BusyIndicator.hide(contentView);

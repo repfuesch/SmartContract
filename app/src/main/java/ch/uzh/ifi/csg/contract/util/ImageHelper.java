@@ -320,7 +320,13 @@ public final class ImageHelper {
         intent.addCategory(Intent.CATEGORY_OPENABLE);
 
         // special intent for Samsung file manager
-        Intent sIntent = new Intent("com.sec.android.app.myfiles.PICK_FILE");
+        Intent sIntent;
+        if(samsungContentType.equals("*/*"))
+        {
+            sIntent = new Intent("com.sec.android.app.myfiles.PICK_DATA");
+        }else{
+            sIntent = new Intent("com.sec.android.app.myfiles.PICK_FILE");
+        }
         intent.putExtra("CONTENT_TYPE", samsungContentType);
         intent.addCategory(Intent.CATEGORY_DEFAULT);
 

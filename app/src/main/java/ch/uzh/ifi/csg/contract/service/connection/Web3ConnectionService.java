@@ -14,7 +14,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.broadcast.BroadCas
 
 /**
  * Implementation of the {@link EthConnectionService} that uses the {@link Web3j#ethGasPrice()}
- * method to check the coonnection to the Ethereum client.
+ * method to periodically check the connection to the Ethereum client.
  */
 public class Web3ConnectionService implements EthConnectionService {
 
@@ -73,7 +73,8 @@ public class Web3ConnectionService implements EthConnectionService {
     }
 
     /**
-     * Broadcasts intents to interested Observers using the {@link BroadCastService}
+     * Broadcasts intents to interested observers when the connection state changes
+     * using the {@link BroadCastService}
      */
     private void broadcastConnectionChanged()
     {

@@ -100,5 +100,5 @@ public interface EthServiceFactory
      * @param port
      * @return
      */
-    EthConnectionService createConnectionService(String host, int port);
+    EthConnectionService createConnectionService(String host, int port, int pollingInterval);
 }

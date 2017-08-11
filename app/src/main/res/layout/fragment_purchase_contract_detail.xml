@@ -207,7 +207,7 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="buy"
-                android:background="@null"
+                android:background="@drawable/button_selector"
                 android:id="@+id/buy_button" />
 
             <View
@@ -220,7 +220,7 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="abort"
-                android:background="@null"
+                android:background="@drawable/button_selector"
                 android:id="@+id/abort_button" />
 
             <View
@@ -233,7 +233,7 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="confirm"
-                android:background="@null"
+                android:background="@drawable/button_selector"
                 android:id="@+id/confirm_button"/>
 
         </LinearLayout>

@@ -20,6 +20,7 @@
     <string name="pref_account_title">Account</string>
     <string name="pref_account_wallet_encryption_strength">Wallet file encryption strength</string>
     <string name="pref_account_wallet_directory">Wallet file directory</string>
+    <string name="pref_account_wallet_management_options">Account management</string>
     <string name="pref_transaction_title">Transaction</string>
     <string name="pref_transaction_gas_price">Gas price</string>
     <string name="pref_transaction_gas_limit">Gas limit</string>
@@ -28,6 +29,7 @@
     <string name="pref_client_title">ETH client</string>
     <string name="pref_client_host">Host</string>
     <string name="pref_client_port">Port</string>
+    <string name="pref_client_polling_interval">Host polling interval (ms)</string>
     <string name="title_contract_overview">Contracts</string>
     <string name="title_contract_detail">Details</string>
     <string name="title_account">Accounts</string>

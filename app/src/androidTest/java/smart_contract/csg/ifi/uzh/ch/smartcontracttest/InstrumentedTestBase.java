@@ -204,5 +204,7 @@ public abstract class InstrumentedTestBase {
                         return true;
                     }
                 }));
+
+        when(context.getPermissionProvider().hasPermission(any(String.class))).thenReturn(true);
     }
 }

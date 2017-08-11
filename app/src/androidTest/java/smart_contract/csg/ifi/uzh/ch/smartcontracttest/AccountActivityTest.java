@@ -52,19 +52,16 @@ import static smart_contract.csg.ifi.uzh.ch.smartcontracttest.InstrumentedTestBa
  */
 @MediumTest
 @RunWith(AndroidJUnit4.class)
-public class AccountActivityTest {
+public class AccountActivityTest extends InstrumentedTestBase {
 
-    private ApplicationContext context;
     private List<Account> accountList;
 
     @Rule
     public ActivityTestRule<AccountActivity> rule  = new  ActivityTestRule<>(AccountActivity.class, true, false);
 
     @Before
-    public void setup()
-    {
-        //set the ApplicationContext
-        context = (ApplicationContext)InstrumentationRegistry.getInstrumentation().getTargetContext().getApplicationContext();
+    public void setup() throws Exception {
+        super.setup();
 
         //setup account list
         AccountService accountService = context.getServiceProvider().getAccountService();
@@ -142,7 +139,6 @@ public class AccountActivityTest {
 
         //assert
         verify(context.getMessageService(), times(1)).showErrorMessage(any(String.class));
-        verifyNoMoreInteractions(context.getBroadCastService());
     }
 
     /**

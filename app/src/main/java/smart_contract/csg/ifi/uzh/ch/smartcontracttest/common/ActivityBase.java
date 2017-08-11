@@ -15,10 +15,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
 import java.math.BigInteger;
 import java.math.MathContext;
-
 import ch.uzh.ifi.csg.contract.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.contract.util.Web3Util;
 import ch.uzh.ifi.csg.contract.contract.ContractType;
@@ -233,6 +231,7 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
     private void initIntentFilters() {
         contractIntentFilter = new IntentFilter();
         contractIntentFilter.addAction(TransactionHandler.ACTION_TRANSACTION_CREATED);
+        contractIntentFilter.addAction(TransactionHandler.ACTION_TRANSACTION_UPDATED);
         contractIntentFilter.addAction(SettingProviderImpl.ACTION_SETTINGS_CHANGED);
         contractIntentFilter.addAction(AccountActivity.ACTION_ACCOUNT_CHANGED);
         contractIntentFilter.addAction(EthConnectionService.ACTION_HANDLE_CONNECTION_DOWN);
@@ -316,27 +315,46 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(TransactionHandlerImpl.ACTION_TRANSACTION_CREATED)) {
+                //handle contract created
                 final String contractAddress = intent.getStringExtra(TransactionHandler.CONTRACT_ADDRESS);
                 final ContractType contractType = (ContractType) intent.getSerializableExtra(TransactionHandler.CONTRACT_TYPE);
+                if(accountBalanceView != null)
+                    updateAccountBalance();
+
                 onContractCreated(contractAddress, contractType);
                 return;
             } else if (intent.getAction().equals(SettingProviderImpl.ACTION_SETTINGS_CHANGED)) {
+                //handle settings changed
                 onSettingsChanged();
+                return;
             } else if (intent.getAction().equals(AccountActivity.ACTION_ACCOUNT_CHANGED)) {
+                //handle account changed
                 if(appContext.getSettingProvider().getSelectedAccount().isEmpty())
                 {
                     appContext.getMessageService().showSnackBarMessage(getString(R.string.message_account_locked), Snackbar.LENGTH_LONG);
                 }else{
                     appContext.getMessageService().showSnackBarMessage(getString(R.string.message_account_unlocked), Snackbar.LENGTH_LONG);
                 }
-            } else if (intent.getAction().equals(EthConnectionService.ACTION_HANDLE_CONNECTION_DOWN)) {
-                onConnectionLost();
-            } else if (intent.getAction().equals(EthConnectionService.ACTION_HANDLE_CONNECTION_UP)) {
-                onConnectionEstablished();
-            }
 
-            if(accountBalanceView != null)
-                updateAccountBalance();
+                if(accountBalanceView != null)
+                    updateAccountBalance();
+
+                onSettingsChanged();
+                return;
+            } else if (intent.getAction().equals(EthConnectionService.ACTION_HANDLE_CONNECTION_DOWN)) {
+                //handle connection down
+                onConnectionLost();
+                return;
+            } else if (intent.getAction().equals(EthConnectionService.ACTION_HANDLE_CONNECTION_UP)) {
+                //handle connection up
+                onConnectionEstablished();
+                return;
+            }else if(intent.getAction().equals(TransactionHandler.ACTION_TRANSACTION_UPDATED))
+            {
+                //handle transaction completed
+                if(accountBalanceView != null)
+                    updateAccountBalance();
+            }
         }
     }
 }

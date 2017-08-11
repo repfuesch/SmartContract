@@ -22,6 +22,7 @@ import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.service.serialization.GsonSerializationService;
 import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.list.ContractListFragment;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create.ContractCreateActivity;
@@ -134,12 +135,37 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
 
     public void onScanButtonClick(View view)
     {
+
+        PermissionProvider permissionProvider = getAppContext().getPermissionProvider();
+
+        //check camera permission
+        if(!permissionProvider.hasPermission(PermissionProvider.CAMERA))
+        {
+            permissionProvider.requestPermission(PermissionProvider.CAMERA);
+            return;
+        }
+
+        startScanActivity();
+    }
+
+    private void startScanActivity()
+    {
         Intent intent = new Intent(this, QrScanningActivity.class);
         intent.setAction(QrScanningActivity.ACTION_SCAN_CONTRACT);
         startActivityForResult(
                 intent,
                 SCAN_CONTRACT_ADDRESS_REQUEST
         );
+    }
+
+    @Override
+    protected void onPermissionGranted(String permission) {
+        super.onPermissionGranted(permission);
+
+        if(permission.equals(PermissionProvider.CAMERA))
+        {
+            startScanActivity();
+        }
     }
 
     @Override
@@ -245,9 +271,17 @@ public class ContractOverviewActivity extends ActivityBase implements AddContrac
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+
+        if(contractListWrapper.getVisibility() != View.GONE)
+            loadContractList();
+    }
+
+    @Override
     protected void onSettingsChanged()
     {
-        loadContractList();
+        recreate();
     }
 
     @Override

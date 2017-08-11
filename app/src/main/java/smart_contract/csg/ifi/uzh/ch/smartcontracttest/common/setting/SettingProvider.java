@@ -24,6 +24,18 @@ public interface SettingProvider
     boolean useStrongWalletFileEncryption();
 
     /**
+     * Returns the polling interval to check the connection to the host
+     * @return
+     */
+    int getHostPollingInterval();
+
+    /**
+     * Indicates if accounts are loaded from the data directory of the Ethereum account
+     * @return
+     */
+    boolean useRemoteAccountManagement();
+
+    /**
      * Returns the host name of the Ethereum client.
      * @return
      */

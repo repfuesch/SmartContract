@@ -95,9 +95,4 @@ public class TransactionHandlerImpl implements TransactionHandler
             }
         });
     }
-
-    @Override
-    public boolean hasOpenTransactions() {
-        return !contractList.isEmpty();
-    }
 }

@@ -33,6 +33,7 @@ public class FileManager implements ContractManager, AccountManager {
     private String accountDirectory;
     private Map<String, Account> accountMap;
     private SerializationService serializationService;
+    private File accountFile;
 
     public FileManager(String dataDirectory)
     {
@@ -45,7 +46,11 @@ public class FileManager implements ContractManager, AccountManager {
     private void load()
     {
         try{
-            String accountData = FileUtil.readFile(new File(accountDirectory));
+            accountFile = new File(accountDirectory + File.separator + "accounts");
+            if(!accountFile.exists())
+                accountFile.createNewFile();
+
+            String accountData = FileUtil.readFile(accountFile);
             accountMap = Deserialize(accountData);
             if(accountMap == null)
                 accountMap = new HashMap<>();
@@ -88,7 +93,7 @@ public class FileManager implements ContractManager, AccountManager {
     {
         String data = serializationService.serialize(accountMap);
         try {
-            FileUtil.writeFile(data, new File(accountDirectory));
+            FileUtil.writeFile(data, accountFile);
         } catch (IOException e) {
             Log.e("service", "failed to save data on the file system", e);
         }

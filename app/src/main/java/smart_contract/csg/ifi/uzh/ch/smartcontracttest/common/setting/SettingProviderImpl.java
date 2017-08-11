@@ -6,16 +6,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.provider.ContactsContract;
-import android.support.v4.content.LocalBroadcastManager;
 
 import java.io.File;
 import java.math.BigInteger;
 
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.account.AccountActivity;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.AppContext;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.broadcast.BroadCastService;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.setting.SettingsActivity;
 
@@ -38,13 +34,17 @@ public class SettingProviderImpl extends BroadcastReceiver implements SettingPro
     private int transactionSleepDuration;
     private String walletFileEncryptionStrength;
     private String walletFileDirectory;
-    private String accountDirectory;
+    private String localAccountDirectory;
+    private String remoteAccountDirectory;
     private String imageDirectory;
+    private int hostPollingInterval;
+    private boolean useRemoteAccounts;
 
     public SettingProviderImpl(ApplicationContext appContext)
     {
         this.appContext = appContext;
         PreferenceManager.setDefaultValues(appContext.getContext(), R.xml.preferences, false);
+
         appContext.getBroadCastService().registerReceiver(this, new IntentFilter(AccountActivity.ACTION_ACCOUNT_CHANGED));
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(appContext.getContext());
@@ -53,6 +53,8 @@ public class SettingProviderImpl extends BroadcastReceiver implements SettingPro
         //Init from SharedPreferences
         setSetting(sharedPref, SettingsActivity.KEY_PREF_CLIENT_HOST);
         setSetting(sharedPref, SettingsActivity.KEY_PREF_CLIENT_PORT);
+        setSetting(sharedPref, SettingsActivity.KEY_PREF_CLIENT_POLLING_INTERVAL);
+        setSetting(sharedPref, SettingsActivity.KEY_PREF_ACCOUNT_MANAGEMENT);
         setSetting(sharedPref, SettingsActivity.KEY_PREF_ACCOUNT_WALLET_ENCRYPTION_STRENGTH);
         setSetting(sharedPref, SettingsActivity.KEY_PREF_TRANSACTION_GAS_PRICE);
         setSetting(sharedPref, SettingsActivity.KEY_PREF_TRANSACTION_GAS_LIMIT);
@@ -60,8 +62,10 @@ public class SettingProviderImpl extends BroadcastReceiver implements SettingPro
         setSetting(sharedPref, SettingsActivity.KEY_PREF_TRANSACTION_SLEEP_DURATION);
 
         //Init static settings
-        accountDirectory = appContext.getContext().getFilesDir().getAbsolutePath() + File.separator + "accounts_remote";
-        ensureDirectory(accountDirectory);
+        localAccountDirectory = appContext.getContext().getFilesDir().getAbsolutePath() + File.separator + "accounts";
+        ensureDirectory(localAccountDirectory);
+        remoteAccountDirectory = appContext.getContext().getFilesDir().getAbsolutePath() + File.separator + "accounts_remote";
+        ensureDirectory(remoteAccountDirectory);
         imageDirectory = appContext.getContext().getFilesDir().getAbsolutePath() + File.separator + "images";
         ensureDirectory(imageDirectory);
         walletFileDirectory = appContext.getContext().getFilesDir().getAbsolutePath() + File.separator + "walletFiles";
@@ -119,6 +123,12 @@ public class SettingProviderImpl extends BroadcastReceiver implements SettingPro
             case SettingsActivity.KEY_PREF_TRANSACTION_SLEEP_DURATION:
                 transactionSleepDuration = Integer.valueOf(preferences.getString(SettingsActivity.KEY_PREF_TRANSACTION_SLEEP_DURATION, ""));
                 break;
+            case SettingsActivity.KEY_PREF_ACCOUNT_MANAGEMENT:
+                useRemoteAccounts = preferences.getString(SettingsActivity.KEY_PREF_ACCOUNT_MANAGEMENT, "").equalsIgnoreCase("remote");
+                break;
+            case SettingsActivity.KEY_PREF_CLIENT_POLLING_INTERVAL:
+                hostPollingInterval = Integer.valueOf(preferences.getString(SettingsActivity.KEY_PREF_CLIENT_POLLING_INTERVAL, ""));
+                break;
             default:
                 break;
         }
@@ -129,6 +139,16 @@ public class SettingProviderImpl extends BroadcastReceiver implements SettingPro
     @Override
     public boolean useStrongWalletFileEncryption() {
         return walletFileEncryptionStrength.equalsIgnoreCase("strong");
+    }
+
+    @Override
+    public int getHostPollingInterval() {
+        return hostPollingInterval;
+    }
+
+    @Override
+    public boolean useRemoteAccountManagement() {
+        return useRemoteAccounts;
     }
 
     public String getHost() {
@@ -161,7 +181,12 @@ public class SettingProviderImpl extends BroadcastReceiver implements SettingPro
 
     public String getAccountDirectory()
     {
-        return accountDirectory;
+        if(useRemoteAccounts)
+        {
+            return remoteAccountDirectory;
+        }else{
+            return localAccountDirectory;
+        }
     }
 
     public String getImageDirectory()

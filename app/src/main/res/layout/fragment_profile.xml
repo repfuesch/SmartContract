@@ -230,7 +230,7 @@
             android:layout_height="wrap_content"
             android:text="save"
             android:visibility="gone"
-            android:background="@null"
+            android:background="@drawable/button_selector"
             android:gravity="center"
             android:id="@+id/action_save_profile" />
 

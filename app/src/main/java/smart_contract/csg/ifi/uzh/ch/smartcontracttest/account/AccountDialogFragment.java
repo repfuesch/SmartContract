@@ -32,7 +32,7 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.Applicati
 import static android.app.Activity.RESULT_OK;
 
 /**
- * A dialog fragment for creating a new account.
+ * A dialog fragment to create new accounts or to create accounts from an existing wallet file
  */
 public class AccountDialogFragment extends DialogFragment implements TextWatcher{
 
@@ -89,6 +89,8 @@ public class AccountDialogFragment extends DialogFragment implements TextWatcher
         importButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                //request permission to access external storage
                 PermissionProvider permissionProvider = applicationContext.getPermissionProvider();
 
                 if(!permissionProvider.hasPermission(PermissionProvider.READ_STORAGE))
@@ -97,6 +99,7 @@ public class AccountDialogFragment extends DialogFragment implements TextWatcher
                     return;
                 }
 
+                //open file browser
                 ImageHelper.openFile(AccountDialogFragment.this);
             }
         });
@@ -137,6 +140,8 @@ public class AccountDialogFragment extends DialogFragment implements TextWatcher
         switch (requestCode)
         {
             case ImageHelper.PICK_FILE_REQUEST_CODE:
+
+                //handle the result of the file pick intent
                 if (resultCode == RESULT_OK) {
                     Uri resultUri = intent.getData();
                     if(resultUri != null)
@@ -213,9 +218,28 @@ public class AccountDialogFragment extends DialogFragment implements TextWatcher
         }
     }
 
+    /**
+     * Callback interface that must be implemented by the host Activity. Notifies host about
+     * accounts that have to be created.
+     */
     public interface AccountDialogListener
     {
+        /**
+         * Invoked when the user requests the creation of an account with the specified credentials
+         *
+         * @param accountName
+         * @param password
+         */
         void onAccountCreated(String accountName, String password);
+
+        /**
+         * Invoked when the user requests the creation of an account with the specified credentials
+         * from the specified walletFileUri
+         *
+         * @param accountName
+         * @param password
+         * @param walletFileUri
+         */
         void onAccountImported(String accountName, String password, Uri walletFileUri);
     }
 }

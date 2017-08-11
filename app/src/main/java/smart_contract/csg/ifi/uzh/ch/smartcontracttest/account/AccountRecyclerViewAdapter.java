@@ -82,7 +82,6 @@ public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecy
             this.loginView = (LinearLayout) view.findViewById(R.id.account_login_view);
 
             loginButton.setOnClickListener(this);
-            accountView.setOnClickListener(this);
             passwordView.setOnClickListener(this);
         }
 
@@ -108,16 +107,6 @@ public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecy
         {
             switch(view.getId())
             {
-                case R.id.account_view:
-                    if(loginView.getVisibility() == View.VISIBLE)
-                    {
-                        loginView.setVisibility(View.GONE);
-                    }else{
-                        loginView.setVisibility(View.VISIBLE);
-                        passwordView.setText("");
-                        passwordView.requestFocus();
-                    }
-                    break;
                 case R.id.account_password_field:
                     passwordView.setText("");
                     passwordView.requestFocus();

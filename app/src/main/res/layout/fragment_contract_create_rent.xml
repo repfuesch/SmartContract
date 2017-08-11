@@ -284,7 +284,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:text="deploy"
-            android:background="@null"
+            android:background="@drawable/button_selector"
             android:id="@+id/action_deploy_contract"
             android:layout_marginRight="10dp"/>
 
@@ -297,7 +297,7 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:background="@null"
+            android:background="@drawable/button_selector"
             android:id="@+id/action_cancel_deploy"
             android:text="cancel" />
 

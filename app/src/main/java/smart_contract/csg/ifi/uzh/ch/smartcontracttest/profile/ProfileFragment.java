@@ -200,6 +200,9 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
      */
     public void setProfileInformation(UserProfile userProfile)
     {
+        if(userProfile.getVCard() == null)
+            return;
+
         profile.setVCard(userProfile.getVCard());
         profile.setProfileImagePath(userProfile.getProfileImagePath());
 
@@ -355,7 +358,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
             profileImage.setImageURI(Uri.fromFile(imgFile));
 
             //notify the parent activity that the profile data changed
-            dataChangedListener.onProfileDataChanged(getProfileInformation());
+            if(verifyFields())
+                dataChangedListener.onProfileDataChanged(getProfileInformation());
         }
         catch (Exception e)
         {
@@ -371,6 +375,11 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
         {
             case R.id.action_save_profile:
                 //notify the parent activity that profile data has changed
+                if(!verifyFields())
+                {
+                    appContext.getMessageService().showSnackBarMessage("please fill out all required fields", Snackbar.LENGTH_LONG);
+                    return;
+                }
                 this.profile = getProfileInformation();
                 dataChangedListener.onProfileDataChanged(profile);
                 appContext.getMessageService().showSnackBarMessage("Profile saved", Snackbar.LENGTH_LONG);

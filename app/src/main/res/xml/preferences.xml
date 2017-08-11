@@ -18,11 +18,25 @@
             android:defaultValue="8545"
             android:inputType="numberSigned">
         </EditTextPreference>
+
+        <EditTextPreference
+            android:key="pref_client_polling_interval"
+            android:title="@string/pref_client_polling_interval"
+            android:defaultValue="1000"
+            android:inputType="numberSigned">
+        </EditTextPreference>
+
     </PreferenceCategory>
 
     <PreferenceCategory
         android:title="@string/pref_account_title"
         android:key="pref_account_key">
+
+        <ListPreference
+            android:key="pref_account_management"
+            android:title="@string/pref_account_wallet_management_options"
+            android:defaultValue="LOCAL">
+        </ListPreference>
 
         <ListPreference
             android:key="pref_account_wallet_encryption_strength"

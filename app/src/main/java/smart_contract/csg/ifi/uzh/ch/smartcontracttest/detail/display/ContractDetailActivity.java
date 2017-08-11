@@ -15,8 +15,10 @@ import ch.uzh.ifi.csg.contract.contract.ITradeContract;
 import ch.uzh.ifi.csg.contract.contract.IContractObserver;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ch.uzh.ifi.csg.contract.service.serialization.GsonSerializationService;
+import ch.uzh.ifi.csg.contract.util.ImageHelper;
 import ezvcard.Ezvcard;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.ActivityBase;
+import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.permission.PermissionProvider;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.qrcode.QrScanningActivity;
 import smart_contract.csg.ifi.uzh.ch.smartcontracttest.R;
@@ -271,11 +273,35 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
      */
     public void onScanQrImageClick(View view)
     {
+        PermissionProvider permissionProvider = getAppContext().getPermissionProvider();
+
+        //check camera permission
+        if(!permissionProvider.hasPermission(PermissionProvider.CAMERA))
+        {
+            permissionProvider.requestPermission(PermissionProvider.CAMERA);
+            return;
+        }
+
+        startScanActivity();
+    }
+
+    private void startScanActivity()
+    {
         Intent intent = new Intent(this, QrScanningActivity.class);
         intent.setAction(QrScanningActivity.ACTION_SCAN_PROFILE);
         startActivityForResult(
                 intent,
                 SCAN_PROFILE_INFO_REQUEST);
+    }
+
+    @Override
+    protected void onPermissionGranted(String permission) {
+        super.onPermissionGranted(permission);
+
+        if(permission.equals(PermissionProvider.CAMERA))
+        {
+            startScanActivity();
+        }
     }
 
     @Override

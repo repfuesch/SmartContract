@@ -186,6 +186,8 @@ public class AccountFragment extends Fragment implements AccountRecyclerViewAdap
                                 appContext.getMessageService().showErrorMessage("The account cannot be created. \n " +
                                         "Please make sure that the provided password matches and the provided file is a valid wallet file.");
                                 walletFile.delete();
+                            }else{
+                                notifyAccountChanged(resolved);
                             }
 
                             BusyIndicator.hide(accountView);

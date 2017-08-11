@@ -36,13 +36,13 @@ import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.Applicati
  */
 public class ServiceFactoryImpl implements EthServiceFactory
 {
-    private final CredentialProvider credentialProvider;
+    private static final CredentialProvider credentialProvider = new CredentialProviderImpl();
+
     private final FileManager fileManager;
     private final ApplicationContext appContext;
 
     public ServiceFactoryImpl(String accountDirectory, AppContext context)
     {
-        this.credentialProvider = new CredentialProviderImpl();
         this.fileManager = new FileManager(accountDirectory);
         this.appContext = context;
     }
@@ -111,12 +111,12 @@ public class ServiceFactoryImpl implements EthServiceFactory
     }
 
     @Override
-    public EthConnectionService createConnectionService(String host, int port)
+    public EthConnectionService createConnectionService(String host, int port, int pollingInterval)
     {
         String endpoint = "http://" + host + ":" + port + "/";
         Parity parity = ParityFactory.build(new HttpService(endpoint, buildHttpClient(1000)));
 
-        return new Web3ConnectionService(parity, Async.getScheduledExecutorService(), appContext.getBroadCastService(), 1000);
+        return new Web3ConnectionService(parity, Async.getScheduledExecutorService(), appContext.getBroadCastService(), pollingInterval);
     }
 
     /**

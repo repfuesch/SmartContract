@@ -27,6 +27,21 @@ public class AccountActivity extends ActivityBase implements AccountDialogFragme
 
         getSupportActionBar().setTitle(R.string.title_account);
         accountFragment = (AccountFragment) getFragmentManager().findFragmentById(R.id.account_fragment);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if(getAppContext().getSettingProvider().useRemoteAccountManagement())
+        {
+            //hide add button when remote accounts are used
+            findViewById(R.id.account_add_button).setVisibility(View.GONE);
+        }else{
+            //hide add button when remote accounts are used
+            findViewById(R.id.account_add_button).setVisibility(View.VISIBLE);
+        }
+
         accountFragment.reloadAccountList();
     }
 

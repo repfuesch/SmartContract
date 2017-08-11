@@ -28,7 +28,6 @@ public class ParityAccountService extends Web3AccountService{
         super(parity, accountManager);
         this.parity = parity;
         this.accountManager = accountManager;
-
     }
 
     @Override
@@ -44,6 +43,7 @@ public class ParityAccountService extends Web3AccountService{
 
                 List<String> remoteAccounts = listAccounts.getAccountIds();
                 List<Account> accountList = new ArrayList<Account>();
+                List<Account> newAccounts = new ArrayList<Account>();
                 for(String accId : remoteAccounts)
                 {
                     boolean persisted = false;
@@ -59,11 +59,14 @@ public class ParityAccountService extends Web3AccountService{
                     Account account = new Account(accId, "alias", "");
                     if(!persisted)
                     {
-                        accountManager.addAccount(account);
+                        newAccounts.add(account);
                     }
 
                     accountList.add(account);
                 }
+
+                for(Account acc : newAccounts)
+                    accountManager.addAccount(acc);
 
                 return accountList;
             }

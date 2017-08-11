@@ -24,11 +24,19 @@ public class SettingsFragment extends PreferenceFragment {
         // Load the preferences from an XML resource
         addPreferencesFromResource(R.xml.preferences);
 
-        ListPreference walletEncryptionList = (ListPreference) findPreference("pref_account_wallet_encryption_strength");
+        //Load list preferences
+        ListPreference walletEncryptionList = (ListPreference) findPreference(SettingsActivity.KEY_PREF_ACCOUNT_WALLET_ENCRYPTION_STRENGTH);
         List<String> encryptionStrengths = new ArrayList<>();
         encryptionStrengths.add("WEAK");
         encryptionStrengths.add("STRONG");
         walletEncryptionList.setEntryValues(encryptionStrengths.toArray(new String[2]));
         walletEncryptionList.setEntries(encryptionStrengths.toArray(new String[2]));
+
+        ListPreference accountManagementOptionList = (ListPreference) findPreference(SettingsActivity.KEY_PREF_ACCOUNT_MANAGEMENT);
+        List<String> managementOptions = new ArrayList<>();
+        managementOptions.add("LOCAL");
+        managementOptions.add("REMOTE");
+        accountManagementOptionList.setEntryValues(managementOptions.toArray(new String[2]));
+        accountManagementOptionList.setEntries(managementOptions.toArray(new String[2]));
     }
 }
