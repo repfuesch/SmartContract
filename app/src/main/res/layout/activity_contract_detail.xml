@@ -5,7 +5,7 @@
     android:id="@+id/activity_contract_detail"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="smart_contract.csg.ifi.uzh.ch.smartcontracttest.detail.create.ContractCreateActivity">
+    tools:context="smart_contract.csg.ifi.uzh.ch.smartcontract.detail.create.ContractCreateActivity">
 
     <include
         layout="@layout/toolbar" />

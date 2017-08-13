@@ -38,7 +38,7 @@ import ch.uzh.ifi.csg.contract.contract.TimeUnit;
 import ch.uzh.ifi.csg.contract.contract.TradeContract;
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.util.Web3Util;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.transaction.TransactionHandler;
+import smart_contract.csg.ifi.uzh.ch.smartcontract.common.transaction.TransactionHandler;
 
 /**
  * Implementation of the {@link ContractService} that uses the {@link Web3j} client to load and

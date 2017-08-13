@@ -6,7 +6,7 @@
     android:id="@+id/activity_profile"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileActivity">
+    tools:context="smart_contract.csg.ifi.uzh.ch.smartcontract.profile.ProfileActivity">
 
     <include
         layout="@layout/toolbar" />
@@ -14,7 +14,7 @@
     <include layout="@layout/fragment_account_balance" android:visibility="gone"/>
 
     <fragment
-        android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.profile.ProfileFragment"
+        android:name="smart_contract.csg.ifi.uzh.ch.smartcontract.profile.ProfileFragment"
         android:id="@+id/profile_fragment"
         android:layout_weight="1"
         android:layout_width="match_parent"

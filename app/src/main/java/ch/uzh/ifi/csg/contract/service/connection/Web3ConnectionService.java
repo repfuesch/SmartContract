@@ -1,7 +1,6 @@
 package ch.uzh.ifi.csg.contract.service.connection;
 
 import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
 
 import org.web3j.protocol.Web3j;
 
@@ -10,7 +9,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.broadcast.BroadCastService;
+import smart_contract.csg.ifi.uzh.ch.smartcontract.common.broadcast.BroadCastService;
 
 /**
  * Implementation of the {@link EthConnectionService} that uses the {@link Web3j#ethGasPrice()}

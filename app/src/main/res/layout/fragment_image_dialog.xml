@@ -5,7 +5,7 @@
     android:gravity="center"
     android:layout_height="match_parent">
 
-    <smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.controls.ProportionalImageView
+    <smart_contract.csg.ifi.uzh.ch.smartcontract.common.controls.ProportionalImageView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"

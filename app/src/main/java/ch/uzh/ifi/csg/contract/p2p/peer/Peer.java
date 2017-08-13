@@ -1,8 +1,8 @@
 package ch.uzh.ifi.csg.contract.p2p.peer;
 
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.connection.ConnectionInfo;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PBuyerServiceImpl;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PSellerServiceImpl;
+import smart_contract.csg.ifi.uzh.ch.smartcontract.p2p.connection.ConnectionInfo;
+import smart_contract.csg.ifi.uzh.ch.smartcontract.p2p.service.P2PBuyerServiceImpl;
+import smart_contract.csg.ifi.uzh.ch.smartcontract.p2p.service.P2PSellerServiceImpl;
 
 /**
  * Interface for a Peer that sends and receives data over a network connection. Its "start" method

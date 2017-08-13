@@ -5,7 +5,7 @@
     android:id="@+id/overview_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.ContractOverviewActivity">
+    tools:context="smart_contract.csg.ifi.uzh.ch.smartcontract.overview.ContractOverviewActivity">
 
     <include
         layout="@layout/toolbar" />
@@ -91,7 +91,7 @@
                 android:layout_height="match_parent">
 
                 <fragment
-                    android:name="smart_contract.csg.ifi.uzh.ch.smartcontracttest.overview.list.ContractListFragment"
+                    android:name="smart_contract.csg.ifi.uzh.ch.smartcontract.overview.list.ContractListFragment"
                     android:id="@+id/contract_list_fragment"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"

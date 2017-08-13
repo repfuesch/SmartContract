@@ -3,10 +3,10 @@ package ch.uzh.ifi.csg.contract.p2p.peer;
 import java.util.List;
 
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.dialog.P2pExportDialog;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.ContractInfoListener;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PSellerService;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PSellerServiceImpl;
+import smart_contract.csg.ifi.uzh.ch.smartcontract.p2p.dialog.P2pExportDialog;
+import smart_contract.csg.ifi.uzh.ch.smartcontract.p2p.service.ContractInfoListener;
+import smart_contract.csg.ifi.uzh.ch.smartcontract.p2p.service.P2PSellerService;
+import smart_contract.csg.ifi.uzh.ch.smartcontract.p2p.service.P2PSellerServiceImpl;
 
 /**
  * Seller/export interface that is implemented by UI components that want to send contract

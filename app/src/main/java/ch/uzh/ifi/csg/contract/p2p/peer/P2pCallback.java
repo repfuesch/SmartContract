@@ -1,9 +1,9 @@
 package ch.uzh.ifi.csg.contract.p2p.peer;
 
 
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.dialog.P2pExportDialog;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.dialog.P2pImportDialog;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.P2PService;
+import smart_contract.csg.ifi.uzh.ch.smartcontract.p2p.dialog.P2pExportDialog;
+import smart_contract.csg.ifi.uzh.ch.smartcontract.p2p.dialog.P2pImportDialog;
+import smart_contract.csg.ifi.uzh.ch.smartcontract.p2p.service.P2PService;
 
 /**
  * General callback interface implemented by UI components that can receive or transmit data

@@ -28,8 +28,8 @@ import ch.uzh.ifi.csg.contract.service.exchange.JsonHttpConvertService;
 import cz.msebera.android.httpclient.client.config.RequestConfig;
 import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
 import cz.msebera.android.httpclient.impl.client.HttpClients;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.AppContext;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.common.provider.ApplicationContext;
+import smart_contract.csg.ifi.uzh.ch.smartcontract.common.AppContext;
+import smart_contract.csg.ifi.uzh.ch.smartcontract.common.provider.ApplicationContext;
 
 /**
  * Implementation of the {@link EthServiceFactory}

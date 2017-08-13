@@ -13,8 +13,7 @@ import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
 import ch.uzh.ifi.csg.contract.service.serialization.SerializationService;
 import ch.uzh.ifi.csg.contract.util.FileUtil;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.ContractInfoListener;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.UserProfileListener;
+import smart_contract.csg.ifi.uzh.ch.smartcontract.p2p.service.ContractInfoListener;
 
 /**
  * Seller implementation of the {@link Peer} interface. First requests the local contract details

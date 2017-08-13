@@ -1,9 +1,8 @@
 package ch.uzh.ifi.csg.contract.p2p.peer;
 
 import ch.uzh.ifi.csg.contract.datamodel.ContractInfo;
-import ch.uzh.ifi.csg.contract.datamodel.UserProfile;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.dialog.P2pImportDialog;
-import smart_contract.csg.ifi.uzh.ch.smartcontracttest.p2p.service.UserProfileListener;
+import smart_contract.csg.ifi.uzh.ch.smartcontract.p2p.dialog.P2pImportDialog;
+import smart_contract.csg.ifi.uzh.ch.smartcontract.p2p.service.UserProfileListener;
 
 /**
  * Buyer/import interface that is implemented by UI components that receive contract information over
