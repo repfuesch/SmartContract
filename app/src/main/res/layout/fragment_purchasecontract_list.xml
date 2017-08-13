@@ -16,7 +16,7 @@
     android:layout_marginLeft="16dp"
     android:layout_marginRight="16dp"
     app:layoutManager="LinearLayoutManager"
-    tools:context="smart_contract.csg.ifi.uzh.ch.smartcontract.overview.list.ContractListFragment"
+    tools:context="ch.uzh.ifi.csg.smartcontract.app.overview.list.ContractListFragment"
     tools:listitem="@layout/fragment_contract_item" />
 
 </LinearLayout>

@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="smart_contract.csg.ifi.uzh.ch.smartcontract.detail.create.ContractDeployFragment">
+    tools:context="ch.uzh.ifi.csg.smartcontract.app.detail.create.ContractDeployFragment">
 
         <ScrollView
             android:layout_width="match_parent"

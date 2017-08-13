@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="smart_contract.csg.ifi.uzh.ch.smartcontract.detail.display.ContractDetailActivity">
+    tools:context="ch.uzh.ifi.csg.smartcontract.app.detail.display.ContractDetailActivity">
 
     <include
         layout="@layout/toolbar" />

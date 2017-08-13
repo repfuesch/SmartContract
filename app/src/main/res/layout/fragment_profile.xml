@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:id="@+id/layout_profile_fragment"
-    tools:context="smart_contract.csg.ifi.uzh.ch.smartcontract.profile.ProfileFragment">
+    tools:context="ch.uzh.ifi.csg.smartcontract.app.profile.ProfileFragment">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -20,7 +20,7 @@
             android:layout_margin="16dp"
             android:layout_alignParentLeft="true">
 
-            <smart_contract.csg.ifi.uzh.ch.smartcontract.common.controls.ProportionalImageView
+            <ch.uzh.ifi.csg.smartcontract.app.common.controls.ProportionalImageView
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:layout_gravity="center"
@@ -36,7 +36,7 @@
             android:layout_margin="16dp"
             android:layout_alignParentRight="true">
 
-            <smart_contract.csg.ifi.uzh.ch.smartcontract.common.controls.ProportionalImageView
+            <ch.uzh.ifi.csg.smartcontract.app.common.controls.ProportionalImageView
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:src="@drawable/ic_action_add"

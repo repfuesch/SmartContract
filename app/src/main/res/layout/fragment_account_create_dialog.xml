@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="8dp"
-    tools:context="smart_contract.csg.ifi.uzh.ch.smartcontract.account.AccountDialogFragment">
+    tools:context="ch.uzh.ifi.csg.smartcontract.app.account.AccountDialogFragment">
 
 
     <android.support.design.widget.TextInputLayout

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="smart_contract.csg.ifi.uzh.ch.smartcontract.account.AccountActivity">
+    tools:context="ch.uzh.ifi.csg.smartcontract.app.account.AccountActivity">
 
     <include
         layout="@layout/toolbar" />
@@ -40,7 +40,7 @@
     </RelativeLayout>
 
     <fragment
-        android:name="smart_contract.csg.ifi.uzh.ch.smartcontract.account.AccountFragment"
+        android:name="ch.uzh.ifi.csg.smartcontract.app.account.AccountFragment"
         android:id="@+id/account_fragment"
         android:layout_weight="1"
         android:layout_width="match_parent"

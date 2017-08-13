@@ -67,7 +67,7 @@
                             android:textColor="@color/white"
                             android:textAppearance="?attr/textAppearanceListItem"/>
 
-                        <smart_contract.csg.ifi.uzh.ch.smartcontract.common.controls.ProportionalImageView
+                        <ch.uzh.ifi.csg.smartcontract.app.common.controls.ProportionalImageView
                             android:layout_width="32dp"
                             android:layout_margin="16dp"
                             android:layout_height="32dp"

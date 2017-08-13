@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    tools:context="smart_contract.csg.ifi.uzh.ch.smartcontract.qrcode.QrScanningActivity">
+    tools:context="ch.uzh.ifi.csg.smartcontract.app.qrcode.QrScanningActivity">
 
     <SurfaceView
         android:id="@+id/camera_view"

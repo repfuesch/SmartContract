@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="smart_contract.csg.ifi.uzh.ch.smartcontract">
+    package="ch.uzh.ifi.csg.smartcontract.app">
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
@@ -15,7 +15,7 @@
 
     <application
         tools:replace="android:icon"
-        android:name="smart_contract.csg.ifi.uzh.ch.smartcontract.common.AppContext"
+        android:name="ch.uzh.ifi.csg.smartcontract.app.common.AppContext"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -23,7 +23,7 @@
         android:supportsRtl="true"
         android:theme="@style/MyTheme">
         <activity
-            android:name="smart_contract.csg.ifi.uzh.ch.smartcontract.overview.ContractOverviewActivity"
+            android:name="ch.uzh.ifi.csg.smartcontract.app.overview.ContractOverviewActivity"
             android:windowSoftInputMode="stateHidden"
             android:screenOrientation="portrait"
             android:theme="@style/MyTheme.Base">
@@ -34,29 +34,29 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="smart_contract.csg.ifi.uzh.ch.smartcontract.detail.create.ContractCreateActivity"
+            android:name="ch.uzh.ifi.csg.smartcontract.app.detail.create.ContractCreateActivity"
             android:windowSoftInputMode="adjustPan"
             android:screenOrientation="portrait"
             android:theme="@style/MyTheme" />
         <activity
-            android:name="smart_contract.csg.ifi.uzh.ch.smartcontract.detail.display.ContractDetailActivity"
+            android:name="ch.uzh.ifi.csg.smartcontract.app.detail.display.ContractDetailActivity"
             android:windowSoftInputMode="stateHidden"
             android:screenOrientation="portrait"
             android:theme="@style/MyTheme" />
         <activity
-            android:name="smart_contract.csg.ifi.uzh.ch.smartcontract.setting.SettingsActivity"
+            android:name="ch.uzh.ifi.csg.smartcontract.app.setting.SettingsActivity"
             android:windowSoftInputMode="stateHidden"
             android:screenOrientation="portrait"
             android:theme="@style/MyTheme" />
         <activity
-            android:name="smart_contract.csg.ifi.uzh.ch.smartcontract.account.AccountActivity"
+            android:name="ch.uzh.ifi.csg.smartcontract.app.account.AccountActivity"
             android:windowSoftInputMode="stateHidden"
             android:configChanges="orientation|screenSize"
             android:screenOrientation="portrait"
             android:theme="@style/MyTheme" />
 
-        <activity android:name="smart_contract.csg.ifi.uzh.ch.smartcontract.profile.ProfileActivity" android:windowSoftInputMode="stateHidden" />
-        <activity android:name="smart_contract.csg.ifi.uzh.ch.smartcontract.qrcode.QrScanningActivity" android:screenOrientation="portrait"></activity>
+        <activity android:name="ch.uzh.ifi.csg.smartcontract.app.profile.ProfileActivity" android:windowSoftInputMode="stateHidden" />
+        <activity android:name="ch.uzh.ifi.csg.smartcontract.app.qrcode.QrScanningActivity" android:screenOrientation="portrait"></activity>
     </application>
 
 </manifest>

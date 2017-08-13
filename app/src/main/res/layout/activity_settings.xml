@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="smart_contract.csg.ifi.uzh.ch.smartcontract.detail.create.ContractCreateActivity">
+    tools:context="ch.uzh.ifi.csg.smartcontract.app.detail.create.ContractCreateActivity">
 
     <include
         layout="@layout/toolbar" />
