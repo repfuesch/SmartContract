@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@drawable/shape_border"/>
-    <item android:drawable="@drawable/shape_inner_border"
-        android:top="0dp" android:right="2dp" android:bottom="2dp"
-        android:left="2dp" />
-</layer-list>

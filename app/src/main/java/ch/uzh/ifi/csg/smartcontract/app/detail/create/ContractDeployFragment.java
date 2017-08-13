@@ -104,6 +104,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        attachContext(getActivity());
         if(images == null)
             return;
 
@@ -123,7 +124,6 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
             for(Bitmap bmp : bitmaps)
                 addImage(bmp);
         }
-
     }
 
     @Override
@@ -300,7 +300,7 @@ public abstract class ContractDeployFragment extends Fragment implements TextWat
         {
             appContext = ((ApplicationContextProvider) context).getAppContext();
         }else{
-            throw new RuntimeException("Context must implement ApplicationContext!");
+            throw new RuntimeException("Context must implement ApplicationContextProvider!");
         }
     }
 

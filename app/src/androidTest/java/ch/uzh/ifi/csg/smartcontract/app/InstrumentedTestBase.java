@@ -159,6 +159,10 @@ public abstract class InstrumentedTestBase {
             }
         }));
 
+        //setup service call to load contract list
+        when(context.getServiceProvider().getContractService().loadContracts(selectedAccount))
+                .thenReturn(promise(contractList));
+
         //fake exchange service calls
         when(context.getServiceProvider().getExchangeService().convertToCurrency(any(BigDecimal.class), any(Currency.class)))
                 .thenAnswer(new Answer<SimplePromise<BigDecimal>>() {

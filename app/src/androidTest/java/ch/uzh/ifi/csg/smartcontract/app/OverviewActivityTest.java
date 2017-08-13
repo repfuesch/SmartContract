@@ -6,14 +6,11 @@ import android.content.Intent;
 import android.support.test.filters.MediumTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import java.util.concurrent.Callable;
-
 import ch.uzh.ifi.csg.smartcontract.library.async.Async;
 import ch.uzh.ifi.csg.smartcontract.library.contract.ContractType;
 import ch.uzh.ifi.csg.smartcontract.library.contract.IPurchaseContract;
@@ -32,7 +29,6 @@ import ch.uzh.ifi.csg.smartcontract.app.overview.ContractOverviewActivity;
 import ch.uzh.ifi.csg.smartcontract.app.overview.list.TradeContractRecyclerViewAdapter;
 import ch.uzh.ifi.csg.smartcontract.app.p2p.dialog.P2pImportDialog;
 import ch.uzh.ifi.csg.smartcontract.app.qrcode.QrScanningActivity;
-
 import static android.support.test.InstrumentationRegistry.getInstrumentation;
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
@@ -59,16 +55,13 @@ import static ch.uzh.ifi.csg.smartcontract.app.ViewHelper.RecyclerViewMatcher.wi
 @RunWith(AndroidJUnit4.class)
 public class OverviewActivityTest extends InstrumentedTestBase {
 
+
     @Rule
     public ActivityTestRule<ContractOverviewActivity> rule  = new  ActivityTestRule<>(ContractOverviewActivity.class, true, false);
 
     @Before
     public void setup() throws Exception {
         super.setup();
-
-        //setup service call to load contract list
-        when(context.getServiceProvider().getContractService().loadContracts(selectedAccount))
-                .thenReturn(promise(contractList));
     }
 
     /**

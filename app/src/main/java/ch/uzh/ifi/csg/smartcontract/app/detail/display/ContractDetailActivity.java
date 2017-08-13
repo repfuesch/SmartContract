@@ -3,7 +3,9 @@ package ch.uzh.ifi.csg.smartcontract.app.detail.display;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.v4.app.DialogFragment;
 import android.view.View;
 import android.widget.ImageButton;
@@ -52,8 +54,14 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
 
     private TabHost tabHost;
     private TabHost.TabSpec profileViewSpec;
+    private TabHost.TabSpec detailViewSpec;
     private ImageButton exportButton;
     private ImageButton scanProfileButton;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
+        super.onCreate(savedInstanceState, persistentState);
+    }
 
     @Override
     protected void onStart() {
@@ -61,8 +69,13 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
 
         FragmentManager fm = getFragmentManager();
 
-        if(fm.findFragmentByTag("Details") != null)
+        profileFragment = (ProfileFragment)fm.findFragmentByTag("Profile");
+        detailFragment = (ContractDetailFragment)fm.findFragmentByTag("Details");
+
+        if(profileFragment != null || detailFragment != null)
+        {
             return;
+        }
 
         //select correct details fragment for contract type
         profileFragment = new ProfileFragment();
@@ -89,7 +102,8 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
         fm.findFragmentByTag("Profile");
         fm.findFragmentByTag("Details");
 
-        init(contractAddress, contractType);
+        initContract(contractAddress, contractType);
+        initTabHost();
     }
 
     @Override
@@ -129,24 +143,11 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
      * @param contractAddress
      * @param type
      */
-    private void init(String contractAddress, ContractType type)
+    private void initContract(String contractAddress, ContractType type)
     {
-        getAppContext().getServiceProvider().getContractService().loadContract(type, contractAddress, getAppContext().getSettingProvider().getSelectedAccount())
-                .done(new DoneCallback<ITradeContract>() {
-                    @Override
-                    public void onDone(final ITradeContract resolved) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                contract = resolved;
-                                contract.addObserver(ContractDetailActivity.this);
-                                initTabHost();
-                            }
-                        });
-                    }
-                });
+        contract = getAppContext().getServiceProvider().getContractService().loadContract(type, contractAddress, getAppContext().getSettingProvider().getSelectedAccount()).get();
+        contract.addObserver(ContractDetailActivity.this);
     }
-
 
     private void initProfileFragment()
     {
@@ -234,10 +235,10 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
         tabHost.setOnTabChangedListener(tabChangeListener);
 
         //set detail tab details
-        TabHost.TabSpec spec = tabHost.newTabSpec("Details");
-        spec.setContent(getFragmentManager().findFragmentByTag("Details").getId());
-        spec.setIndicator("", getResources().getDrawable(R.drawable.ic_tab_general_info));
-        tabHost.addTab(spec);
+        detailViewSpec  = tabHost.newTabSpec("Details");
+        detailViewSpec.setContent(getFragmentManager().findFragmentByTag("Details").getId());
+        detailViewSpec.setIndicator("", getResources().getDrawable(R.drawable.ic_tab_general_info));
+        tabHost.addTab(detailViewSpec);
 
         //set profile tab details
         profileViewSpec = tabHost.newTabSpec("Profile");
@@ -323,7 +324,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
                 contract.setUserProfile(profile);
                 getAppContext().getServiceProvider().getContractService().saveContract(contract, getAppContext().getSettingProvider().getSelectedAccount());
 
-                //init profile fragment
+                //initContract profile fragment
                 profileFragment.setProfileInformation(profile);
                 scanProfileButton.setVisibility(View.GONE);
                 profileFragment.setMode(ProfileFragment.ProfileMode.ReadOnly);
@@ -391,7 +392,27 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
     {
         //save UserProfile for contract
         String account = getAppContext().getSettingProvider().getSelectedAccount();
+
+        //load contract again when Activity is recreated due to orientation changes
+        if(contract == null)
+            contract = getAppContext().getServiceProvider().getContractService().loadContract(contractType, contractAddress, getAppContext().getSettingProvider().getSelectedAccount()).get();
+
         contract.setUserProfile(profile);
         getAppContext().getServiceProvider().getContractService().saveContract(contract, account);
+
+        if(tabHost == null)
+        {
+            //must make e 'hard reset' here and create activity new. Otherwise, the application crashes,
+            //when the Activity is recreated due to orientation changes...
+            FragmentManager fm = getFragmentManager();
+            fm.beginTransaction()
+                    .remove(profileFragment)
+                    .remove(detailFragment)
+                    .commit();
+
+            fm.executePendingTransactions();
+
+            this.recreate();
+        }
     }
 }

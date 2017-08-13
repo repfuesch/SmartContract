@@ -24,7 +24,14 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import net.glxn.qrgen.android.QRCode;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+
+import ch.uzh.ifi.csg.smartcontract.app.common.controls.ProportionalImageView;
 import ch.uzh.ifi.csg.smartcontract.library.datamodel.UserProfile;
+import ch.uzh.ifi.csg.smartcontract.library.service.exchange.Currency;
 import ch.uzh.ifi.csg.smartcontract.library.service.serialization.GsonSerializationService;
 import ch.uzh.ifi.csg.smartcontract.library.util.ImageHelper;
 import ezvcard.VCard;
@@ -71,8 +78,19 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
 
     public ProfileFragment() {
         // Required empty public constructor
+
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
         this.profile = new UserProfile();
         mode = ProfileMode.Edit;
+
+        // Tell the framework to try to keep this fragment around
+        // during a configuration change.
+        setRetainInstance(true);
     }
 
     @Override
@@ -128,6 +146,15 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
 
         layout = (LinearLayout) view.findViewById(R.id.layout_profile_fragment);
         return view;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        attachContext(getActivity());
+        if(profile != null)
+            setProfileInformation(profile);
     }
 
     @Override
@@ -187,6 +214,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
 
         profile.setVCard(card);
 
+        loadQrImage(profile);
+
         return profile;
     }
 
@@ -198,11 +227,17 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
      */
     public void setProfileInformation(UserProfile userProfile)
     {
-        if(userProfile.getVCard() == null)
-            return;
+        if(profile.getProfileImagePath() != null) {
+            profileImage.setImageURI(Uri.fromFile(new File(profile.getProfileImagePath())));
+        }else{
+            profile.setProfileImagePath(userProfile.getProfileImagePath());
+        }
 
-        profile.setVCard(userProfile.getVCard());
-        profile.setProfileImagePath(userProfile.getProfileImagePath());
+        if(profile.getVCard() == null)
+            profile.setVCard(userProfile.getVCard());
+
+        if(profile.getVCard() == null)
+            return;
 
         VCard card = profile.getVCard();
         StructuredName name = card.getStructuredName();
@@ -226,9 +261,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
             phoneField.setText(card.getTelephoneNumbers().get(0).getText());
 
         loadQrImage(userProfile);
-
-        if(profile.getProfileImagePath() != null)
-            profileImage.setImageURI(Uri.fromFile(new File(profile.getProfileImagePath())));
     }
 
     @Override

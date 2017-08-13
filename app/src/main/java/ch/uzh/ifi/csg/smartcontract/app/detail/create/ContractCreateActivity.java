@@ -36,7 +36,6 @@ public class ContractCreateActivity extends ActivityBase  {
         if(deploy != null)
         {
             deployFragment = (ContractDeployFragment) deploy;
-            addFragment(fragmentManager, deployFragment);
             return;
         }
 
@@ -92,7 +91,7 @@ public class ContractCreateActivity extends ActivityBase  {
 
         if(permission.equals(PermissionProvider.READ_STORAGE))
         {
-            ImageHelper.openFile(deployFragment);
+            ImageHelper.openImageFile(deployFragment);
         }else if(permission.equals(PermissionProvider.CAMERA))
         {
             ImageHelper.makePicture(deployFragment);

@@ -67,12 +67,27 @@ public class AccountActivity extends ActivityBase implements AccountDialogFragme
     }
 
     @Override
+    protected void onConnectionEstablished() {
+        super.onConnectionEstablished();
+
+        accountFragment.reloadAccountList();
+    }
+
+    @Override
+    protected void onConnectionLost() {
+        super.onConnectionLost();
+
+        accountFragment.reloadAccountList();
+    }
+
+    @Override
     protected int getLayoutResourceId() {
         return R.layout.activity_account;
     }
 
     @Override
-    protected void onSettingsChanged() {
+    protected void onSettingsChanged()
+    {
         accountFragment.reloadAccountList();
     }
 

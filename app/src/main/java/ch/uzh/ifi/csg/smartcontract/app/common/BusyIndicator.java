@@ -113,17 +113,17 @@ public class BusyIndicator {
 
             layout.removeView(layout.findViewWithTag("progressbar"));
 
-            for(int i=0;i<layout.getChildCount(); ++i)
-            {
+            for(int i=0;i<layout.getChildCount(); ++i) {
                 View child = layout.getChildAt(i);
-                if((boolean)child.getTag(VISIBLE_TAG))
-                {
+                if (child.getTag(VISIBLE_TAG) != null && (boolean) child.getTag(VISIBLE_TAG)) {
                     child.setVisibility(View.VISIBLE);
                 }
                 child.setTag(VISIBLE_TAG, null);
             }
 
-            layout.setGravity((int)layout.getTag(GRAVITY_TAG));
+            if(layout.getTag(GRAVITY_TAG) != null)
+                layout.setGravity((int)layout.getTag(GRAVITY_TAG));
+
             layout.setTag(GRAVITY_TAG, null);
 
             }

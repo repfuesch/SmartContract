@@ -10,7 +10,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-
 import java.math.BigDecimal;
 import java.util.Arrays;
 import ch.uzh.ifi.csg.smartcontract.library.service.serialization.GsonSerializationService;
@@ -26,7 +25,6 @@ import ch.uzh.ifi.csg.smartcontract.app.detail.display.RentContractDetailFragmen
 import ch.uzh.ifi.csg.smartcontract.app.p2p.dialog.P2pExportDialog;
 import ch.uzh.ifi.csg.smartcontract.app.profile.ProfileFragment;
 import ch.uzh.ifi.csg.smartcontract.app.qrcode.QrScanningActivity;
-
 import static android.support.test.InstrumentationRegistry.getInstrumentation;
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;

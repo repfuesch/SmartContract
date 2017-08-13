@@ -12,14 +12,12 @@
     <string name="title_create_account">Create Account</string>
     <string name="message_account_unlocked">Account unlocked</string>
     <string name="message_account_locked">Account locked</string>
-    <string name="action_create">create</string>
     <string name="contract_created">Contract created successfully</string>
     <string name="add_contract_dialog_title">Add a contract</string>
     <string name="settings_title">Settings</string>
     <string name="activity_profile_title">Profile</string>
     <string name="pref_account_title">Account</string>
     <string name="pref_account_wallet_encryption_strength">Wallet file encryption strength</string>
-    <string name="pref_account_wallet_directory">Wallet file directory</string>
     <string name="pref_account_wallet_management_options">Account management</string>
     <string name="pref_transaction_title">Transaction</string>
     <string name="pref_transaction_gas_price">Gas price</string>
@@ -62,7 +60,6 @@
     <string name="hint_pictures">Pictures</string>
     <string name="hint_identity_management">Identity Management</string>
     <string name="hint_deployment">Deployment Options</string>
-    <string name="hint_search_text">Search text</string>
     <string name="option_verify">Verify identity</string>
     <string name="option_anonymous">Anonymous contract</string>
     <string name="option_create_account">Create new Account</string>

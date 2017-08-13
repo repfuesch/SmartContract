@@ -70,7 +70,10 @@ public abstract class ContractDetailFragment extends Fragment implements View.On
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
+
+        this.setRetainInstance(true);
     }
 
     @Override

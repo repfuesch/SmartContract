@@ -335,6 +335,10 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
                 }else{
                     appContext.getMessageService().showSnackBarMessage(getString(R.string.message_account_unlocked), Snackbar.LENGTH_LONG);
                 }
+
+                if(accountBalanceView != null)
+                    updateAccountBalance();
+
                 onSettingsChanged();
                 return;
             } else if (intent.getAction().equals(EthConnectionService.ACTION_HANDLE_CONNECTION_DOWN)) {
