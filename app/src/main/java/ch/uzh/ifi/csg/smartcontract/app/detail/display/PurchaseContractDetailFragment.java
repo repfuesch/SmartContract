@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
 import ch.uzh.ifi.csg.smartcontract.app.R;
-import ch.uzh.ifi.csg.smartcontract.app.common.BusyIndicator;
+import ch.uzh.ifi.csg.smartcontract.app.common.controls.BusyIndicator;
 import ch.uzh.ifi.csg.smartcontract.library.async.Async;
 import ch.uzh.ifi.csg.smartcontract.library.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.smartcontract.library.async.promise.DoneCallback;

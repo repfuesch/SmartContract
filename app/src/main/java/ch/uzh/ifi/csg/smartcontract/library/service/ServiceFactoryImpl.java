@@ -29,7 +29,7 @@ import cz.msebera.android.httpclient.client.config.RequestConfig;
 import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
 import cz.msebera.android.httpclient.impl.client.HttpClients;
 import ch.uzh.ifi.csg.smartcontract.app.common.AppContext;
-import ch.uzh.ifi.csg.smartcontract.app.common.provider.ApplicationContext;
+import ch.uzh.ifi.csg.smartcontract.app.common.ApplicationContext;
 
 /**
  * Implementation of the {@link EthServiceFactory}

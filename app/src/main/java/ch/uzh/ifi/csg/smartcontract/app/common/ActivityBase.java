@@ -1,6 +1,5 @@
 package ch.uzh.ifi.csg.smartcontract.app.common;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -25,8 +24,6 @@ import ch.uzh.ifi.csg.smartcontract.library.util.Web3Util;
 import ch.uzh.ifi.csg.smartcontract.library.contract.ContractType;
 import ch.uzh.ifi.csg.smartcontract.library.service.connection.EthConnectionService;
 import ch.uzh.ifi.csg.smartcontract.app.common.permission.PermissionProvider;
-import ch.uzh.ifi.csg.smartcontract.app.common.provider.ApplicationContext;
-import ch.uzh.ifi.csg.smartcontract.app.common.provider.ApplicationContextProvider;
 import ch.uzh.ifi.csg.smartcontract.app.common.setting.SettingProviderImpl;
 import ch.uzh.ifi.csg.smartcontract.app.common.transaction.TransactionHandler;
 import ch.uzh.ifi.csg.smartcontract.app.common.transaction.TransactionHandlerImpl;

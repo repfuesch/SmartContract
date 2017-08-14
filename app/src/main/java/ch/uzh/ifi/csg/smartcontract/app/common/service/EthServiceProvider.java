@@ -1,4 +1,4 @@
-package ch.uzh.ifi.csg.smartcontract.app.common.provider;
+package ch.uzh.ifi.csg.smartcontract.app.common.service;
 
 import ch.uzh.ifi.csg.smartcontract.library.service.account.AccountService;
 import ch.uzh.ifi.csg.smartcontract.library.service.connection.EthConnectionService;

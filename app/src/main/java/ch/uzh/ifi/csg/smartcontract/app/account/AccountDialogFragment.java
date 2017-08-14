@@ -24,8 +24,8 @@ import android.widget.TextView;
 import ch.uzh.ifi.csg.smartcontract.library.util.ImageHelper;
 import ch.uzh.ifi.csg.smartcontract.app.R;
 import ch.uzh.ifi.csg.smartcontract.app.common.permission.PermissionProvider;
-import ch.uzh.ifi.csg.smartcontract.app.common.provider.ApplicationContext;
-import ch.uzh.ifi.csg.smartcontract.app.common.provider.ApplicationContextProvider;
+import ch.uzh.ifi.csg.smartcontract.app.common.ApplicationContext;
+import ch.uzh.ifi.csg.smartcontract.app.common.ApplicationContextProvider;
 
 import static android.app.Activity.RESULT_OK;
 

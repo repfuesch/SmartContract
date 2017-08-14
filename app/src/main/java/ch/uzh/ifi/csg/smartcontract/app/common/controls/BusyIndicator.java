@@ -1,4 +1,4 @@
-package ch.uzh.ifi.csg.smartcontract.app.common;
+package ch.uzh.ifi.csg.smartcontract.app.common.controls;
 
 import android.os.Handler;
 import android.os.Looper;

@@ -7,7 +7,7 @@ import android.widget.Button;
 
 import java.io.File;
 import ch.uzh.ifi.csg.smartcontract.app.R;
-import ch.uzh.ifi.csg.smartcontract.app.common.BusyIndicator;
+import ch.uzh.ifi.csg.smartcontract.app.common.controls.BusyIndicator;
 import ch.uzh.ifi.csg.smartcontract.app.p2p.service.P2PBuyerService;
 import ch.uzh.ifi.csg.smartcontract.app.p2p.service.UserProfileListener;
 import ch.uzh.ifi.csg.smartcontract.library.datamodel.ContractInfo;

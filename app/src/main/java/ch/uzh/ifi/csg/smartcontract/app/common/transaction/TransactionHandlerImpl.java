@@ -11,7 +11,7 @@ import ch.uzh.ifi.csg.smartcontract.library.async.promise.SimplePromise;
 import ch.uzh.ifi.csg.smartcontract.library.contract.ITradeContract;
 import ch.uzh.ifi.csg.smartcontract.library.datamodel.ContractInfo;
 import ch.uzh.ifi.csg.smartcontract.library.service.contract.ContractService;
-import ch.uzh.ifi.csg.smartcontract.app.common.provider.ApplicationContext;
+import ch.uzh.ifi.csg.smartcontract.app.common.ApplicationContext;
 
 /**
  * Implementation of the {@link TransactionHandler} interface.

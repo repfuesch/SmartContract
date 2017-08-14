@@ -43,11 +43,11 @@ import ch.uzh.ifi.csg.smartcontract.library.contract.ITradeContract;
 import ch.uzh.ifi.csg.smartcontract.app.common.controls.ProportionalImageView;
 import ch.uzh.ifi.csg.smartcontract.app.common.dialog.ImageDialogFragment;
 import ch.uzh.ifi.csg.smartcontract.app.common.permission.PermissionProvider;
-import ch.uzh.ifi.csg.smartcontract.app.common.provider.ApplicationContext;
+import ch.uzh.ifi.csg.smartcontract.app.common.ApplicationContext;
 import ch.uzh.ifi.csg.smartcontract.library.util.Web3Util;
 import ch.uzh.ifi.csg.smartcontract.library.service.exchange.Currency;
 import ch.uzh.ifi.csg.smartcontract.app.R;
-import ch.uzh.ifi.csg.smartcontract.app.common.provider.ApplicationContextProvider;
+import ch.uzh.ifi.csg.smartcontract.app.common.ApplicationContextProvider;
 import ch.uzh.ifi.csg.smartcontract.app.common.validation.RequiredTextFieldValidator;
 import ch.uzh.ifi.csg.smartcontract.app.overview.ContractOverviewActivity;
 

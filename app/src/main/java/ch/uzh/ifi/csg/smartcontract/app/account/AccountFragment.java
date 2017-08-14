@@ -24,10 +24,10 @@ import ch.uzh.ifi.csg.smartcontract.library.datamodel.Account;
 import ch.uzh.ifi.csg.smartcontract.library.service.account.AccountService;
 import ch.uzh.ifi.csg.smartcontract.library.util.FileUtil;
 import ch.uzh.ifi.csg.smartcontract.app.R;
-import ch.uzh.ifi.csg.smartcontract.app.common.BusyIndicator;
+import ch.uzh.ifi.csg.smartcontract.app.common.controls.BusyIndicator;
 import ch.uzh.ifi.csg.smartcontract.app.common.broadcast.BroadCastService;
-import ch.uzh.ifi.csg.smartcontract.app.common.provider.ApplicationContext;
-import ch.uzh.ifi.csg.smartcontract.app.common.provider.ApplicationContextProvider;
+import ch.uzh.ifi.csg.smartcontract.app.common.ApplicationContext;
+import ch.uzh.ifi.csg.smartcontract.app.common.ApplicationContextProvider;
 
 /**
  * Displays a list of accounts in a {@link RecyclerView} instance. Implements methods

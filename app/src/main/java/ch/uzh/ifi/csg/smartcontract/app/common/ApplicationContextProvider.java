@@ -1,4 +1,4 @@
-package ch.uzh.ifi.csg.smartcontract.app.common.provider;
+package ch.uzh.ifi.csg.smartcontract.app.common;
 
 /**
  * Interface that returns the {@link ApplicationContext}

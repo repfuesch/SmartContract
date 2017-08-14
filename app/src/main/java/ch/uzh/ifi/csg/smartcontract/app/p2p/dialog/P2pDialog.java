@@ -16,8 +16,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import ch.uzh.ifi.csg.smartcontract.app.R;
-import ch.uzh.ifi.csg.smartcontract.app.common.provider.ApplicationContext;
-import ch.uzh.ifi.csg.smartcontract.app.common.provider.ApplicationContextProvider;
+import ch.uzh.ifi.csg.smartcontract.app.common.ApplicationContext;
+import ch.uzh.ifi.csg.smartcontract.app.common.ApplicationContextProvider;
 import ch.uzh.ifi.csg.smartcontract.library.datamodel.UserProfile;
 import ch.uzh.ifi.csg.smartcontract.library.p2p.peer.P2pCallback;
 

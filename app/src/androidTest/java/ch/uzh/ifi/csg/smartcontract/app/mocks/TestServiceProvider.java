@@ -4,7 +4,7 @@ import ch.uzh.ifi.csg.smartcontract.library.service.account.AccountService;
 import ch.uzh.ifi.csg.smartcontract.library.service.connection.EthConnectionService;
 import ch.uzh.ifi.csg.smartcontract.library.service.contract.ContractService;
 import ch.uzh.ifi.csg.smartcontract.library.service.exchange.EthConvertService;
-import ch.uzh.ifi.csg.smartcontract.app.common.provider.ServiceProvider;
+import ch.uzh.ifi.csg.smartcontract.app.common.service.ServiceProvider;
 
 import static org.mockito.Mockito.mock;
 

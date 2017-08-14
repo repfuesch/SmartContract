@@ -27,20 +27,14 @@ import net.glxn.qrgen.android.QRCode;
 import org.jdeferred.Promise;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.concurrent.Callable;
 
-import ch.uzh.ifi.csg.smartcontract.app.common.BusyIndicator;
-import ch.uzh.ifi.csg.smartcontract.app.common.controls.ProportionalImageView;
+import ch.uzh.ifi.csg.smartcontract.app.common.controls.BusyIndicator;
 import ch.uzh.ifi.csg.smartcontract.library.async.Async;
 import ch.uzh.ifi.csg.smartcontract.library.async.promise.AlwaysCallback;
 import ch.uzh.ifi.csg.smartcontract.library.async.promise.DoneCallback;
 import ch.uzh.ifi.csg.smartcontract.library.async.promise.FailCallback;
 import ch.uzh.ifi.csg.smartcontract.library.datamodel.UserProfile;
-import ch.uzh.ifi.csg.smartcontract.library.service.exchange.Currency;
 import ch.uzh.ifi.csg.smartcontract.library.service.serialization.GsonSerializationService;
 import ch.uzh.ifi.csg.smartcontract.library.util.ImageHelper;
 import ezvcard.VCard;
@@ -50,8 +44,8 @@ import ezvcard.property.StructuredName;
 import ch.uzh.ifi.csg.smartcontract.app.R;
 import ch.uzh.ifi.csg.smartcontract.app.common.dialog.ImageDialogFragment;
 import ch.uzh.ifi.csg.smartcontract.app.common.permission.PermissionProvider;
-import ch.uzh.ifi.csg.smartcontract.app.common.provider.ApplicationContext;
-import ch.uzh.ifi.csg.smartcontract.app.common.provider.ApplicationContextProvider;
+import ch.uzh.ifi.csg.smartcontract.app.common.ApplicationContext;
+import ch.uzh.ifi.csg.smartcontract.app.common.ApplicationContextProvider;
 import ch.uzh.ifi.csg.smartcontract.app.common.validation.RequiredTextFieldValidator;
 
 import static android.app.Activity.RESULT_OK;

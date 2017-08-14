@@ -12,7 +12,7 @@ import java.math.BigInteger;
 
 import ch.uzh.ifi.csg.smartcontract.app.R;
 import ch.uzh.ifi.csg.smartcontract.app.account.AccountActivity;
-import ch.uzh.ifi.csg.smartcontract.app.common.provider.ApplicationContext;
+import ch.uzh.ifi.csg.smartcontract.app.common.ApplicationContext;
 import ch.uzh.ifi.csg.smartcontract.app.setting.SettingsActivity;
 
 /**
