@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -52,7 +53,7 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
     private TextView accountBalanceField;
 
     private ApplicationContext appContext;
-    private Class callingActivityClass;
+
     private ContractBroadcastReceiver broadcastReceiver = null;
     private IntentFilter contractIntentFilter;
     private boolean broadcastReceiverRegistered = false;
@@ -80,8 +81,6 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
         if(accountBalanceView != null)
             accountBalanceField = (TextView) accountBalanceView.findViewById(R.id.account_balance_field);
 
-        if (getIntent().getSerializableExtra("from") != null)
-            callingActivityClass = (Class) getIntent().getSerializableExtra("from");
     }
 
     /**
@@ -106,27 +105,9 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
         return super.onCreateOptionsMenu(menu);
     }
 
-    protected void startActivity(Activity callingActivity, Class nextActivity) {
-        Intent intent = new Intent(this, nextActivity);
-        intent.putExtra("from", callingActivity.getClass());
-        startActivity(intent);
-    }
-
-    @Override
-    public void onBackPressed() {
-        //super.onBackPressed();
-        if (callingActivityClass != null) {
-            startActivity(this, callingActivityClass);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
     /**
      * Menu interaction logic for a MenuItem
      *
-     * @param item
-     * @return
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -165,9 +146,7 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
     /**
      * Handles the result of a Permission request
      *
-     * @param requestCode
-     * @param permissions
-     * @param grantResults
+     * see {@link FragmentActivity#onRequestPermissionsResult(int, String[], int[])}
      */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -198,7 +177,11 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
         }
     }
 
-    private void updateAccountBalance() {
+    /**
+     * Tries to update the account balance field on the top left corner (if available in this activity)
+     */
+    protected void updateAccountBalance()
+    {
         String selectedAccount = appContext.getSettingProvider().getSelectedAccount();
         if (!selectedAccount.isEmpty()) {
             appContext.getServiceProvider().getAccountService().getAccountBalance(selectedAccount)
@@ -262,8 +245,7 @@ public abstract class ActivityBase extends AppCompatActivity implements Applicat
             broadcastReceiverRegistered = true;
         }
 
-        if(accountBalanceView != null)
-            updateAccountBalance();
+        updateAccountBalance();
 
         //check if there are pending permission requests and notify the derived Activity
         if(requestedPermission != null)

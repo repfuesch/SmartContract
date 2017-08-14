@@ -27,6 +27,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/overview_menu"
                 android:layout_marginBottom="8dp"
+                android:paddingBottom="8dp"
                 android:orientation="horizontal">
 
                 <include layout="@layout/fragment_account_balance"/>

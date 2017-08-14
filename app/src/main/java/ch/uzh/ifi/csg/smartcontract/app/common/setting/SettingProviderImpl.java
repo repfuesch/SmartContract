@@ -92,9 +92,9 @@ public class SettingProviderImpl extends BroadcastReceiver implements SettingPro
     }
 
     @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s)
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
     {
-        setSetting(sharedPreferences, s);
+        setSetting(sharedPreferences, key);
         appContext.getBroadCastService().sendBroadcast(new Intent(ACTION_SETTINGS_CHANGED));
     }
 
@@ -124,6 +124,14 @@ public class SettingProviderImpl extends BroadcastReceiver implements SettingPro
                 transactionSleepDuration = Integer.valueOf(preferences.getString(SettingsActivity.KEY_PREF_TRANSACTION_SLEEP_DURATION, ""));
                 break;
             case SettingsActivity.KEY_PREF_ACCOUNT_MANAGEMENT:
+
+                //make sure that the account is locked before changing account management settings
+                if(key.equals(SettingsActivity.KEY_PREF_ACCOUNT_MANAGEMENT) && !selectedAccount.isEmpty())
+                {
+                    appContext.getServiceProvider().getAccountService().lockAccount();
+                    selectedAccount = "";
+                }
+
                 useRemoteAccounts = preferences.getString(SettingsActivity.KEY_PREF_ACCOUNT_MANAGEMENT, "").equalsIgnoreCase("remote");
                 break;
             case SettingsActivity.KEY_PREF_CLIENT_POLLING_INTERVAL:

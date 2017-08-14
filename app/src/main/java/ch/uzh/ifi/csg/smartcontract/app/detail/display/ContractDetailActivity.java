@@ -26,7 +26,7 @@ import ch.uzh.ifi.csg.smartcontract.library.datamodel.UserProfile;
 import ch.uzh.ifi.csg.smartcontract.library.service.serialization.GsonSerializationService;
 
 /**
- * Activity that contains a  {@link ContractDetailFragment} instance to display the details of a
+ * Activity that contains a  {@link ContractDetailFragment} instance to display the details of an
  * {@link ITradeContract} instance. The concrete fragment type depends on the
  * {@link #EXTRA_CONTRACT_TYPE} provided in the start intent and the {@link #EXTRA_CONTRACT_ADDRESS}
  * references the contract to load.
@@ -342,6 +342,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
     @Override
     public void contractStateChanged(String event, Object value)
     {
+        updateAccountBalance();
         detailFragment.init(contract);
     }
 
@@ -402,7 +403,7 @@ public class ContractDetailActivity extends ActivityBase implements IContractObs
 
         if(tabHost == null)
         {
-            //must make e 'hard reset' here and create activity new. Otherwise, the application crashes,
+            //must make e 'hard reset' here and create Activity new. Otherwise, the application crashes,
             //when the Activity is recreated due to orientation changes...
             FragmentManager fm = getFragmentManager();
             fm.beginTransaction()

@@ -106,6 +106,9 @@ public class ImageDialogFragment extends DialogFragment implements View.OnTouchL
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent)
     {
+        if(bitmaps == null)
+            return true;
+
         switch(motionEvent.getAction())
         {
             case MotionEvent.ACTION_DOWN:

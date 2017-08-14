@@ -10,14 +10,16 @@
         android:layout_width="match_parent"
         android:layout_alignParentTop="true"
         android:id="@+id/profile_header"
-        android:layout_height="wrap_content"
+        android:layout_height="100dp"
+        android:layout_gravity="center"
         android:layout_margin="8dp">
 
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical"
-            android:layout_margin="16dp"
+            android:gravity="center"
+            android:layout_marginLeft="32dp"
             android:layout_alignParentLeft="true">
 
             <ch.uzh.ifi.csg.smartcontract.app.common.controls.ProportionalImageView
@@ -31,9 +33,10 @@
 
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
             android:orientation="vertical"
-            android:layout_margin="16dp"
+            android:layout_marginRight="32dp"
             android:layout_alignParentRight="true">
 
             <ch.uzh.ifi.csg.smartcontract.app.common.controls.ProportionalImageView
@@ -226,7 +229,7 @@
         android:gravity="center">
 
         <Button
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="save"
             android:visibility="gone"

@@ -1,6 +1,7 @@
 package ch.uzh.ifi.csg.smartcontract.app.account;
 
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
@@ -164,6 +165,18 @@ public class AccountDialogFragment extends DialogFragment implements TextWatcher
     public void onAttach(Context context) {
         super.onAttach(context);
 
+        attachContext(context);
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        attachContext(activity);
+    }
+
+    private void attachContext(Context context)
+    {
         if(context instanceof AccountDialogListener)
         {
             listener = (AccountDialogListener) context;

@@ -17,7 +17,7 @@ import ch.uzh.ifi.csg.smartcontract.app.common.setting.SettingProvider;
 
 /**
  * Android {@link RecyclerView.Adapter} that manages a list of {@link Account} objects. Its {@link
- * ViewHolder} items contain the UI logic to lock/unlock a specific account
+ * ViewHolder} items display an individual account and contain the UI logic to lock/unlock it.
  */
 public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecyclerViewAdapter.ViewHolder> {
 
@@ -41,6 +41,7 @@ public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecy
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
+        //init view with correct account object
         holder.account = accounts.get(position);
         holder.initView();
     }
@@ -59,7 +60,6 @@ public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecy
         private final EditText passwordView;
         private final ImageButton loginButton;
         private final LinearLayout accountView;
-        private final LinearLayout loginView;
 
         private Handler handler;
         private OnAccountListener loginListener;
@@ -79,7 +79,6 @@ public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecy
             this.passwordView = (EditText) view.findViewById(R.id.account_password_field);
             this.loginButton = (ImageButton) view.findViewById(R.id.account_login_button);
             this.accountView = (LinearLayout) view.findViewById(R.id.account_view);
-            this.loginView = (LinearLayout) view.findViewById(R.id.account_login_view);
 
             loginButton.setOnClickListener(this);
             passwordView.setOnClickListener(this);
@@ -173,6 +172,7 @@ public class AccountRecyclerViewAdapter extends RecyclerView.Adapter<AccountRecy
 
     /**
      * Implemented by the {@link ViewHolder} to get notified about the result of an unlock attempt
+     * by the {@link AccountFragment}
      */
     public interface OnAccountLoginResultListener
     {

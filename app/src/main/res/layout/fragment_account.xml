@@ -38,7 +38,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="@color/cardview_light_background"
                     android:text="aiufjbiuafbdiaubfiuafbapoifbubaoaf"
-                    android:textSize="8dp"
+                    android:textSize="10dp"
                     android:id="@+id/account_id_field"/>
 
                 <LinearLayout

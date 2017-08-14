@@ -231,6 +231,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
             profileImage.setImageURI(Uri.fromFile(new File(profile.getProfileImagePath())));
         }else{
             profile.setProfileImagePath(userProfile.getProfileImagePath());
+            if(profile.getProfileImagePath() != null)
+                profileImage.setImageURI(Uri.fromFile(new File(profile.getProfileImagePath())));
         }
 
         if(profile.getVCard() == null)
