@@ -35,4 +35,47 @@ The application has the following dependencies :
      2. Go to *Build* --> *Rebuild Project*
 3. The SmartContract application file is in the following path /app/build/outputs/apk.
 
-# Usage Instructions
+# Directory Structure
+
+```
+.
+├── app                                 <- gitignore and gradle build files for the project
+|   |── src                             <- source code of the application and the unit tests
+|   |   |── android test                <- Android unit tests of the application
+|   |   |   |── mocks                   <- Custom instrumentation runner and TestAppContext
+|   |   |   |── ViewHelper              <- Custom ViewAssertions and matchers
+|   |   |── main                        <- source code of the application
+|   |   |   |── app                     <- source code of the Android Activities, Fragments and services
+|   |   |   |   |── account             <- Activites and Fragments for account managing
+|   |   |   |   |── common              <- ActivityBase class + AppContext custom application class
+|   |   |   |   |   |── broadcast       <- BroadcastService 
+|   |   |   |   |   |── controls        <- Custom ImgeView control
+|   |   |   |   |   |── dialog          <- Dialogs to display messages and images
+|   |   |   |   |   |── permission      <- Permission provider
+|   |   |   |   |   |── service         <- Provider for the Account- and ContractServices
+|   |   |   |   |   |── setting         <- SettingProvider
+|   |   |   |   |   |── transaction     <- TransactionHandler
+|   |   |   |   |   |── validation      <- Classes to validate text fields
+|   |   |   |   |── detail
+|   |   |   |   |   |── create          <- Activity and Fragments to deploy contracts
+|   |   |   |   |   |── display         <- Activity and Fragments to display and interact with contracts
+|   |   |   |   |── overview            <- Activity and Fragments to display an overview of contracts
+|   |   |   |   |── p2p                 <- UI components and service classes to import/export contracts
+|   |   |   |   |── profile             <- Activity and Fragments to display and edit user profiles
+|   |   |   |   |── qrcode              <- Activity to scan QR codes
+|   |   |   |   |── setting             <- Activity and Framgent to mange SharedPreferences
+|   |   |   |── library                 <- cource code of the Java library code (contract wrappers + service classes)
+|   |   |   |   |── async               <- Helper class to create Promises
+|   |   |   |   |   |── promise         <- Promise wrapper interface and class
+|   |   |   |   |── contract            <- Java wrapper classes and interfaces for the smart contracts
+|   |   |   |   |── datamodel           <- Classes to represent contracts and accounts on the local file system
+|   |   |   |   |── peer                <- Java server and client code to import/export contracts
+|   |   |   |   |── service             <- Factory to create service classes
+|   |   |   |   |   |── account         <- Service interfaces and classes to manage accounts
+|   |   |   |   |   |── connection      <- Service to check the connection to the host
+|   |   |   |   |   |── contract        <- Service interfaces and classes to manage contracts
+|   |   |   |   |   |── exchange        <- Service to convert currencies to ether and vice versa
+|   |   |   |   |   |── serialization   <- JSON serialization classes
+|   |   |   |   |── util                <- Helper classes
+|   |   |── test               <_ unit  tests of the application
+
