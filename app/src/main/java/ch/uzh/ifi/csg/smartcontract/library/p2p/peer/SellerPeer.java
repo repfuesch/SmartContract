@@ -42,7 +42,7 @@ public class SellerPeer extends PeerBase implements ContractInfoListener
         userProfile = serializationService.deserialize(jsonString, new TypeToken<UserProfile>(){}.getType());
         if(userProfile.getProfileImagePath() != null)
         {
-            //save profile image
+            //save profile image in a temporary file
             callback.onP2pInfoMessage("Receiving profile image");
             File tempFile = FileUtil.createTemporaryFile("image", "jpg");
             readFile(inputStream, tempFile);

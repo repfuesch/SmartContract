@@ -23,13 +23,22 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import net.glxn.qrgen.android.QRCode;
+
+import org.jdeferred.Promise;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.concurrent.Callable;
 
+import ch.uzh.ifi.csg.smartcontract.app.common.BusyIndicator;
 import ch.uzh.ifi.csg.smartcontract.app.common.controls.ProportionalImageView;
+import ch.uzh.ifi.csg.smartcontract.library.async.Async;
+import ch.uzh.ifi.csg.smartcontract.library.async.promise.AlwaysCallback;
+import ch.uzh.ifi.csg.smartcontract.library.async.promise.DoneCallback;
+import ch.uzh.ifi.csg.smartcontract.library.async.promise.FailCallback;
 import ch.uzh.ifi.csg.smartcontract.library.datamodel.UserProfile;
 import ch.uzh.ifi.csg.smartcontract.library.service.exchange.Currency;
 import ch.uzh.ifi.csg.smartcontract.library.service.serialization.GsonSerializationService;
@@ -71,6 +80,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
     private Button saveButton;
     private ImageView qrImageView;
     private ImageView profileImage;
+    private LinearLayout profileImageContainer;
 
     private ProfileMode mode;
     private ApplicationContext appContext;
@@ -129,6 +139,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
         saveButton = (Button) view.findViewById(R.id.action_save_profile);
         qrImageView = (ImageView) view.findViewById(R.id.profile_qr_image);
         profileImage = (ImageView) view.findViewById(R.id.profile_image);
+        profileImageContainer = (LinearLayout) view.findViewById(R.id.profile_image_container);
 
         saveButton.setOnClickListener(this);
         qrImageView.setOnClickListener(this);
@@ -373,31 +384,58 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, T
         }
     }
 
-    private void replaceImage(Uri uri)
+    private void replaceImage(final Uri uri)
     {
-        try
+        //delete old image
+        if(profile.getProfileImagePath() != null)
         {
-            //delete old image
-            if(profile.getProfileImagePath() != null)
-                new File(profile.getProfileImagePath()).delete();
-
-            //obtain the correctly oriented bitmap from the Uri
-            Bitmap bmp = ImageHelper.getCorrectlyOrientedImage(getActivity(), uri, 1280);
-            //save profile image on the file system
-            File imgFile = ImageHelper.saveBitmap(bmp, appContext.getSettingProvider().getImageDirectory());
-
-            profile.setProfileImagePath(imgFile.getAbsolutePath());
-            profileImage.setImageURI(Uri.fromFile(imgFile));
-
-            //notify the parent activity that the profile data changed
-            if(verifyFields())
-                dataChangedListener.onProfileDataChanged(getProfileInformation());
+            new File(profile.getProfileImagePath()).delete();
+            profile.setProfileImagePath(null);
         }
-        catch (Exception e)
-        {
-            appContext.getMessageService().showErrorMessage("Could not process the provided image.");
-            Log.e("profile", "Could not process the provided image.", e);
-        }
+
+        BusyIndicator.show(profileImageContainer);
+
+        //scale and safe image in a background thread
+        Async.toPromise(new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+
+                //obtain the correctly oriented bitmap from the Uri
+                Bitmap bmp = ImageHelper.getCorrectlyOrientedImage(getActivity(), uri, 800);
+                //save profile image on the file system
+                File imgFile = ImageHelper.saveBitmap(bmp, appContext.getSettingProvider().getImageDirectory());
+
+                return imgFile;
+            }
+        }).done(new DoneCallback<File>() {
+            @Override
+            public void onDone(final File result) {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        //update profile and image
+                        profile.setProfileImagePath(result.getAbsolutePath());
+                        profileImage.setImageURI(Uri.fromFile(result));
+
+                        //notify the parent activity that the profile data changed
+                        if(verifyFields())
+                            dataChangedListener.onProfileDataChanged(getProfileInformation());
+                    }
+                });
+            }
+        }).fail(new FailCallback() {
+            @Override
+            public void onFail(Throwable result) {
+                appContext.getMessageService().showErrorMessage("Could not process the provided image.");
+                Log.e("profile", "Could not process the provided image.", result);
+            }
+        }).always(new AlwaysCallback<File>() {
+            @Override
+            public void onAlways(Promise.State state, File resolved, Throwable rejected) {
+                BusyIndicator.hide(profileImageContainer);
+            }
+        });
     }
 
     @Override

@@ -54,7 +54,7 @@ public class BuyerPeer extends PeerBase implements UserProfileListener {
                 for(String sig : contractInfo.getImages().keySet())
                 {
                     //We receive additional image files belonging to the contract and save them
-                    //first in a temporary file
+                    //in a temporary file
                     File tempFile = FileUtil.createTemporaryFile("image", "jpg");
                     readFile(inputStream, tempFile);
                     contractInfo.getImages().put(sig, tempFile.getAbsolutePath());

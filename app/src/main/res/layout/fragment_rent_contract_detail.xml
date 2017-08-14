@@ -304,6 +304,7 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="rent"
+                android:enabled="false"
                 android:background="@drawable/button_selector"
                 android:id="@+id/rent_button" />
 
@@ -317,6 +318,7 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="abort"
+                android:enabled="false"
                 android:background="@drawable/button_selector"
                 android:id="@+id/abort_button" />
 
@@ -330,6 +332,7 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="return"
+                android:enabled="false"
                 android:background="@drawable/button_selector"
                 android:id="@+id/return_button"/>
 
@@ -343,6 +346,7 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="reclaim"
+                android:enabled="false"
                 android:background="@drawable/button_selector"
                 android:id="@+id/reclaim_button"/>
 
